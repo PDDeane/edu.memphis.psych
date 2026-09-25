@@ -2355,18 +2355,19 @@ def check_slot_rules_backlog_is_being_cleared() -> list[str]:
     budget means one was migrated and the ceiling was not lowered, which leaves
     room for a replacement to arrive unnoticed.
     """
-    n = len(SLOT_RULE_BACKLOG)
-    if n > SLOT_RULE_BACKLOG_BUDGET:
-        return [f"SLOT_RULE_BACKLOG holds {n} entries against a budget of "
-                f"{SLOT_RULE_BACKLOG_BUDGET} -- {n - SLOT_RULE_BACKLOG_BUDGET} "
-                f"olx-only slot rule(s) were ADDED. Put the text in the credit "
-                f"component's `rule` field, which both generators render, rather "
-                f"than in SLOT_NOTES, which the paper scorer never sees"]
-    if n < SLOT_RULE_BACKLOG_BUDGET:
-        return [f"SLOT_RULE_BACKLOG is down to {n} entries but the budget still "
-                f"says {SLOT_RULE_BACKLOG_BUDGET} -- lower it to {n}, or the slack "
-                f"lets a new olx-only slot rule in without the audit noticing"]
-    return []
+    # THE RULE LIVES IN LO-BLOCKS NOW. Goal K. Same ratchet, different noun --
+    # see `check_handcoded_rules_are_being_cleared`.
+    import lo_enforce
+
+    return lo_enforce.run("ratchets_only_tighten", {"ratchets": [{
+        "table": "SLOT_RULE_BACKLOG", "budgetName": "SLOT_RULE_BACKLOG_BUDGET",
+        "count": len(SLOT_RULE_BACKLOG), "budget": SLOT_RULE_BACKLOG_BUDGET,
+        "unit": "olx-only slot rule",
+        "advice": "Put the text in the credit component's `rule` field, which "
+                  "both generators render, rather than in SLOT_NOTES, which the "
+                  "paper scorer never sees",
+    }]})
+
 
 
 def _note_reaches(note: str, prompt: str) -> bool:
@@ -3421,18 +3422,21 @@ def check_handcoded_rules_are_being_cleared() -> list[str]:
     the table is growing. Under budget means work landed and the budget was not
     lowered, which would silently leave room for a new entry to take its place.
     """
-    n = len(HANDCODED_ITEM_RULES)
-    if n > HANDCODED_BUDGET:
-        extra = n - HANDCODED_BUDGET
-        return [f"HANDCODED_ITEM_RULES holds {n} entries against a budget of "
-                f"{HANDCODED_BUDGET} -- {extra} hand-coded rule(s) were ADDED. A "
-                f"declaration is a promise to convert it, not a licence to keep "
-                f"it: convert the rule, or lower the budget only when one goes"]
-    if n < HANDCODED_BUDGET:
-        return [f"HANDCODED_ITEM_RULES is down to {n} entries but the budget still "
-                f"says {HANDCODED_BUDGET} -- lower it to {n}, or the slack lets a "
-                f"new hand-coded rule in without the audit noticing"]
-    return []
+    # THE RULE LIVES IN LO-BLOCKS NOW. Goal K, and `enforce/ratchet.ts` serves
+    # MORE THAN ONE of these checks: "a ratchet may only tighten" was the same
+    # fifteen lines in each, with different nouns. Python supplies the count,
+    # the budget and the noun.
+    import lo_enforce
+
+    return lo_enforce.run("ratchets_only_tighten", {"ratchets": [{
+        "table": "HANDCODED_ITEM_RULES", "budgetName": "HANDCODED_BUDGET",
+        "count": len(HANDCODED_ITEM_RULES), "budget": HANDCODED_BUDGET,
+        "unit": "hand-coded rule",
+        "advice": "A declaration is a promise to convert it, not a licence to "
+                  "keep it: convert the rule, or lower the budget only when one "
+                  "goes",
+    }]})
+
 
 
 def check_no_undeclared_handcoded_rules() -> list[str]:
@@ -5864,21 +5868,17 @@ def check_parked_entries_still_apply() -> list[str]:
     owns, so it is checked there and reported here; this function covers the
     budget and the shape.
     """
-    out = []
-    if len(PARKED_UNDECLARED) > PARKED_BUDGET:
-        out.append(
-            f"PARKED_UNDECLARED holds {len(PARKED_UNDECLARED)} entr(ies) against "
-            f"a budget of {PARKED_BUDGET}. An issue was parked without raising "
-            f"the budget -- raise it deliberately with the entry, or unpark")
-    for key, why in sorted(PARKED_UNDECLARED.items()):
-        if not isinstance(key, tuple) or len(key) != 2:
-            out.append(f"PARKED_UNDECLARED key {key!r} is not (item, kind)")
-        if len((why or "").strip()) < 30:
-            out.append(
-                f"PARKED_UNDECLARED[{key!r}] gives no usable reason. Say what the "
-                f"issue is and what would unpark it -- a park with no reason is "
-                f"an override that never expires")
-    return out
+    # THE RULE LIVES IN LO-BLOCKS NOW. Goal K. The parking lot is course data;
+    # "an override needs a budget raised deliberately and a reason that says
+    # what would unpark it" is generic.
+    import lo_enforce
+
+    entries = [{"key": list(k) if isinstance(k, tuple) else [k],
+                "keyRepr": repr(k), "why": str(why or "")}
+               for k, why in sorted(PARKED_UNDECLARED.items(), key=lambda kv: repr(kv[0]))]
+    return lo_enforce.run("parked_entries_still_apply",
+                          {"entries": entries, "budget": PARKED_BUDGET})
+
 
 
 def check_no_module_defines_names_after_its_main_guard() -> list[str]:
