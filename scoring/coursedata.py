@@ -179,6 +179,10 @@ RUBRIC_FIELDS = {
     # one code, listing every missing member. Read by the scorer, like the gates
     # beside it, so it belongs to the rubric group and not the generator's.
     "oc_conjunctions",
+    # WHICH CODE EACH SLOT CHARGES, carried onto the item so a scorer can read
+    # its own slot vocabulary -- M step 1, whose absence is what kept the enum
+    # comparisons hardcoded.
+    "slot_charges",
     "derived", "reads_utb_choice", "requires", "cover", "move_pick",
     "avoidance_scores", "graph_item",
     # THE CONDITIONS THEMSELVES, and one attribute recovered from the rubric that

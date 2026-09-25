@@ -2949,7 +2949,7 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Guidance>IMPLICIT (from gold): advisory notes without deduction are common on these items — "I suggest changing your punisher to something not related to exercise" was written on a 4.0. Put that kind of remark in advisory_note.</Guidance>
     <Guidance use="@oc_criteria"/>
     <Forbid key="consequence_not_a_setup" conds="restriction_authored=created,trigger_expects=gain,restricts=other_thing"/>
-    <Equals key="matches_chosen_type" left="observed_type" right="named_type" lenient="unclear"/>
+    <Equals key="matches_chosen_type" left="observed_type" right="named_type" lenient="unclear" note="This example is {observed}, but you chose {named}."/>
     <Context item="_utb"/>
     <Context item="_wgb"/>
     <Context item="T1"/>
@@ -3009,7 +3009,7 @@ Answer `absent` in these cases.
     <Guidance>IMPLICIT (from gold): advisory notes without deduction are common on these items — "I suggest changing your punisher to something not related to exercise" was written on a 4.0. Put that kind of remark in advisory_note.</Guidance>
     <Guidance use="@oc_criteria"/>
     <Expect key="targets_own_behavior" left="trigger_behavior" value="utb" lenient="wgb"/>
-    <Equals key="matches_chosen_type" left="observed_type" right="named_type" lenient="unclear"/>
+    <Equals key="matches_chosen_type" left="observed_type" right="named_type" lenient="unclear" note="This example is {observed}, but you chose {named}."/>
     <Context item="_utb"/>
     <Context item="_wgb"/>
     <Context item="T1"/>
@@ -3128,7 +3128,7 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Guidance>IMPLICIT (from gold): advisory notes without deduction are common on these items — "I suggest changing your punisher to something not related to exercise" was written on a 4.0. Put that kind of remark in advisory_note.</Guidance>
     <Guidance use="@oc_criteria"/>
     <Forbid key="consequence_not_a_setup" conds="restriction_authored=created,trigger_expects=gain,restricts=other_thing"/>
-    <Equals key="matches_chosen_type" left="observed_type" right="named_type" lenient="unclear"/>
+    <Equals key="matches_chosen_type" left="observed_type" right="named_type" lenient="unclear" note="This example is {observed}, but you chose {named}."/>
     <Context item="_utb"/>
     <Context item="_wgb"/>
     <Context item="T2"/>
@@ -3205,7 +3205,7 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Guidance>IMPLICIT (from gold): advisory notes without deduction are common on these items — "I suggest changing your punisher to something not related to exercise" was written on a 4.0. Put that kind of remark in advisory_note.</Guidance>
     <Guidance use="@oc_criteria"/>
     <Forbid key="consequence_not_a_setup" conds="restriction_authored=created,trigger_expects=gain,restricts=other_thing"/>
-    <Equals key="matches_chosen_type" left="observed_type" right="named_type" lenient="unclear"/>
+    <Equals key="matches_chosen_type" left="observed_type" right="named_type" lenient="unclear" note="This example is {observed}, but you chose {named}."/>
     <Context item="_utb"/>
     <Context item="_wgb"/>
     <Context item="T2"/>

@@ -81,6 +81,22 @@ def _profiles():
     return out
 
 
+def _enum(oc, item: dict, fact: str) -> list:
+    """The values this item's schema admits for `fact`, cached per item.
+
+    Falls back to the shared `TYPES` for a fact the schema does not constrain,
+    so an item that asks something open still gets swept.
+    """
+    key = (item.get("id"), fact)
+    if key not in _ENUM_CACHE:
+        props = oc.schema_fragment(item)["properties"]["oc_analysis"]["properties"]
+        _ENUM_CACHE[key] = list((props.get(fact) or {}).get("enum") or TYPES)
+    return _ENUM_CACHE[key]
+
+
+_ENUM_CACHE: dict = {}
+
+
 def _asked(oc, item: dict) -> frozenset:
     """The fact names this item's own schema asks for, cached per item.
 
@@ -112,7 +128,15 @@ def sweep() -> list:
     for iid in sorted(items):
         item = items[iid]
         for bits in itertools.product([False, True], repeat=len(GATE_FACTS)):
-            for obs, named in itertools.product(TYPES, TYPES):
+            # EACH FACT'S OWN DECLARED ENUM, not one shared list. The shared
+            # `TYPES` offered `""` for both, which neither slot admits, and
+            # never produced `none` or `unclear` -- which the schema does admit
+            # and which are the values that MATTER: `unclear` is the lenient
+            # value the equals rule exists to forgive, so the guard could not
+            # tell a correct lenient list from an empty one. Measured: emptying
+            # it changed nothing.
+            for obs, named in itertools.product(_enum(oc, item, "observed_type"),
+                                                _enum(oc, item, "named_type")):
                 for prof in _profiles():
                     a = dict(prof)
                     for f, b in zip(GATE_FACTS, bits):

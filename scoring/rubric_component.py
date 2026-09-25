@@ -412,8 +412,13 @@ def as_view_items(path: str | None = None) -> list[dict]:
             ("Expect", "expect", [("key", "key", None), ("left", "left", None),
                                   ("value", "value", None),
                                   ("lenient", "lenient", lambda v: _list(v, "|"))]),
+            # `note` is the ledger's WORDING for the charge, carried on the rule
+            # that decides it. Not emitted into the web's `equals=` attribute --
+            # that is `key:left,right:lenient` and the web takes its student-
+            # facing text from `<Deduction>` -- so this is the paper ledger's
+            # half of a rule both sides otherwise share.
             ("Equals", "equals", [("key", "key", None), ("left", "left", None),
-                                  ("right", "right", None),
+                                  ("right", "right", None), ("note", "note", None),
                                   ("lenient", "lenient", lambda v: _list(v, "|"))]),
             ("Onlyif", "onlyif", [("key", "key", None), ("cond", "cond", None)]),
             ("Requires", "requires", [("key", "key", None), ("cond", "cond", None),
@@ -465,6 +470,20 @@ def as_view_items(path: str | None = None) -> list[dict]:
                 for c in el.findall("Conjunction") if c.get("code")]
         if conj:
             it["oc_conjunctions"] = conj
+
+        # THE SLOT VOCABULARY THE SCORER NEEDS. M step 1, in its minimal form:
+        # "a scorer receives an ITEM DICT, and slot vocabularies live in the
+        # rubric view's SLOT_SPEC, keyed by item. Until a scorer can read those,
+        # an enum comparison cannot be declared -- only hardcoded."
+        #
+        # Carried the same way `oc_gates` and `oc_conjunctions` are, rather than
+        # by handing the scorer a global table: a rule that says WHICH code a
+        # computed check charges is a property of the item, and the scorer
+        # already reads the item.
+        charges = {s.get("key"): s.get("charge")
+                   for s in el.findall("Slot") if s.get("charge")}
+        if charges:
+            it["slot_charges"] = charges
 
         # A MEMBER OF A CONJUNCTION IS NOT ALSO AN INDEPENDENT GATE. Both read
         # the same slot, so leaving it in both charges the same failure twice --

@@ -852,6 +852,26 @@ def _expect_rule(item: dict, key: str) -> tuple[str, str, tuple[str, ...]] | Non
     return None
 
 
+def _equals_rule(item: dict, key: str) -> tuple[str, str, tuple[str, ...]] | None:
+    """One declared `equals` rule as (left, right, lenient), or None.
+
+    The web's `equals` primitive: a check COMPUTED by comparing two other
+    answers, with LENIENT values that establish nothing and must not charge.
+    `"unclear"` is the case the rubric cares about -- a student who named no type
+    cannot have named the wrong one -- and it is a declared verdict here rather
+    than an edge case in somebody's `if`.
+
+    Presence of the declaration selects the item, as with `_expect_rule` beside
+    it. D1/D2 declare the same key over a DIFFERENT left operand
+    (`defines_type`, not `observed_type`), which is exactly why the operands have
+    to be read from the item rather than assumed by the caller.
+    """
+    for rule in item.get("equals") or ():
+        if rule.get("key") == key:
+            return rule["left"], rule["right"], tuple(rule.get("lenient") or ())
+    return None
+
+
 def _forbid_rule(item: dict, key: str) -> tuple[tuple[str, str], ...] | None:
     """One declared `forbid` conjunction as (slot, value) pairs, or None.
 

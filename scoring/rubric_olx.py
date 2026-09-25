@@ -243,6 +243,11 @@ def render_item(item: dict, authored: dict, indent: str = "  ") -> list[str]:
     for e in _seq(item.get("equals") or []):
         out.append(f"{i2}<Equals" + _attrs([
             ("key", e.get("key")), ("left", e.get("left")), ("right", e.get("right")),
+            # THE NOTE SURVIVES REGENERATION. Dropping it here would lose the
+            # ledger's wording for the charge the moment this file rewrote the
+            # rubric -- authored data destroyed by the writer that exists to
+            # preserve it, which is the failure `gate=` already had once today.
+            ("note", e.get("note")),
             ("lenient", "|".join(_seq(e.get("lenient") or [])) or None),
         ]) + "/>")
     for o in _seq(item.get("onlyif") or []):

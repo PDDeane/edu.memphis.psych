@@ -161,7 +161,8 @@ def derive_ledger(item: dict, raw: dict) -> tuple[list[dict], list[dict], list[s
     answer is not operant conditioning, whatever it looks like. Only if it
     passes do we ask which of the four types it is.
     """
-    from score import REQUIRED_MOVE, _expect_rule, _forbid_rule
+    from score import (REQUIRED_MOVE, _equals_rule, _expect_rule,
+                       _forbid_rule)
     a = raw.get("oc_analysis") or {}
     codes = {d["code"]: d for d in item["deductions"]}
     ledger, unknown = [], []
@@ -256,11 +257,29 @@ def derive_ledger(item: dict, raw: dict) -> tuple[list[dict], list[dict], list[s
         ledger.extend(_led); unknown.extend(_unk)
         if _stop:
             return ledger, checks, unknown, advisory
-        _led, _unk = _crit.apply_enum_mismatch(
-            a, "observed_type", "named_type", "TYPE_MISMATCH", codes,
-            note="This example is {observed}, but you chose {named}.",
-            lenient=("unclear",))
-        ledger.extend(_led); unknown.extend(_unk)
+        # THE ENUM COMPARISON IS DECLARED. M step 2, and the whole rule is in the
+        # rubric now: which two answers are compared, which values are LENIENT,
+        # what it charges and how the charge reads.
+        #
+        # The operands had to come from the item rather than be assumed: D1 and
+        # D2 declare the SAME key over a different left operand (`defines_type`,
+        # not `observed_type`), so a caller that hardcoded `observed_type` was
+        # right for these four items only by coincidence of which items it runs
+        # on.
+        #
+        # `unclear` is first-class, which is M's own emphasis: a student who
+        # named no type cannot have named the WRONG one, so the lenient list is a
+        # declared verdict that must not charge -- not an edge case in an `if`.
+        _eq = _equals_rule(item, "matches_chosen_type")
+        if _eq:
+            _left, _right, _lenient = _eq
+            _rule = next(r for r in item["equals"]
+                         if r.get("key") == "matches_chosen_type")
+            _led, _unk = _crit.apply_enum_mismatch(
+                a, _left, _right,
+                (item.get("slot_charges") or {})["matches_chosen_type"], codes,
+                note=_rule.get("note") or "", lenient=_lenient)
+            ledger.extend(_led); unknown.extend(_unk)
         # `targets_own_behavior` is either ASKED as a boolean or COMPUTED from a
         # parse of which behaviour the trigger names -- WK1 does the latter,
         # declared as `expect` in rubric_h2 and generated into the web's sheet

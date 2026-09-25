@@ -9378,3 +9378,60 @@ session repaired precisely because reading source is fragile.
 
 Raw sorts kept at `scratchpad/k_sorted.json` for the next pass; they are inputs
 to a reading, not a conclusion.
+
+## M STEPS 1 AND 2: THE ENUM COMPARISON IS DECLARED (2026-09-24)
+
+`TYPE_MISMATCH` was the last rule stated twice. It is now stated once:
+
+    <Equals key="matches_chosen_type" left="observed_type" right="named_type"
+            lenient="unclear" note="This example is {observed}, but you chose {named}."/>
+
+plus the slot's own `charge="TYPE_MISMATCH"`. Operands, lenient values, code and
+wording all come from the rubric; `derive_ledger` reads them.
+
+**Step 1 had to land first, and it is why this was blocked.** M said so: "a
+scorer receives an ITEM DICT, and slot vocabularies live in the rubric view's
+`SLOT_SPEC`, keyed by item. Until a scorer can read those, an enum comparison
+cannot be declared -- only hardcoded." The minimal form is `slot_charges` on the
+item, carried exactly as `oc_gates` and `oc_conjunctions` are, rather than
+handing the scorer a global table.
+
+**The operands could not be assumed, and that is the point.** D1 and D2 declare
+the SAME key over a DIFFERENT left operand -- `defines_type`, not
+`observed_type`. The hardcoded call was right for the four items it ran on by
+coincidence of which items it ran on.
+
+    fingerprint reproduces -- the ledger does not move
+    <Equals> removed / lenient emptied / note removed: all LOAD-BEARING
+    slot_charges removed: RAISES, rather than defaulting to a hidden code
+
+### AND THE GUARD COULD NOT SEE THE ONE THING THE STEP IS ABOUT
+
+M's emphasis on this step is `unclear`: "not an edge case here, it is a declared
+verdict that must not charge." **Emptying the lenient list changed nothing**, so
+the fingerprint could not tell a correct lenient list from an absent one.
+
+The sweep offered `""` for `observed_type` and `named_type` -- a value NEITHER
+slot admits -- and never produced `none` or `unclear`, which both do. It now
+reads each fact's declared enum from the scorer's own schema
+(`observed_type: PR/NR/PP/NP/none`, `named_type: PR/NR/PP/NP/unclear`). Case
+count unchanged at 115,200; with the values corrected, every part of the
+declaration is certified load-bearing.
+
+**That is the third coverage hole this guard has had**, after the forbid rules it
+never exercised and the facts it fed to items whose schema forbids them. The
+pattern is the same each time: the sweep was written from a picture of the
+answer space rather than from the DECLARED one, and every fix has been to make it
+read what the item says it asks.
+
+### Two readers refused the new attribute, and both were right
+
+  * `check_course_schema_is_complete` -- `slot_charges` named no group. §9.2a
+    makes that FAIL rather than default; declared in `RUBRIC_FIELDS`.
+  * The ENGINE -- `Invalid attributes for <Equals>: Unrecognized key(s): 'note'`,
+    and the static build aborted. This is exactly the case K cites as its
+    evidence: the engine's zod schema is the only side that knows what an element
+    may carry. Declared on `Equals.ts`.
+
+`rubric_olx` now round-trips the note, so regenerating the rubric cannot silently
+destroy the wording -- the failure `gate=` already had once today.
