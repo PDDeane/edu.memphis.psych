@@ -3,6 +3,22 @@
 # Where the referenced spans live. The build resolves this file's corpus
 # references against it, and refuses rather than render an unresolved one.
 corpus_data: $COURSE_DATA/corpus_refs.json
+
+# WHERE THIS COURSE'S DATA AND METADATA LIVE. The engine used to decide: it
+# spelled `~/molly_data` as the default in `paths.py`, which is this course's
+# name sitting inside machinery that is supposed to know no course. The course
+# declares it here instead, and `paths` reads the declaration.
+#
+# THE ENVIRONMENT STILL WINS, deliberately. `$COURSE_DATA` and
+# `$COURSE_METADATA` override both, so a one-off run and every existing script
+# behave exactly as before; what changes is where the DEFAULT comes from when
+# nothing is set. The order is env -> this declaration -> the historical
+# fallback, the same precedence `.lo-blocks` already uses for the engine tree.
+#
+# `~` expands to the home directory; a `./` path resolves against the repository
+# root, not the working directory.
+course_data: ~/molly_data
+course_metadata: ./course_metadata
 description: The behaviour-modification scoring rubric, as a component. This file
   is the SOURCE and is hand-authored. `rubric_olx.py` rendered it once and
   retired at step 3d -- the course file it rendered from no longer carries a

@@ -10314,25 +10314,27 @@ def check_maps_tables_are_attached() -> list[str]:
     that knowledge into the repo so the next module to grow a MAPS table does not
     depend on someone having written the same assertion by hand.
     """
-    out: list[str] = []
-    # THE VIEWS, NOT THE MODULES. `__import__(name)` with a constant is a third
-    # spelling of the same dependence, and one the consumer ratchet cannot see:
-    # it counts a FILE, and this file already counted once for the source-reading
-    # check that cannot be converted. Three of these loops were hiding behind
-    # that single tally.
-    for mod in _rubric_views():
+    # THE RULE LIVES IN LO-BLOCKS NOW -- AND IT COULD NOT REPORT BEFORE.
+    # Goal K. Both message arms interpolated `name`, a variable that stopped
+    # being bound when this loop moved from `for name, mod in (("rubric_h1",
+    # rubric_h1), ...)` to `for mod in _rubric_views()`. Either arm raised
+    # `NameError: name 'name' is not defined` the moment it fired, so the check
+    # returned [] for the only reason that never counts: it was incapable of
+    # returning anything else. Found by writing the fire test the port requires.
+    # The rubric is identified by its HANDOUT now, which the view order gives.
+    import lo_enforce
+
+    entries = []
+    for h, mod in zip((1, 2, 3), _rubric_views()):
         maps = getattr(mod, "MAPS", None) or {}
         by_id = getattr(mod, "BY_ID", None) or {}
         for item in sorted(maps):
             spec = by_id.get(item)
-            if spec is None:
-                out.append(f"{name}: MAPS[{item!r}] names an item that does not "
-                           f"exist in BY_ID")
-            elif "maps" not in spec:
-                out.append(f"{name}: MAPS[{item!r}] is defined but never attached "
-                           f"to the item spec, so the generator emits no `maps` "
-                           f"and the pick has no route to its verdict")
-    return out
+            entries.append({"handout": h, "item": item,
+                            "inSpec": spec is not None,
+                            "attached": bool(spec and "maps" in spec)})
+    return lo_enforce.run("maps_tables_are_attached", {"entries": entries})
+
 
 
 def check_mapped_slots_have_no_unreachable_verdict() -> list[str]:

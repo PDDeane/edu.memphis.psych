@@ -176,7 +176,72 @@ CORPUS_ROOTS = {
     "interdisciplinary": lambda: CODE / "interdisciplinary",
 }
 
-DATA = Path(env_renamed("COURSE_DATA", Path.home() / "molly_data"))
+def _rubric_declares(key: str):
+    """One root the COURSE declares about itself, or None.
+
+    THE COURSE SAYS WHERE ITS OWN DATA LIVES. `paths.py` spelled
+    `~/molly_data` as the default for `COURSE_DATA` -- this course's name,
+    inside machinery whose whole purpose is to know no course. The rubric
+    declares it in its frontmatter now, beside the `corpus_data:` line that
+    already names a file within it.
+
+    PRECEDENCE IS env -> THIS -> the historical fallback, matching
+    `_lo_blocks_root`. The environment still wins, so every script and one-off
+    run behaves exactly as before; what moves is where the DEFAULT comes from.
+    That ordering is also what makes the change safe to land: nothing that
+    resolves today can resolve differently tomorrow.
+
+    NEVER RAISES, and that is not laziness. `paths` is imported before anything
+    else in the package; a module that dies while deciding where files are
+    leaves no way to report why. An unreadable or absent declaration returns
+    None and the caller keeps its historical default.
+    """
+    import re as _re
+
+    # FOUND BY SHAPE, NOT BY NAME, and the ordering is the reason. The obvious
+    # spelling is `REPO / "psychology" / RUBRIC_COMPONENT` -- and
+    # `RUBRIC_COMPONENT` is defined 270 lines BELOW the first caller, so it
+    # raised NameError, the `except` swallowed it, and this returned None. The
+    # declaration was never read and every root silently kept its old default.
+    # It looked like it worked because the declared value and the historical
+    # fallback were the same path; a control that changed the declaration to a
+    # distinct one is what exposed it.
+    #
+    # `*_rubric.olx` needs only REPO, which is line 49, and it names no course.
+    try:
+        cand = sorted((REPO / "psychology").glob("*_rubric.olx"))
+        if not cand:
+            return None
+        head = cand[0].read_text(errors="ignore")[:4000]
+    except OSError:
+        return None
+    # NOT a blanket `except`. An unreadable file is a legitimate absence; a
+    # NameError or a bad pattern is a coding fault, and swallowing it here is
+    # what hid this bug in the first place.
+    block = _re.search(r"^---\s*$\n(.*?)^---\s*$", head, _re.S | _re.M)
+    if not block:
+        return None
+    m = _re.search(rf"^{_re.escape(key)}:\s*(\S+)\s*$", block.group(1), _re.M)
+    if not m:
+        return None
+    raw = m.group(1)
+    # `~` is the home directory; `./` is the REPOSITORY, never the working
+    # directory -- a declaration that moved with `cd` would be worse than none.
+    if raw.startswith("~"):
+        return Path(raw).expanduser()
+    if raw.startswith("./"):
+        return (REPO / raw[2:]).resolve()
+    if raw.startswith("$"):
+        return None                      # an env reference is not a declaration
+    return Path(raw)
+
+
+DATA = Path(env_renamed(
+    "COURSE_DATA",
+    # THE COURSE'S DECLARATION, then the historical fallback. See
+    # `_rubric_declares`: the engine no longer spells this course's
+    # data directory.
+    _rubric_declares("course_data") or Path.home() / "molly_data"))
 
 # The content namespace. Was "psych" when this content lived inside lo-blocks;
 # the standalone repo declares "edu.memphis.psych" in psychology/manifest.yaml,
@@ -332,7 +397,9 @@ COMPOSED_DOCS = Path(os.environ.get(
 # So metadata gets a root of its own, outside the content tree and outside the
 # machinery: course.json, the scoring changelog, and the fixture data that
 # belongs to the course rather than to either.
-COURSE_METADATA = Path(os.environ.get("COURSE_METADATA", REPO / "course_metadata"))
+COURSE_METADATA = Path(os.environ.get(
+    "COURSE_METADATA",
+    _rubric_declares("course_metadata") or REPO / "course_metadata"))
 
 COURSE_FILE = Path(os.environ.get("COURSE_FILE", COURSE_METADATA / "course.json"))
 
