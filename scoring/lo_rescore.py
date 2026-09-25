@@ -44,32 +44,58 @@ def _sheets_and_payloads(items=None, side="olx"):
     import olx_prompts as O
 
     jobs = {j["item"]: j for _h, b in A.BLOCKS.items() for j in b.values()}
-    sheets, payloads, skipped = {}, [], []
+    sheets, payloads, skipped, unscoreable = {}, [], [], []
     for item in sorted(items or M._jobs()):
         job = jobs.get(item) or {}
-        # EXCLUDED BY KIND, as `_recorded_payloads` excluded them: `1b`, `T1`
-        # and `T2` are `data_presence` / `type_stated`, carry a slot sheet that
-        # is NOT an `<LLMAction>`, and have no `olx` on their job. `load_action`
-        # assembles its nine tables from an `<LLMAction>` opening tag, so there
-        # is nothing here for it to read, and mirroring its assembly for these
-        # three would be a SECOND sheet reader -- the divergence class this
-        # project exists to close.
+        # SHEET-ONLY ITEMS GO THROUGH THE PREPARED READERS. `1b`, `T1` and `T2`
+        # carry a `<DerivedChecks>` element rather than an `<LLMAction>`, and
+        # `load_action` matches only the latter -- so all three were skipped and
+        # their neutrality went unproven while the run looked complete.
         #
-        # THEIR NEUTRALITY RESTS ON DIFFERENT EVIDENCE, and it is not weaker:
-        # all three are derived, with ZERO spread across twelve recorded runs
-        # (20-20, 18-18, 18-18), and the 2026-09-25 confirmation reproduced each
-        # recorded value exactly. A deterministic item that reproduces is not a
-        # gap in the rescore; it is the same fact established another way.
-        if item not in O.ACTION:
-            skipped.append((item, f"{job.get('kind')!r}: a slot sheet that is "
-                                  f"not an <LLMAction>; see the note in "
-                                  f"_sheets_and_payloads"))
-            continue
-        try:
-            act = A.load_action(job["olx"], O.ACTION[item])
-        except Exception as e:
-            skipped.append((item, f"sheet unreadable: {type(e).__name__}"))
-            continue
+        # NOT A SECOND READER, and not a change to `load_action`. `_SHEET_RE`
+        # already names BOTH element types, `_slots_attr` already falls back to
+        # `_sheet_tag` when the action regex misses, and the slot spec is parsed
+        # by `agreement.parse_slots` -- the same function `load_action` uses, so
+        # the slot shape is identical. Teaching `load_action` the second element
+        # would have been tidier and costs more than it is worth here: it sits in
+        # `_ALWAYS`, so editing it moves EVERY item's `scorer_sha` and re-stales
+        # twenty-six columns that were just settled.
+        #
+        # THE EIGHT OTHER TABLES ARE CHECKED, NOT ASSUMED. A `<DerivedChecks>`
+        # carries `derived`, `id`, `max` and `slots` today. If one ever gains a
+        # `forbid=` or a `maps=`, silently passing empty tables would re-score it
+        # against rules the app applies and call the difference a scoring change.
+        # It refuses instead.
+        if item in O.ACTION:
+            try:
+                act = A.load_action(job["olx"], O.ACTION[item])
+            except Exception as e:
+                skipped.append((item, f"sheet unreadable: {type(e).__name__}"))
+                continue
+        else:
+            sid = getattr(O, "SHEET_ONLY", {}).get(item)
+            if not sid:
+                skipped.append((item, f"{job.get('kind')!r}: no slot sheet id"))
+                continue
+            try:
+                tag = O._sheet_tag(O.HANDOUT[item], sid)
+                carried = [a for a in ("cover", "equals", "onlyif", "counts",
+                                       "expect", "requires", "forbid", "maps")
+                           if f'{a}="' in tag]
+                if carried:
+                    skipped.append((item, f"its sheet element carries "
+                                          f"{carried}, which this path does not "
+                                          f"assemble -- read it through "
+                                          f"load_action instead"))
+                    continue
+                spec, defaults = O._slots_attr(O.HANDOUT[item], sid)
+                act = {"slots": A.parse_slots(spec, defaults),
+                       "cover": [], "equals": [], "onlyif": [], "counts": [],
+                       "expect": [], "requires": [], "forbid": [], "maps": []}
+            except Exception as e:
+                skipped.append((item, f"sheet unreadable: {type(e).__name__}: "
+                                      f"{str(e)[:60]}"))
+                continue
         sheets[item] = {k: (act.get(k) or []) for k in
                         ("slots", "cover", "equals", "onlyif", "counts",
                          "expect", "requires", "forbid", "maps")}
@@ -77,6 +103,31 @@ def _sheets_and_payloads(items=None, side="olx"):
                     for r in (act.get(f) or [])}
         counted = {sl["key"] for sl in act["slots"]
                    if sl.get("count_max") is not None}
+        slot_keys = {sl["key"] for sl in act["slots"]}
+        # THE COURSE'S OWN NAME MAP, not a guess. `SIDE_ALIAS` declares "the same
+        # rule under its two names, web value second", and four of its entries
+        # exist for exactly this item: 1b's folded python-era runs record
+        # `baseline`/`week_1..3` where today's sheet asks `baseline_data`/
+        # `week_1_data..`. Subgoal Q56 measured those four before declaring them.
+        #
+        # `probe._slot_aliases` is the prepared reader for this and its docstring
+        # names 1b; re-deriving the pairing here would be a second reader of one
+        # table. AMBIGUITY IS REFUSED, not resolved: if two slots on one sheet
+        # claim the same alias, the mapping is dropped and the run falls through
+        # to the not-re-scoreable arm rather than being attached to a guess.
+        alias_of: dict = {}
+        try:
+            import probe as _P
+            for sl in act["slots"]:
+                for nm in _P._slot_aliases(sl["key"]):
+                    if nm in slot_keys and nm != sl["key"]:
+                        continue                # a real slot of its own
+                    if alias_of.get(nm, sl["key"]) != sl["key"]:
+                        alias_of[nm] = None     # claimed twice: refuse it
+                    else:
+                        alias_of.setdefault(nm, sl["key"])
+        except Exception:
+            alias_of = {}
         doc = M._runs_doc(item, side)
         for ri, run in enumerate((doc or {}).get("runs") or []):
             for ci, r in enumerate(run.get("results") or []):
@@ -87,6 +138,8 @@ def _sheets_and_payloads(items=None, side="olx"):
                 ev = r.get("evidence") or {}
                 checks = {}
                 for k, v in (c[3] or {}).items():
+                    if k not in slot_keys and alias_of.get(k):
+                        k = alias_of[k]         # the same rule, its other name
                     if k in computed:
                         continue
                     d = {}
@@ -103,23 +156,162 @@ def _sheets_and_payloads(items=None, side="olx"):
                 smax = r.get("sheet_max") or r.get("max")
                 if not smax:
                     continue
+                # A RUN RECORDED UNDER A DIFFERENT SLOT VOCABULARY CANNOT BE
+                # RE-SCORED, AND IS NOT A SCORING DIFFERENCE.
+                #
+                # 1b's folded python-era runs (goal O pooled them into `olx`)
+                # name their slots `baseline`, `week_1`, `week_2`, `week_3`;
+                # today's sheet asks `baseline_data`, `week_1_data` and so on.
+                # `scoreSlotSheet` finds nothing it recognises, satisfies no
+                # slot and returns 0 -- so 114 cells recorded at full marks read
+                # as "the scoring changed", when what actually differs is the
+                # vocabulary the eliminated engine wrote.
+                #
+                # THE TEST IS NO OVERLAP AT ALL, deliberately. A run MISSING some
+                # keys is a real defect and must still be re-scored and reported;
+                # only a run sharing NONE of the sheet's keys is describing a
+                # different sheet. Excluded loudly rather than counted either way,
+                # because both a false `differ` and a silent pass would be wrong.
+                if checks and not (set(checks) & slot_keys):
+                    unscoreable.append((item, f"{ri}|{ci}"))
+                    continue
                 payloads.append({"id": f"{item}|{ri}|{ci}|{c[1]}", "item": item,
                                  "checks": checks, "max": float(smax),
                                  "recorded": round(float(c[2]), 4)})
-    return sheets, payloads, skipped
+    return sheets, payloads, skipped, unscoreable
 
 
 def rescore(items=None, side="olx", control=0.0):
     """Rows from the shipped scorer, one per recorded cell."""
     import lo_enforce
 
-    sheets, payloads, skipped = _sheets_and_payloads(items, side)
+    sheets, payloads, skipped, unscoreable = _sheets_and_payloads(items, side)
     if control:
         payloads = [dict(p, recorded=round(p["recorded"] + control, 4))
                     for p in payloads]
     rows = lo_enforce.probe("score_recorded_sheets",
                             {"sheets": sheets, "payloads": payloads})
+    return rows, skipped, unscoreable
+
+
+def _paper_rows(items=None, control=0.0):
+    """Re-score recorded PAPER cells through score.py's own `score_item`.
+
+    THE SAME QUESTION AS THE WEB RESCORE, on the side score.py scores. Eight
+    columns -- DAY1, DAY2, NP, NR, PP, PR, WK1, WK2, all of them `oc` items --
+    read STALE SCORER because `oc.derive_ledger` moved. Whether that move
+    touched a number is arithmetic over answers that were already recorded.
+
+    NOTHING IS REIMPLEMENTED HERE. `score_item` owns the whole path -- the
+    scorer registry dispatch, the over-specified cap that trims a ledger to the
+    number of credit components, and `max(0, min(max, max - total_off))`. Copying
+    those five lines would be a second implementation of the paper arithmetic,
+    which is the mirror goal O spent itself removing. So the RECORDED answer is
+    fed back in through a stub backend and `score_item` runs unchanged.
+    """
+    import enforcement as E
+    import measured as M
+    import score as SC
+
+    class _Recorded:
+        """A backend that returns what the model already said."""
+        SUPPORTS_TOOLS = False
+
+        def __init__(self, raw):
+            self._raw = raw
+
+        def complete(self, *a, **k):
+            return self._raw
+
+    by_id = {it["id"]: it for it in E.all_items()}
+    rows, skipped = [], []
+    for item in sorted(items or M._jobs()):
+        spec = by_id.get(item)
+        if spec is None:
+            skipped.append((item, "no rubric item")); continue
+        doc = M._runs_doc(item, "paper")
+        for ri, run in enumerate((doc or {}).get("runs") or []):
+            for ci, r in enumerate(run.get("results") or []):
+                if r.get("score") is None:
+                    continue
+                raw = {k: r.get(k) for k in
+                       ("oc_analysis", "credit_checks", "deductions",
+                        "advisory_note", "safety_flag", "slots")
+                       if r.get(k) is not None}
+                if not raw:
+                    skipped.append((item, f"run {ri} cell {ci}: nothing recorded "
+                                          f"to re-score from"))
+                    continue
+                want = round(float(r["score"]) + control, 2)
+                try:
+                    got = SC.score_item(_Recorded(raw), "", spec, "", {}, None)
+                except Exception as e:
+                    rows.append({"id": f"{item}|{ri}|{ci}", "item": item,
+                                 "recorded": want, "rescored": None,
+                                 "same": False, "why": f"{type(e).__name__}: {e}"})
+                    continue
+                s = got.get("score")
+                ok = (s is not None and isinstance(s, (int, float))
+                      and abs(float(s) - want) < 1e-9)
+                rows.append({"id": f"{item}|{ri}|{ci}", "item": item,
+                             "recorded": want, "rescored": s, "same": ok})
     return rows, skipped
+
+
+def _paper_answer_control(items=None, limit=5):
+    """Does the scorer actually READ the recorded answer? `(moved, total)`.
+
+    THE +0.5 CONTROL IS NOT ENOUGH HERE, and the difference matters. Adding half
+    a point to the recorded value proves the COMPARISON can fail; it says
+    nothing about whether `derive_ledger` ever looked at the recorded fields. On
+    the OC items that gap is live: a `derive_ledger` handed an analysis it did
+    not recognise fails its definitional gates, charges NOT_OC and returns 0.0 --
+    and DAY1's recorded score IS 0.0 on many cells, so an unread answer would
+    reproduce it exactly and the run would report perfect agreement.
+
+    So this perturbs the ANSWER instead: every boolean in `oc_analysis` is
+    flipped and the score must move. It was worth writing -- the user's remark
+    that the OC items went to rubric naming is exactly the shape of fault that
+    would have slipped through, and checking the schema's fields against the
+    recorded ones (15 of 15, no drift) is how it was cleared.
+    """
+    import enforcement as E
+    import measured as M
+    import score as SC
+
+    class _Recorded:
+        SUPPORTS_TOOLS = False
+
+        def __init__(self, raw):
+            self._raw = raw
+
+        def complete(self, *a, **k):
+            return self._raw
+
+    by_id = {it["id"]: it for it in E.all_items()}
+    moved = total = 0
+    for item in sorted(items or M._jobs()):
+        spec = by_id.get(item)
+        doc = M._runs_doc(item, "paper")
+        if spec is None or not doc:
+            continue
+        for run in (doc.get("runs") or [])[:1]:
+            for r in (run.get("results") or [])[:limit]:
+                a = r.get("oc_analysis") or {}
+                if not a:
+                    continue
+                flip = {k: (not v if isinstance(v, bool) else v)
+                        for k, v in a.items()}
+                try:
+                    base = SC.score_item(_Recorded({"oc_analysis": dict(a)}),
+                                         "", spec, "", {}, None)["score"]
+                    got = SC.score_item(_Recorded({"oc_analysis": flip}),
+                                        "", spec, "", {}, None)["score"]
+                except Exception:
+                    continue
+                total += 1
+                moved += abs(float(base) - float(got)) > 1e-9
+    return moved, total
 
 
 def evidence_path():
@@ -131,7 +323,8 @@ def evidence_path():
     return Path(paths.OUT) / "rescore_evidence.json"
 
 
-def record_evidence(rows, skipped, control_moved, control_total) -> dict:
+def record_evidence(rows, skipped, control_moved, control_total,
+                    side: str = "olx") -> dict:
     """Write what this rescore proved, per item, with its sha pair.
 
     THIS IS WHAT REPLACES `WEB_CODE_NEUTRAL`. That table was a hand-written
@@ -151,22 +344,30 @@ def record_evidence(rows, skipped, control_moved, control_total) -> dict:
         e["cells"] += 1
         e["reproduced"] += 1 if r["same"] else 0
     for item, e in by_item.items():
-        rec = (M.entry(item, "olx") or {})
+        rec = (M.entry(item, side) or {})
         e["from"] = rec.get("scorer_sha")
-        e["to"] = M.scorer_sha(item, "olx")
+        e["to"] = M.scorer_sha(item, side)
         e["ask_recorded"] = rec.get("ask_sha")
-        e["ask_now"] = M.ask_sha(item, "olx")
-    doc = {
+        e["ask_now"] = M.ask_sha(item, side)
+    # PER SIDE, because the sides are scored by different code and a neutrality
+    # claim is about ONE scorer. Writing both into one `items` map would let
+    # evidence measured on the web excuse a stale paper column.
+    p = evidence_path()
+    try:
+        doc = _json.loads(p.read_text())
+    except Exception:
+        doc = {}
+    doc.setdefault("sides", {})
+    doc["sides"][side] = {
         "measured_at": __import__("datetime").datetime.now()
                        .astimezone().isoformat(timespec="seconds"),
         "control_moved": control_moved, "control_total": control_total,
         "skipped": {i: w for i, w in skipped},
         "items": by_item,
     }
-    p = evidence_path()
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(_json.dumps(doc, indent=1, sort_keys=True))
-    return doc
+    return doc["sides"][side]
 
 
 def main() -> int:
@@ -181,7 +382,7 @@ def main() -> int:
 
     # THE CONTROL FIRST, and the run is refused if it fails. A comparison that
     # cannot report a difference is not evidence of agreement.
-    ctl, _ = rescore(a.items, a.side, control=0.5)
+    ctl, _, _ = rescore(a.items, a.side, control=0.5)
     moved = sum(1 for r in ctl if not r["same"])
     print(f"  control (+0.5 on every recorded value): {moved}/{len(ctl)} moved")
     if not ctl or moved != len(ctl):
@@ -189,7 +390,7 @@ def main() -> int:
               "'match' here would not mean the scores agree")
         return 2
 
-    rows, skipped = rescore(a.items, a.side)
+    rows, skipped, unscoreable = rescore(a.items, a.side)
     same = [r for r in rows if r["same"]]
     diff = [r for r in rows if not r["same"]]
     if a.record:
@@ -200,6 +401,12 @@ def main() -> int:
     print(f"  reproduce exactly: {len(same)}   differ: {len(diff)}")
     for s, why in skipped:
         print(f"    skipped {s}: {why}")
+    if unscoreable:
+        from collections import Counter as _C
+        for it, n in sorted(_C(i for i, _ in unscoreable).items()):
+            print(f"    {it}: {n} run-cell(s) recorded under a slot vocabulary "
+                  f"this sheet does not have -- NOT re-scoreable, and not a "
+                  f"scoring difference")
     by_item = {}
     for r in diff:
         by_item.setdefault(r["item"], []).append(r)

@@ -1861,11 +1861,17 @@ def staleness_is_answered(item: str, side: str, why: str) -> tuple:
                       f"({ask_sha(item, side)}); the runs answer the same question")
     rec = entry(item, side) or {}
     try:
-        doc = json.loads((Path(paths.OUT) / "rescore_evidence.json").read_text())
+        whole = json.loads((Path(paths.OUT) / "rescore_evidence.json").read_text())
+        # PER SIDE. Evidence measured on the web says nothing about the paper
+        # scorer, and one shared map would let it excuse a stale paper column.
+        doc = (whole.get("sides") or {}).get(side) or {}
     except Exception:
         return False, ("No rescore evidence exists: run "
                        "`python3 lo_rescore.py --record` to measure whether the "
                        "scoring change moved any recorded cell.")
+    if not doc:
+        return False, (f"No rescore evidence for the {side!r} side: run "
+                       f"`python3 lo_rescore.py --record --side {side}`.")
     if doc.get("control_moved") != doc.get("control_total") or not doc.get("control_total"):
         return False, ("The rescore's control did not move every cell, so its "
                        "'no difference' is not evidence of one.")

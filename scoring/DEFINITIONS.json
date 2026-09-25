@@ -1181,6 +1181,8 @@
    "self_test"
   ],
   "lo_rescore.py": [
+   "_paper_answer_control",
+   "_paper_rows",
    "_sheets_and_payloads",
    "evidence_path",
    "main",

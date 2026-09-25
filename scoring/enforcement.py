@@ -6568,6 +6568,52 @@ def check_filesystem_locations_come_from_paths_py() -> list[str]:
                        f"`.home() / {right.value!r}` -- no literal starts with a root, "
                        f"so the prefix scan cannot see it. Use paths.py.")
 
+
+    # THE SECOND SHAPE, and it is not the spelled one. Everything above catches
+    # a location WRITTEN DOWN -- `/home/...`, a sibling guess, a duplicated
+    # root. It cannot see a path resolved against the WORKING DIRECTORY, which
+    # fails differently: the module is correct from one directory and broken
+    # from every other, so it passes every test anyone runs from `scoring/`.
+    #
+    # MEASURED 2026-09-25: `check_engine_mechanisms_are_not_item_dependent` read
+    # `Path(f"{mod}.py")`. Running the audit from the repo root instead of
+    # `scoring/` made all four engine modules unreadable, and the check reported
+    # four findings saying it could not run. It was right to say so rather than
+    # pass -- but nothing had ever told it the location was wrong, because the
+    # location was never written down.
+    import ast as _ast
+
+    _SAFE = re.compile(r"\bpaths\b|\b_p\w*\.|\bHERE\b|_HERE|\bREPO\b|\bOUT\b"
+                       r"|\bLO\b|SCORING|COURSE_|__file__|tempfile|argv|sys\.")
+    # THE SAME ENUMERATION THE ARM ABOVE USES, not a second one.
+    for path in sorted(_P(__file__).resolve().parent.glob("*.py")):
+        try:
+            text = path.read_text()
+            t = _ast.parse(text)
+        except Exception:
+            continue
+        for node in _ast.walk(t):
+            if not isinstance(node, _ast.Call):
+                continue
+            fn = node.func
+            if isinstance(fn, _ast.Name) and fn.id == "open" and node.args:
+                expr = _ast.get_source_segment(text, node.args[0]) or ""
+            elif isinstance(fn, _ast.Attribute) and fn.attr in (
+                    "read_text", "write_text", "read_bytes", "write_bytes"):
+                expr = _ast.get_source_segment(text, fn.value) or ""
+            else:
+                continue
+            expr = expr.strip()
+            if not expr or _SAFE.search(expr):
+                continue
+            if re.match(r'^f?["\'][^/][^"\']*["\']$', expr) or re.match(
+                    r'^(pathlib\.)?Path\(\s*f?["\'][^/][^"\']*["\']\s*\)$', expr):
+                out.append(
+                    f"{path.name}:{node.lineno} opens {expr} -- a path "
+                    f"resolved against the WORKING DIRECTORY. It works from "
+                    f"`scoring/` and fails everywhere else, silently. Resolve it "
+                    f"through `paths`")
+
     return out
 
 
@@ -6700,7 +6746,16 @@ def check_engine_mechanisms_are_not_item_dependent() -> list[str]:
     out, found = [], set()
     for mod in _ENGINE_MODULES:
         try:
-            src = pathlib.Path(f"{mod}.py").read_text()
+            # THROUGH `paths`, NOT THE WORKING DIRECTORY. This read
+            # `Path(f"{mod}.py")`, which resolves against CWD -- so running the
+            # audit from the repo root instead of `scoring/` made all four
+            # modules unreadable and the check reported four findings saying it
+            # could not run. It was right to say so rather than pass, but a
+            # check that only works from one directory is a check that will
+            # eventually be run from another. `check_filesystem_locations_come_
+            # _from_paths_py` exists for exactly this.
+            import paths as _pth_mod
+            src = (_pth_mod.SCORING / f"{mod}.py").read_text()
             tree = ast.parse(src)
         except Exception as e:
             out.append(f"{mod}.py: cannot be parsed for item-gating "
@@ -13010,20 +13065,20 @@ def check_consensus_fixes_are_unique() -> list[str]:
 
     There is no legitimate reason to state two different spans for one box.
     """
+    # THE RULE LIVES IN LO-BLOCKS NOW. Goal K. `CONSENSUS_FIXES` is course
+    # data; "one declared correction per box" is generic.
+    import lo_enforce
     import agreement_app as APP
 
-    problems = []
-    for (item, pid), fixes in APP.CONSENSUS_FIXES.items():
-        seen: dict[str, str] = {}
-        for fix in fixes:
-            for box in (fix[1:] if fix[0] == "swap" else fix[1:2]):
-                if box in seen:
-                    problems.append(
-                        f"CONSENSUS_FIXES[{item!r}, {pid}] fixes `{box}` twice "
-                        f"({seen[box]} then {fix[0]}) — the later one silently "
-                        f"wins. State a single span per box")
-                seen[box] = fix[0]
-    return problems
+    entries = [{"item": k[0], "pid": k[1],
+                "fixes": [list(f) for f in (fixes or ())]}
+               for k, fixes in sorted(APP.CONSENSUS_FIXES.items())]
+    if not entries:
+        # NOT SILENCE. An empty table means nothing was examined.
+        return ["CONSENSUS_FIXES could not be read, so no box was checked for "
+                "being corrected twice"]
+    return lo_enforce.run("consensus_fixes_are_unique", {"entries": entries})
+
 
 
 def check_fixture_agrees_with_gold() -> list[str]:
@@ -14904,20 +14959,21 @@ def check_named_fixtures_still_name_something() -> list[str]:
     hard-coded a site, a conversion removed it, and the suite died before its
     first case.
     """
+    # THE RULE LIVES IN LO-BLOCKS NOW. Goal K. The declaration is course data;
+    # "a named target must still exist, and must say why it is named" is generic.
+    import lo_enforce
     import olx_prompts as OP
 
-    known = set(OP.ACTION) | set(OP.SHEET_ONLY)
-    out = []
-    for (label, item), why in sorted(SELFTEST_NAMED_FIXTURES.items()):
-        if item not in known:
-            out.append(f"the fixture {label!r} names item {item!r}, which this "
-                       f"course no longer has -- the case is injecting into "
-                       f"nothing and would report PASS for it")
-        if not str(why).strip():
-            out.append(f"the fixture {label!r} names {item!r} with no reason "
-                       f"given; a named target without a justification is the "
-                       f"thing D2a set out to remove")
-    return out
+    known = sorted(set(OP.ACTION) | set(OP.SHEET_ONLY))
+    fixtures = [{"label": label, "item": item, "why": str(why)}
+                for (label, item), why in sorted(SELFTEST_NAMED_FIXTURES.items())]
+    if not fixtures or not known:
+        # NOT SILENCE. Either side empty means nothing was compared.
+        return ["the named-fixture declaration or the item list could not be "
+                "read, so no fixture was checked against this course's items"]
+    return lo_enforce.run("named_fixtures_still_name_something",
+                          {"fixtures": fixtures, "knownItems": known})
+
 
 
 # WHERE THE CARRIED-NOTE RATCHET LIVES, and it is a FILE rather than a table here
