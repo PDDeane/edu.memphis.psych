@@ -2641,16 +2641,22 @@ def check_rule_fail_tokens_agree() -> list[str]:
          every extra means something was written and is wrong. They can never
          be the same instruction.
     """
-    rubric_h1, rubric_h2, rubric_h3 = _rubric_views()
+    # PORTED (goal K). PYTHON ASSEMBLES because `{fail}`'s PAPER rendering is
+    # `score._fail_verdict`, and the paper generator stays here -- what that
+    # token becomes on paper is the thing under comparison. TypeScript holds
+    # the two invariants: the token must be a verdict that side offers, and
+    # neither side may fall back to `absent` while the other names content.
+    import lo_enforce
     import olx_prompts as O
     from score import _fail_verdict
 
-    problems = []
+    rubric_h1, rubric_h2, rubric_h3 = _rubric_views()
+    slots = []
     for h, mod in ((1, rubric_h1), (2, rubric_h2), (3, rubric_h3)):
         for item in mod.ITEMS:
             action = O.ACTION.get(item["id"])
             if not action:
-                continue               # no <LLMAction>: nothing to compare against
+                continue
             web_opts = {s["key"]: (s.get("options") or [])
                         for s in O.parse_slots(*O._slots_attr(h, action))}
             for c in item.get("credit", []) or []:
@@ -2659,23 +2665,15 @@ def check_rule_fail_tokens_agree() -> list[str]:
                 slot = c["what"]
                 opts = web_opts.get(slot)
                 if opts is None:
-                    continue           # computed/derived slot, not on the sheet
+                    continue
                 extras = [o for o in opts if o not in ("met", "absent")]
-                web = extras[0] if extras else "absent"
-                paper = _fail_verdict(item, c)
-
-                where = f"H{h} {item['id']}.{slot}"
-                if paper not in _rubric_vocab(item, c):
-                    problems.append(
-                        f"{where}: `rule` renders {paper!r} into the paper prompt, "
-                        f"which is not a verdict that slot offers there")
-                if ("absent" in (web, paper)) and web != paper:
-                    problems.append(
-                        f"{where}: `{{fail}}` becomes {web!r} on the web and "
-                        f"{paper!r} on paper. One side is being told the box was "
-                        f"left empty and the other that its content is wrong — "
-                        f"the same rule, firing on different evidence")
-    return problems
+                slots.append({
+                    "where": f"H{h} {item['id']}.{slot}",
+                    "web": extras[0] if extras else "absent",
+                    "paper": _fail_verdict(item, c),
+                    "rubricVocab": list(_rubric_vocab(item, c)),
+                })
+    return lo_enforce.run("rule_fail_tokens_agree", {"slots": slots})
 
 
 _CORPUS_MEMO: dict[tuple[str, int], str] | None = None
