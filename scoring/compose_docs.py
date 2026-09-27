@@ -66,7 +66,7 @@ SECTION_LINE = re.compile(r"^(?:#{1,6} |\s*(?:[-*+]|\d+\.) )")
 
 
 def generic_path(name: str) -> str:
-    """The half that states the principles -- filed WITH THE MACHINERY, in `scoring/qc/`.
+    """The half that states the principles -- WITH THE ENGINE, beside `enforce/`.
 
     IT HAS BEEN IN THREE PLACES, and each move was decided by evidence rather
     than by taste, so the reasoning is kept rather than replaced:
@@ -90,17 +90,24 @@ def generic_path(name: str) -> str:
     expired when the evidence for it did, so they sit with the machinery whose
     procedure they describe.
 
-    AND THEY ARE TRACKED HERE. Under the collection directory they were untracked
-    -- not ignored, merely never added -- which put the generic halves outside
-    every reader that works through history, and would have lost them in a clean
-    checkout. `scoring/` is tracked ground, and git records the move as a rename
-    back to where these files started.
+    AND NOW THEY ARE IN THE ENGINE, 2026-09-27, on the user's instruction: they
+    are the documentation for the enforce rules, and lo-blocks files a module's
+    documentation BESIDE it -- `slotSheet.md`, `promptAssembler.md`. These four
+    describe what the rules are for and how a scoring model is brought under
+    them, so they sit in `enforce/` with the rules.
 
-    The `qc/` subdirectory, not `scoring/` itself: a directory of its own says
-    what these are, and it is what `_split_generic_halves` reports to
-    `GENERIC_DOCS`, so the declared-generic set follows the files automatically.
+    THE OBJECTION THAT SENT THEM BACK LAST TIME HAS EXPIRED. The first attempt
+    was reverted because `check_generic_documents_are_generic` found `run_score
+    x37` in QUALITY_CONTROL.md the moment it arrived -- this rubric's measured
+    scores, in a document declared course-neutral. The user's instruction to
+    clean it moved those measurements to the course half, and all four now read
+    clean through `course_prose`. lo-blocks holds every one of its markdown
+    files to course-neutrality by constitution, so the engine's own check is
+    what keeps them honest from here.
     """
-    return os.path.join(HERE, "qc", name)
+    import paths as _p
+    return os.path.join(str(_p.LO), "packages", "shared", "lib", "llm",
+                        "enforce", name)
 
 
 # DOCUMENTS THAT ACCUMULATE -- a rule that governed nothing as of 2026-09-26,

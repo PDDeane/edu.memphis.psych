@@ -28,6 +28,7 @@
    "WEEK_FIELDS",
    "_COMMENT",
    "_CTX",
+   "_ENGINE",
    "_H1_CTX",
    "_H2_CTX",
    "_H3_CTX",
@@ -116,6 +117,7 @@
    "_ConsensusFixes.items",
    "_ConsensusFixes.keys",
    "_ConsensusFixes.values",
+   "_ENGINE",
    "_MODIFY",
    "_RUN",
    "_RUN_LIST",
@@ -1265,6 +1267,7 @@
    "self_test"
   ],
   "lo_rescore.py": [
+   "_ENGINE",
    "_paper_answer_control",
    "_paper_rows",
    "_sheets_and_payloads",
@@ -1838,6 +1841,7 @@
    "DERIVING_ATTRS",
    "HERE",
    "RECEIPTS",
+   "_ENGINE",
    "_answered_under",
    "_checklist",
    "_count_aggregates",
@@ -2067,6 +2071,7 @@
    "SYSTEM_TMPL",
    "_BOX_WORD",
    "_DEICTIC",
+   "_ENGINE",
    "_EXEMPT_KINDS",
    "_LEADING_PTS",
    "_RUBRIC2",
@@ -2121,6 +2126,7 @@
    "utb_hint"
   ],
   "scorer_criteria.py": [
+   "_ENGINE",
    "_facts",
    "_gates",
    "apply_charge",
