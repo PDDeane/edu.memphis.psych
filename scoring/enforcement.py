@@ -10412,69 +10412,56 @@ def check_count_scaffolds_are_arithmetic() -> list[str]:
     A check reading only the live ledger would have reported clean and the defect
     would have vanished with the next sweep, as it already had once.
     """
+    # PORTED (goal K). PYTHON ASSEMBLES because it owns the ERA GATE: an
+    # artifact scored by different code is not attributable to today's scorer,
+    # and `measured.web_code_sha` is what decides that. Measured: 104 of 1,023
+    # recorded artifacts pass it. A first attempt let TypeScript walk the
+    # archive itself and reported TWO historical contradictions python
+    # deliberately no longer claims -- the gate is the check, not an
+    # optimisation.
     import json
-    import pathlib as _pl
-
     import measured as _MEAS
     import paths as _paths
+    import lo_enforce
 
-    stems = ("reasons", "benefits", "harms")
-    out: list[str] = []
     root, _why = _paths.out_root_or_reason()
     if root is None:
         return [f"{_why} -- this check cannot run, which is NOT the same as passing"]
     if not root.is_dir():
         return []
+    artifacts = []
     for path in _runs_files(root, "*/*.runs.json"):
         try:
             doc = jsoncache.load(path)
         except Exception:
-            continue                      # an unreadable artifact is another check's
-        # ATTRIBUTABLE TO TODAY'S APP CODE, as `check_mapped_slots_agree_with_
-        # their_map` now requires. The count scaffold is computed by the app's
-        # scoring path, so an artifact that cannot say which app code produced it
-        # cannot distinguish "the arithmetic was wrong" from "the arithmetic was
-        # different then". Measured 2026-09-14: the only surviving finding came
-        # from `twoside_cli`, which carries no `web_score_sha`, no model and no
-        # `measured_at` -- undateable by anything but file mtime.
+            continue
         _item = path.name[: -len(".runs.json")]
         _era = doc.get("era") or {}
-        _per = (_era.get("items") or {}).get(_item, {}) or {}
-        _got = _per.get("web_score_sha", _era.get("web_score_sha"))
+        _got = (_era.get("items") or {}).get(_item, {}).get(
+            "web_score_sha", _era.get("web_score_sha"))
         try:
             _want = _MEAS.web_code_sha("score", _item)
         except Exception:
-            continue                      # not a scored item: nothing to attribute
+            continue
         if not _got or _got != _want:
             continue
-        for ri, run in enumerate(doc.get("runs") or [], 1):
-            for r in run.get("results") or []:
+        runs = []
+        for run in (doc.get("runs") or []):
+            results = []
+            for r in (run.get("results") or []):
                 a = r.get("answers") or r.get("refers_to") or {}
                 v = r.get("checks") or r.get("verdicts") or {}
-
-                def _n(key):
-                    x = a.get(key)
-                    if x is None and isinstance(v, dict):
-                        y = v.get(key)
-                        x = y.get("verdict") if isinstance(y, dict) else y
-                    try:
-                        return int(str(x))
-                    except Exception:
-                        return None
-
-                for stem in stems:
-                    L, F, G = _n(f"{stem}_listed"), _n(f"{stem}_failing"), _n(f"{stem}_given")
-                    if None in (L, F, G) or L - F == G:
-                        continue
-                    cell = r.get("participant_id") or r.get("cell")
-                    out.append(
-                        f"{path.parent.name}/{path.name} run {ri} cell {cell}: "
-                        f"`{stem}_listed` {L} minus `{stem}_failing` {F} is not "
-                        f"`{stem}_given` {G}, and the slots define it as exactly "
-                        f"that. Only the third is scored, so this costs nothing and "
-                        f"shows in no rate -- which is why it needs a check rather "
-                        f"than a reader")
-    return out
+                values = dict(a)
+                if isinstance(v, dict):
+                    for k, y in v.items():
+                        if values.get(k) is not None:
+                            continue
+                        values[k] = y.get("verdict") if isinstance(y, dict) else y
+                results.append({"cell": r.get("participant_id") or r.get("cell"),
+                                "values": values})
+            runs.append({"results": results})
+        artifacts.append({"label": f"{path.parent.name}/{path.name}", "runs": runs})
+    return lo_enforce.run("count_scaffolds_are_arithmetic", {"artifacts": artifacts})
 
 
 def check_computed_slot_recovery_is_faithful() -> list[str]:
