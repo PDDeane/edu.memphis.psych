@@ -1,0 +1,82 @@
+<!--
+---
+description: "Research-study version of the Psychology Study Group: the course, preceded by the University of Memphis informed-consent form. Students may take part in the study or not; the course is identical either way, and the answer can be changed at any time from Study Consent Form at the bottom of the course navigation. For the course without the study, launch psych_course."
+category: psychology
+index: -1
+lang: en-Latn-US
+license: AGPL
+---
+-->
+
+<!--
+  RESEARCH CONSENT GATE
+
+  The research deployment's route "/" lands here, not on the course. Three
+  states:
+  * unanswered -> the IRB form
+  * answered but not acknowledged -> a short, neutral acknowledgment with
+    the practical notes about the platform
+  * acknowledged -> the course itself
+
+  The gates test ANSWERED, never the value: declining changes nothing about
+  what the student does, and the activity carries the same credit. The
+  acknowledgment reads differently for the two answers only in its heading;
+  the notes and the button are the same.
+
+  The same form block is also the last child of the course (one block, one
+  state), so a student can revisit it and change their answer at any time.
+  Revisiting shows the form and the choice only; the acknowledgment is a
+  one-time landing step, not part of the form.
+
+  The course itself stays launchable, so the same content serves outside a
+  study with no wrapper at all. Which consent-form version a student saw is
+  recoverable from the release the event log ties back to.
+-->
+
+<Vertical id="psych_study" title="Psychology Study Group (Research Study)" launchable="true">
+
+<Use ref="psych_irb_consent_form" when="!@psych_irb_consent.value" />
+
+<Vertical id="psych_irb_ack" when="@psych_irb_consent.value && !@psych_irb_ack_done.value">
+<Markdown when="@psych_irb_consent.value === 'consented'">
+## Thank you
+
+Your course work may be included in the research, always de-identified. You
+can change your answer at any time under **Study Consent Form** at the bottom
+of the course navigation.
+</Markdown>
+<Markdown when="@psych_irb_consent.value === 'declined'">
+## No problem
+
+Your course work stays out of the research. Nothing about the course changes:
+same activities, same credit. You can change your answer at any time under
+**Study Consent Form** at the bottom of the course navigation.
+</Markdown>
+<Markdown>
+This SBLA Activity is a requirement for our course, and you will receive
+points for completing it whether or not you consent to having your data
+included in the research.
+
+This is an **experimental, open-source research platform**, and you are
+among the first students to use it. A few notes:
+
+* We recommend Firefox, Edge, or Google Chrome. Safari is unsupported.
+* We recommend against working on multiple devices at the same time.
+* If you run into any issues, even minor, please let us know. You'll
+  be helping out future students.
+</Markdown>
+<ActionButton id="psych_irb_ack_btn" label="Continue to the Study Group">
+<SetFieldAction id="psych_irb_ack_set" target="psych_irb_ack_done" field="value" value="acknowledged" />
+</ActionButton>
+</Vertical>
+
+<Use ref="psych_course" when="@psych_irb_consent.value && @psych_irb_ack_done.value" />
+
+<!-- Flag holder for the acknowledgment, parked unrendered. A LineInput, not
+     a Done: SetFieldAction validates against the target field's schema, and
+     a plain string can say what happened. -->
+<Hidden id="psych_consent_defs">
+<LineInput id="psych_irb_ack_done" />
+</Hidden>
+
+</Vertical> <!-- psych_study -->

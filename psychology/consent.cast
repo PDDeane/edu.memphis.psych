@@ -1,0 +1,17 @@
+# Research-consent page cast: the one real person on it.
+# Mollie Blair Anderson is the head psychology instructor and the study's
+# in-class contact point. Unlike the course's fictional cast, this avatar
+# stands in for a real person — appearance choices are hers to veto.
+#   https://www.dicebear.com/styles/open-peeps/#options
+
+Mollie Blair Anderson:
+  openPeeps:
+    face: explaining
+    head: bangs
+    skinColor: f8d5c2
+    accessories: glasses3
+    clothingColor: 2a9d8f
+    headContrastColor: c57123
+  profile:
+    role: Professor, Psychology — head instructor
+    bio: Head instructor for the psychology Study Group activities and the student contact point for the classroom research study.

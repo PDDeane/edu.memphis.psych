@@ -1,25 +1,28 @@
 <Vertical id="psych_irb_consent_form" title="Study Consent Form">
 
+<TalkBubble who="Mollie Blair Anderson" cast="consent.cast">
 <Markdown>
+As a college instructor, I am always working to improve my courses so
+that my students are successful.
 
-_As a college instructor, I am always working to improve my courses so
-that my students are successful._
-
-_As part of this goal, I conduct classroom-based studies. This involves
+As part of this goal, I conduct classroom-based studies. This involves
 asking my students to do different activities that give me information
 about them or involves me testing out ideas. I collect this
 information to be a better instructor. However, I learn about ways to
 help other college instructors support their students. When this
 happens, I want to be able to share what I have learned from
-de-identified student course work._
+de-identified student course work.
 
-_For me to use the information that I gather from students in this way,
+For me to use the information that I gather from students in this way,
 I need their consent. Below is an informed consent form for this
 class. Please read the form. If you agree to allow me to use your
 de-identified course work to communicate what I have learned with
 others, then you will be able to click a link to indicate your
-agreement._
+agreement.
+</Markdown>
+</TalkBubble>
 
+<Markdown>
 # University of Memphis
 
 ## Informed Consent
@@ -65,28 +68,7 @@ If you are willing to volunteer for this research, please click on
 "I accept" below.
 </Markdown>
 <ChoiceInput id="psych_irb_consent">
-  <Key id="irb_accept"> I accept. </Key>
-  <Key id="irb_reject"> I do not want to participate in this study. </Key>
+  <Key id="irb_accept" value="consented"> I accept. </Key>
+  <Key id="irb_reject" value="declined"> I do not want to participate in this study. </Key>
 </ChoiceInput>
-<Markdown when="@psych_irb_consent">
-# Great!
-
-You can change your mind anytime.
-
-This is an **experimental, open-source research platform**. You are
-the very first students to use it. A few notes:
-
-* We recommend Firefox, Edge, or Google Chrome. Safari is unsupported.
-* We recommend against working on multiple devices at the same time.
-* If you run into any issues, even minor, please let us know. You'll
-  be helping out future students.
-
-This SBLA Activity is a requirement for our course, and you will receive
-points for completing it whether or not you consent to having your data
-included in the research.
-
-To get started, select the first activity (SBLA Part One) in the
-navigation bar on the left.
-
-</Markdown>
 </Vertical>

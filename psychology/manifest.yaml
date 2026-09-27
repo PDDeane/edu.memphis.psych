@@ -13,7 +13,10 @@ content_notice: >
   [AGPLv3](https://www.gnu.org/licenses/agpl-3.0.html). Source available on
   [GitHub](https://github.com/olxhub/edu.memphis.psych).
 routes:
-  /: edu.memphis.psych/psych_course
+  # "/" lands on the consent gate (psych_study.olx); the course renders inside it
+  # once the consent question is answered, either way. A deployment outside a
+  # study points "/" at edu.memphis.psych/psych_course instead.
+  /: edu.memphis.psych/psych_study
 
 # Two namespaces live in this tree (edu.memphis.psych and, under defiance/,
 # edu.memphis.psych.defiance) — per-file namespace resolution must run.
