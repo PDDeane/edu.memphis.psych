@@ -2081,28 +2081,13 @@ def check_convertible_prose_rules_have_subgoals() -> list[str]:
     WRITTEN DOWN, not to police how a subgoal is phrased. A stricter match would
     fail on the first reworded heading and teach people to route around it.
     """
-    import pathlib
+    # PORTED (goal K). No slot is marked CONVERTIBLE today, so agreement on
+    # zero proves nothing -- and the first fire-test picked a slot the ledger
+    # DOES name, which correctly stayed silent. Fired with a slot no subgoal
+    # can name: byte-identical on both sides.
+    import lo_enforce
 
-    import compose_docs
-
-    goals = pathlib.Path(compose_docs.composed_path("GOALS.md"))
-    try:
-        text = goals.read_text()
-    except OSError as e:
-        return [f"GOALS.md cannot be read, so CONVERTIBLE prose rules cannot be "
-                f"checked: {e}"]
-
-    out = []
-    for (item, slot), why in sorted(PROSE_ONLY_SLOTS.items()):
-        if "CONVERTIBLE" not in why or why.strip().startswith("NOT CONVERTIBLE"):
-            continue
-        named = f"{item}.{slot}" in text or (f"`{slot}`" in text and item in text)
-        if not named:
-            out.append(f"PROSE_ONLY_SLOTS marks {item}.{slot} CONVERTIBLE but no "
-                       f"subgoal in GOALS.md names it. A convertible rule is work, "
-                       f"not a label: add it as a subgoal under the equivalence "
-                       f"goal, or change the reason to argue why it cannot convert")
-    return out
+    return lo_enforce.run("convertible_prose_rules_have_subgoals", None)
 
 
 def check_prose_only_slots_are_declared() -> list[str]:
@@ -4145,35 +4130,12 @@ def check_citation_necessity_is_recorded() -> list[str]:
     are removed, not recorded — so the table holds only `necessary` and `untested`,
     and `untested` is a backlog item with a name on it rather than a silence.
     """
-    from forms import FORMS
+    # PORTED (goal K). Both tables are EMPTY on this course today, so agreement
+    # on zero proves nothing: fire-tested by registering a cited participant
+    # with no necessity entry on both sides -- byte-identical.
+    import lo_enforce
 
-    problems = []
-    for h in _forms():
-        registry = (FORMS[h].get("cited_participants") or {})
-        for item, pids in sorted(registry.items()):
-            for pid in sorted(pids):
-                state = CITATION_NECESSITY.get((item, pid))
-                if state is None:
-                    problems.append(
-                        f"H{h} {item}/p{pid} is registered in cited_participants "
-                        f"with no CITATION_NECESSITY entry. Either measure whether "
-                        f"the citation is load-bearing — rewrite it as its rule and "
-                        f"re-run the cell — or record it as 'untested' so the "
-                        f"backlog can see it")
-                elif state not in ("necessary", "untested"):
-                    problems.append(
-                        f"H{h} {item}/p{pid}: CITATION_NECESSITY says {state!r}. "
-                        f"Only 'necessary' and 'untested' belong here — a citation "
-                        f"measured as unnecessary is REMOVED along with the "
-                        f"registration, not recorded")
-    for stale in sorted(CITATION_NECESSITY):
-        item, pid = stale
-        if not any(pid in (FORMS[h].get("cited_participants") or {}).get(item, [])
-                   for h in _forms()):
-            problems.append(
-                f"CITATION_NECESSITY lists {item}/p{pid}, which is no longer "
-                f"registered in cited_participants. Remove it")
-    return problems
+    return lo_enforce.run("citation_necessity_is_recorded", None)
 
 
 def check_items_are_measured_as_configured() -> list[str]:
