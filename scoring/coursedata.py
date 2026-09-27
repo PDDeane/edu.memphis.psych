@@ -231,10 +231,16 @@ _DOC = None
 _GOLD = None
 
 
-def course_path() -> str:
+def course_path(ns: str | None = None) -> str:
+    """This course's course.json. `ns` names a DIFFERENT mounted course.
+
+    THROUGH `paths.roots`, not the module constant, since E58 step 4: the
+    constant is the active course and cannot answer for a second one. `ns=None`
+    is the active course and is exactly the constant, by construction.
+    """
     import paths
 
-    return str(paths.COURSE_FILE)
+    return str(paths.roots(ns).course_file)
 
 
 def _load() -> dict:
@@ -331,7 +337,7 @@ def _rubric_rows() -> list[dict]:
             f"back to -- fix the component rather than the reader.")
     # `handout` IS JOINED FROM THE COURSE FILE, not carried by the rubric.
     # `Item`'s schema refuses the attribute, and rightly: which handout an item
-    # belongs to is course structure. `handouts.config` selects on it before
+    # belongs to is course structure. `forms.config` selects on it before
     # serving, so it has to be here.
     where = {str(it.get("id")): it.get("handout") for it in _load()["items"]}
     for r in rows:
@@ -346,7 +352,7 @@ def items() -> list[dict]:
 
     THE RUBRIC LIVES IN THE CONTENT NOW, as a `<Rubric>` the course links beside
     the three handouts. Everything else keeps its spelling:
-    `handouts.config(h)["rubric"]` still serves the view, and the 102 call sites
+    `forms.config(h)["rubric"]` still serves the view, and the 102 call sites
     across 18 modules are untouched. The CHANNEL is converted, not the callers --
     the same move that let Stage 5 delete the modules without breaking a site.
 
@@ -369,10 +375,10 @@ def items() -> list[dict]:
     return _rubric_rows()
 
 
-def declared_handouts() -> tuple:
+def declared_forms() -> tuple:
     """Every handout the course declares, in order. J-4b.
 
-    THE ACCESSOR EXISTS SO CALLERS DO NOT REACH PAST THE READER. `handouts.py`
+    THE ACCESSOR EXISTS SO CALLERS DO NOT REACH PAST THE READER. `forms.py`
     first asked this by reading `_load()["handouts"]` itself, and
     `course_schema`'s Part B caught it: taking a raw entry "defeats the boundary
     while appearing to honour it, because the code still calls into
@@ -445,13 +451,13 @@ def gradable_blocks() -> dict:
     out: dict = {}
     for it in items():
         iid = str(it.get("id"))
-        handout, grading = it.get("handout"), it.get("grading")
-        if handout is None or not grading:
+        form, grading = it.get("handout"), it.get("grading")
+        if form is None or not grading:
             continue
         asks = it.get("asks")
-        out.setdefault(handout, {})[asks or f"_{iid.lower()}_deterministic"] = {
+        out.setdefault(form, {})[asks or f"_{iid.lower()}_deterministic"] = {
             "item": iid,
-            "olx": _p7.handout_olx(handout) if asks else None,
+            "olx": _p7.handout_olx(form) if asks else None,
             "kind": grading,
         }
     return out
@@ -477,6 +483,68 @@ def slot_structure_families() -> dict:
     return {k: tuple(v) for k, v in out.items()}
 
 
+def declaration_list(name: str) -> list:
+    """A declaration stored as a plain LIST rather than key/value pairs.
+
+    `SLOT_RULE_BACKLOG` is a list of slot names and `SIDE_INVERTED` a list of
+    check names; `declaration()` decodes `[[key, value], ...]` and cannot serve
+    either. Kept as its own accessor rather than making `declaration()` guess at
+    the shape, because a reader that guesses returns the wrong TYPE quietly.
+
+    AN ACCESSOR, NOT A RAW READ. The first version of this reached
+    `coursedata._load()` from `enforcement`, and the schema check said so
+    immediately -- "takes a RAW item entry via coursedata._load, that is the
+    whole boundary". Every reader goes through here.
+    """
+    raw = _load().get("declarations", {}).get(name)
+    if raw is None:
+        raise KeyError(
+            f"coursedata: no declaration {name!r} in {course_path()}. If it is "
+            f"a new table, the export must carry it; if it was removed, the "
+            f"reader of it must go too.")
+    if not isinstance(raw, list):
+        raise TypeError(
+            f"coursedata: declaration {name!r} is {type(raw).__name__}, not a "
+            f"list; use declaration() for a key/value table")
+    return [_detag(copy.deepcopy(v)) for v in raw]
+
+
+def declared_number(name: str) -> int:
+    """A scalar declaration — a RATCHET BUDGET — from the course's records.
+
+    `declaration()` cannot serve these: it decodes `[[key, value], ...]`, which
+    is the shape a tuple-keyed table needs, and a budget is a single number.
+
+    WHY THE BUDGETS LIVE HERE AT ALL. They were module constants in
+    `enforcement.py` -- `PROSE_ONLY_BUDGET = 27` -- which is a fact about THIS
+    course's rubric sitting in the engine. It also made every ratchet rule
+    unfeedable from inside lo-blocks: a native caller could read the table but
+    not the ceiling it is measured against, so four ported rules could run from
+    python and nowhere else.
+
+    REFUSES RATHER THAN DEFAULTING. A missing budget must not read as zero: zero
+    is a real and meaningful ceiling -- "this table may not grow at all" -- so a
+    silent default would turn a lost declaration into the strictest possible
+    rule, which then fires on everything and gets waved through.
+    """
+    # FROM `budgets`, NOT `declarations`. The schema requires every declaration
+    # to be a list of [key, value] pairs -- `declarations` means TABLES -- and a
+    # ceiling is a number, so putting one there broke the invariant and the
+    # schema check said so. `course.json`'s structure is meant to be identical
+    # across courses and stable once K and L are done, so a new KIND of value
+    # gets its own section rather than bending the meaning of an existing one.
+    raw = _load().get("budgets", {}).get(name)
+    if raw is None:
+        raise KeyError(
+            f"coursedata: no budget {name!r} in {course_path()}. A ratchet "
+            f"without its ceiling cannot be checked, and defaulting it to zero "
+            f"would invent a rule nobody declared.")
+    if isinstance(raw, bool) or not isinstance(raw, int):
+        raise TypeError(
+            f"coursedata: budget {name!r} is {type(raw).__name__}, not an int")
+    return raw
+
+
 def declaration(name: str) -> dict:
     """A scoring declaration table, with its TUPLE KEYS restored.
 
@@ -486,6 +554,20 @@ def declaration(name: str) -> dict:
     lossless only until a part contained the separator.
     """
     raw = _load().get("declarations", {}).get(name)
+    # A SET OF NAMES IS A LIST, and both spellings are live. `SIDE_INVERTED` and
+    # `PROBE_TYPE_FIELDS` mean "which checks are inverted" and "which fields are
+    # type fields" -- sets, with no value to carry. The stored record encodes
+    # them as maps-to-`true`, a set wearing a dict's clothes; the BUILDERS
+    # declare them as plain lists, which is the honest shape.
+    #
+    # Reading a list here returns it, rather than failing. Subgoal E62: adopting
+    # a faithful regeneration broke `enforcement` AT IMPORT --
+    # `ValueError: too many values to unpack` -- because this decoded pairs and
+    # only pairs. The divergence was called non-breaking on the strength of a
+    # test that read the OLD shape, which tested nothing about the new one.
+    if isinstance(raw, list) and not all(
+            isinstance(row, (list, tuple)) and len(row) == 2 for row in raw):
+        return list(raw)
     if raw is None:
         raise KeyError(
             f"coursedata: no declaration {name!r} in {course_path()}. If it is a "
@@ -533,7 +615,7 @@ def generator_value(name: str):
     return _detag(copy.deepcopy(_load().get("generator", {}).get(name)))
 
 
-def derived(name: str, handout: int | None = None):
+def derived(name: str, form: int | None = None):
     """Rebuild a derived value, or return the authored one the export carried.
 
     The reader is where A2a's recomputation lives. A name this module can rebuild
@@ -546,7 +628,7 @@ def derived(name: str, handout: int | None = None):
     # KeyError here -- loud, but for the wrong reason, and only for the
     # derivations that happen to read a deleted field.
     pool = [it for it in _rubric_rows()
-            if handout is None or it.get("handout") == handout]
+            if form is None or it.get("handout") == form]
     fn = DERIVATIONS.get(name)
     if fn is not None:
         value = fn(pool)
@@ -554,7 +636,7 @@ def derived(name: str, handout: int | None = None):
         if value or name in ("TOTAL", "BY_ID"):
             return value
     for h, block in doc.get("handouts", {}).items():
-        if handout is not None and int(h) != handout:
+        if form is not None and int(h) != form:
             continue
         if name in block.get("authored", {}):
             # DETAGGED LIKE EVERY OTHER READ PATH. This one was missed when tuple
@@ -569,7 +651,7 @@ def derived(name: str, handout: int | None = None):
         f"must carry it.")
 
 
-def data_root() -> str | None:
+def data_root(ns: str | None = None) -> str | None:
     """The course-data root, or None. RESOLVED THE WAY `paths` RESOLVES IT.
 
     `gold_path` used to read the environment directly and fall back to `""`,
@@ -582,48 +664,78 @@ def data_root() -> str | None:
     `paths.DATA` already carries the default (`~/molly_data`) and every other
     reader in this package goes through it.
     """
-    root = os.environ.get("COURSE_DATA")
-    if root:
-        return root
+    # NOT `$COURSE_DATA` FIRST. This read the variable before `paths`, which
+    # was env-first -- and `paths` became DECLARATION-first on 2026-09-25. With
+    # a course declaring `course_data:` and the variable set to something else,
+    # gold and overrides resolved against the variable while every other reader
+    # used the declaration: two halves of one run reading two different corpora.
+    # `paths.roots` applies the whole rule, variable included, in one place.
     try:
         import paths
 
-        return str(paths.DATA)
+        return str(paths.roots(ns).data)
     except Exception:                             # pragma: no cover
         return os.environ.get("COURSE_DATA") or None
 
 
-def overrides_path() -> str:
-    """The enforcement gate's override log, OUTSIDE the repository.
+def overrides_path(ns: str | None = None) -> str:
+    """The enforcement gate's override log, in `<course>/<rubric id>_qc/` with the QC set.
 
-    IT USED TO LIVE IN `scoring/` AND THAT WAS THE MISTAKE. It is append-only and
-    machine-written, so every commit rewrote the whole blob: 80 versions, 2,838 MB
-    of git history, 82% of every blob this repository has ever stored, against 18
-    MB of tracked content. Deleting it from the working tree reclaims none of that
-    -- a blob is permanent once committed. A log that grows with COURSE WORK
-    therefore cannot live in a repository that must not grow with it.
+    IT USED TO LIVE IN `scoring/` AND THAT WAS A MISTAKE OF A DIFFERENT KIND: it
+    sat among the modules, where a course's bookkeeping does not belong. It is
+    append-only and machine-written, so every commit rewrites the whole blob --
+    80 versions, 2,838 MB of git history, 82% of every blob this repository has
+    ever stored, against 18 MB of tracked content. Deleting it from the working
+    tree reclaims none of that: a blob is permanent once committed. On that
+    measurement it was moved out of the repository altogether.
 
-    Beside `gold.json` for the same reason gold is there: it is per-course
-    bookkeeping this project writes and rewrites, not part of the code's contract.
+    IT IS BACK IN, 2026-09-26, and the measurement above is not retracted. The
+    user's decision, with the cost put to them and set aside: this log is one of
+    the documents of a single quality-control cycle -- the goals, the backlog,
+    the approved closures, the guides, and this record of what the gate was
+    asked to excuse -- and those are read and decided together. `compose_docs.
+    ACCUMULATING` carries the full statement of the rule and of the override.
+
+    WHAT RETURNS WITH IT. `precommit_gate` stages this file into the very commit
+    it excuses, so `git log -p` over it reads as the history of what the audit
+    was asked to wave through and why. That was written when the log was tracked,
+    stopped being true when it left, and is true again.
 
     ABSENT IS A CLEAN SLATE, not an error. No records means nothing has been
     excused yet, which is a perfectly good starting state -- the same shape as
     C1b's treatment of gold, and a better fit for a log than for gold.
     """
-    root = data_root()
-    if root is None:
-        return os.path.join("<COURSE_DATA-unset>", "courses",
-                            "edu.memphis.psych", "OVERRIDES.md")
-    return os.path.join(root, "courses", "edu.memphis.psych", "OVERRIDES.md")
+    # THE COURSE'S OWN NAMESPACE, not this one spelled out. Both arms hard-coded
+    # the psych namespace, so with a second course mounted its overrides resolved
+    # to THIS course's file -- a read, and for overrides a WRITE, into another
+    # course's records. That is the cross-contamination E58 exists to stop, and it
+    # was a defect rather than untidiness. `paths.NS` is the same resolution the
+    # rest of the package already uses.
+    import paths
+
+    target = paths.roots(ns)
+    if data_root(ns) is None:
+        return os.path.join("<COURSE_DATA-unset>", "OVERRIDES.md")
+    # THROUGH THE ACCESSOR. Spelling `courses/<ns>/` here is what made six
+    # modules each carry their own copy of the layout, so a repoint had to find
+    # all six or leave some reading a directory nothing writes.
+    return str(target.rubric_dir / "authored" / "OVERRIDES.md")
 
 
-def gold_path() -> str:
-    root = data_root()
-    if root is None:
+def gold_path(ns: str | None = None) -> str:
+    import paths
+
+    target = paths.roots(ns)
+    if data_root(ns) is None:
         # Named, not silently relative: the caller gets a path it can report.
-        return os.path.join("<COURSE_DATA-unset>", "courses",
-                            "edu.memphis.psych", "gold.json")
-    return os.path.join(root, "courses", "edu.memphis.psych", "gold.json")
+        return os.path.join("<COURSE_DATA-unset>", "gold.json")
+    # RUBRIC-OWNED, on the user's ruling of 2026-09-26. Gold is a human marking
+    # of the INSTRUMENT and a second rubric does not change what a grader wrote
+    # -- but the file also carries slot-keyed interpretation
+    # (`GOLD_SLOT_DISAGREEMENTS_KNOWN`), and a slot is a rubric concept. It was
+    # filed with the rubric rather than split, which is a decision recorded here
+    # so it is not re-derived as an oversight.
+    return str(target.rubric_dir / "derived" / "gold.json")
 
 
 def _load_gold() -> dict:
@@ -678,13 +790,13 @@ def rubric_note_runs(item: str) -> list:
     return _carried().get(str(item), [])
 
 
-def handout_notes(handout) -> list:
+def form_notes(form) -> list:
     """The prose OUTSIDE a rubric module's `ITEMS` -- its header.
 
     What the handout is, how its items are built, what the module as a whole is
     for. 548 lines across the three, and lost with the files if not carried.
     """
-    return [ln for run in _carried().get("handout:" + str(handout), [])
+    return [ln for run in _carried().get("handout:" + str(form), [])
             for ln in run]
 
 
@@ -766,18 +878,18 @@ def gold_notes(table: str, key=None):
     return list(per.get(slot, []))
 
 
-def handout_participants(handout: int | str, field: str) -> list:
+def form_participants(form: int | str, field: str) -> list:
     """One handout's participant list, by field.
 
-    These lived inside `handouts.HANDOUTS` and were left there when the rest of
+    These lived inside `forms.FORMS` and were left there when the rest of
     that table was split, because they are the one part of it that names people.
     """
-    hp = _load_gold().get("handout_participants", {}).get(str(handout))
+    hp = _load_gold().get("handout_participants", {}).get(str(form))
     if hp is None:
-        raise KeyError(f"coursedata: no participants for handout {handout!r} in "
+        raise KeyError(f"coursedata: no participants for handout {form!r} in "
                        f"{gold_path()}.")
     if field not in hp:
-        raise KeyError(f"coursedata: handout {handout!r} has no participant field "
+        raise KeyError(f"coursedata: handout {form!r} has no participant field "
                        f"{field!r}; it carries {sorted(hp)}.")
     return _detag(copy.deepcopy(hp[field]))
 

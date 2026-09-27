@@ -8,7 +8,7 @@ finding in the migration plan and is why it went unnoticed. A second course coul
 not be scored without shipping a copy of it, and the stub silently borrowed this
 course's.
 
-WHAT STAYED BEHIND, in `course_metadata/fixture/course_segment.py`: `utb_hint`,
+WHAT STAYED BEHIND, in `course_segment.py`: `utb_hint`,
 which hardcodes this course's four target behaviours, and the `H1/H2/H3_MARKERS`
 and `_ITEMS` aliases, whose value is the per-handout REASONING in the comments
 around them. Nothing here names a handout number or a subject.
@@ -16,6 +16,12 @@ around them. Nothing here names a handout number or a subject.
 `_markers` and `_handout_items` already read the COURSE FILE, so the mechanism
 for keeping the course half out was built and working before this move -- it had
 simply never been applied to the module's own location.
+
+THAT FILE HAS MOVED AGAIN, and the sentence above is left as it was written
+because it is the record of goal N. On 2026-09-25 the course half went from
+`$COURSE_METADATA/fixture/` to the course repository's own `fixture/`, on the
+ruling that the records root holds no python; `paths.COURSE_FIXTURE` points
+there and `course_hook` still imports it by name.
 """
 # THE SECTION HEADINGS BELOW ARE NOT REFERENCED, AND CANNOT BE.
 #
@@ -64,7 +70,7 @@ from docx_text import doc_lines
 # rubric order, which A2a says to recompute rather than keep. Verified equal for
 # all three handouts before the literals were removed.
 # ---------------------------------------------------------------------------
-def _markers(handout: int) -> list[tuple[str, str]]:
+def _markers(form: int) -> list[tuple[str, str]]:
     """The handout's locators, in order, as (key, regex) pairs.
 
     Tuples, not the lists JSON gives back: every caller unpacks these as
@@ -75,15 +81,15 @@ def _markers(handout: int) -> list[tuple[str, str]]:
     import coursedata
 
     raw = coursedata.generator_value("SEGMENT_MARKERS") or {}
-    return [tuple(pair) for pair in raw.get(str(handout), [])]
+    return [tuple(pair) for pair in raw.get(str(form), [])]
 
 
-def _handout_items(handout: int) -> list[str]:
+def _form_items(form: int) -> list[str]:
     """This handout's item ids, in rubric order. DERIVED, never stored."""
     import coursedata
 
     return [str(it["id"]) for it in coursedata.items()
-            if it.get("handout") == handout]
+            if it.get("handout") == form]
 
 
 
@@ -130,11 +136,37 @@ def course_hook(name: str, default=None):
     Deliberately NOT a registry like `scorers`: a scorer is REQUIRED once an item
     names one, and its absence must refuse. A hint that nobody supplies costs
     nothing.
+
+    ABSENT AND BROKEN ARE DIFFERENT, and conflating them cost this course its
+    only hook for an unknown number of runs. E58 step 1 renamed
+    `_handout_items` to `_form_items`; `course_segment.py` imported the old name,
+    raised ImportError on line 18, and this function -- reading that as "the
+    course offers no hint" -- handed `score.py`, `score_h1.py` and
+    `agreement_app.py` a `lambda _path: None` apiece. Nothing failed. Nothing
+    reported it. An engine rename turned off a course's hook in silence.
+
+    So the module being THERE is established first, and only then is it
+    imported. A missing module is the real answer this function exists to give;
+    a module that exists and will not import is a defect, and it raises.
     """
+    import importlib.util
+
+    # IMPORTED FOR ITS SIDE EFFECT, and the effect is the whole search. `paths`
+    # is what puts `COURSE_FIXTURE` on `sys.path`; without it `find_spec` misses
+    # a module that is plainly there and this returns the default -- the exact
+    # silence the rest of this docstring is about, reached a second way.
+    import paths  # noqa: F401
+
+    if importlib.util.find_spec("course_segment") is None:
+        return default            # the course ships no hooks at all
     try:
         import course_segment
-    except ImportError:
-        return default
+    except ImportError as exc:
+        raise ImportError(
+            f"the course ships `course_segment.py` and it will not import: "
+            f"{exc}. This is NOT the same as shipping no hook -- returning the "
+            f"default here is how a rename in the engine silently disabled "
+            f"`utb_hint` for three scoring modules at once") from exc
     return getattr(course_segment, name, default)
 
 

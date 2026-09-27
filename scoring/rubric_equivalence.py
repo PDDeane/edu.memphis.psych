@@ -37,10 +37,10 @@ import os
 
 import paths
 import sys
-import handouts as _handouts   # forms are declared by the course, not counted here
+import forms as _forms   # forms are declared by the course, not counted here
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-HANDOUTS = _handouts.declared()
+FORMS = _forms.declared()
 
 # Rebuilt by the reader rather than stored, so their absence from the file is
 # correct. Named here INDEPENDENTLY of the reader: this tool must not import the
@@ -210,7 +210,7 @@ def _modules_present() -> list:
     import os
 
     here = os.path.dirname(os.path.abspath(__file__))
-    return [h for h in _handouts.declared()
+    return [h for h in _forms.declared()
             if os.path.exists(os.path.join(here, f"rubric_h{h}.py"))]
 
 
@@ -223,7 +223,7 @@ def main(argv: list[str]) -> int:
         return 0
 
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--course-file", default=str(paths.COURSE_FILE))
+    ap.add_argument("--course-file", default=str(paths.roots().course_file))
     args = ap.parse_args(argv)
 
     if not os.path.exists(args.course_file):

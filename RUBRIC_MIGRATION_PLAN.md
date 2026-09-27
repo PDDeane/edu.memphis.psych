@@ -7157,6 +7157,56 @@ package is pointed at it. Going through the Drive API instead would mean
 rewriting every read behind a client, which is a different and much larger job
 for no gain over a mount.
 
+## RETIRING THE COURSE-FILE GENERATOR LANDS WITH L (user, 2026-09-25)
+
+The user: *"Do we still need to generate the course file? Better to treat it as
+hand authored content moving forward."* Agreed, and it belongs HERE rather than
+in E58, for a reason that only appears once the destination is settled.
+
+WHAT IS TRUE NOW. Every migrated table exists TWICE -- the authored python copy
+in the three builders, and the copy inside `course.json` -- kept equal by
+`check_migrated_tables_match_their_source`. The builders sit outside the
+pipeline so that regenerating the course file does not depend on the course file
+it is regenerating. Nothing imports them at run time; the pipeline reads the
+course file through `coursedata`. A source that needs a check to prove it
+matches its copy is a copy too many.
+
+WHERE THE CONTENT GOES, and the first answer was WRONG. It was proposed that
+tables carrying rationale move into hand-authored OLX, on the grounds that OLX
+preserves prose and JSON does not. The user corrected it: *"comments about
+tables [should] live in $COURSE_METADATA, unless the table is generic and not
+about any specific course, in which case I could see moving them to OLX, but
+then you probably won't be able to."* Which is right -- a GENERIC table has no
+business in a specific course's OLX, so a generic table simply stays in code.
+
+MEASURED against the rubric's own vocabulary (26 item ids and 86 slot names read
+from `all_items()`, not a guessed pattern):
+
+    36 of 38 tables are COURSE-SPECIFIC   -> $COURSE_METADATA, rationale with them
+     2 are generic and stay in code       -> HAND_AUTHORED_ATTRS, SIDE_INVERTED
+
+THE FIRST COUNT OF THIS WAS WRONG and the way it was wrong is worth keeping: a
+hand-written regex that knew only `Q`-prefixed item ids reported twelve tables as
+generic. This course's ids include `2a`, `NR`, `DAY1` and `PP`, so
+`PROBE_UNREACHABLE_PAIRS` -- keyed by `("2a", ...)` and `("NR", ...)` -- read as
+course-neutral. Built from the artifact's own vocabulary the number is two. The
+standing rule applies: a detector reports zero for what it was never told to
+look for.
+
+AND THE PROSE OBJECTION LARGELY DISSOLVES. `course.json` ALREADY carries
+per-entry `why` fields on `SCORING_DIVERGENCES` and `PROBE_REACH_LIMITS`, so
+rationale travelling with data is an established convention here, not a new
+mechanism. What is missing is only TABLE-LEVEL rationale -- the block explaining
+why a whole table exists -- which needs a `_why` per table. The three builders
+carry 826 lines of such prose (40% of `declaration_source.py`), and none of it
+may be dropped in the move.
+
+WHY IT LANDS WITH L AND NOT BEFORE. `$COURSE_METADATA` holds course-specific
+data that must not sit in a public repository, and `course_metadata/` is
+currently INSIDE the repo. Moving the authored tables there ENLARGES that
+exposure. Doing it before the relocation would mean moving the data twice and
+widening the exposure in between.
+
 ## `$COURSE_METADATA` MOVES TOO (user, 2026-09-24)
 
 L was written about `$COURSE_DATA` alone. The user's instruction widens it: the
@@ -10161,3 +10211,3499 @@ purpose, and `probe.py`'s use of the registry.
 `expand_counted`, `BLOCKS`, `fixture_for`, `cheap_checks_gate`. `score.py` and
 `oc.py` -- the PAPER scorer -- import these directly. They live in `agreement.py`
 because that is where the module grew, not because they belong to the web column.
+
+## K: NINE MORE PORTS, AND WHAT VERIFYING THEM TAUGHT (2026-09-25)
+
+Eighteen of the 171 checks now delegate their judgement to lo-blocks, and seven
+more are built, fire-tested and verified against this corpus awaiting their
+python wiring. 127 vitest cases in `enforce.test.ts`.
+
+### The six
+
+    prompts_carry_no_process_history     five regexes over authored prose
+    sibling_slots_share_their_structure  structural, with a shape ratchet
+    verdict_spaces_are_declared          set comparison, declared BY SHAPE
+    consensus_fixes_have_no_duplicate_cells  raw TEXT vs parsed object
+    prose_only_slots_are_declared        three-way compare + budget
+    probe_unreachable_pairs_still_apply  a suppression that must expire
+    handsplit_rows_are_disjoint          containment across a row's boxes
+    every_reference_has_the_data_...     CALLS the build's rule, not a copy
+    mapped_slots_have_no_unreachable_verdict  sheet-vs-map, counterparts folded
+
+### EVERY PORT WAS PROVEN WITH A CONTROL, because the corpus is clean
+
+All six return ZERO findings on the live corpus, on both sides. That agreement
+is worthless on its own -- it is the agreement of two functions that never ran.
+So each was re-run against an input engineered to make it fire:
+
+    process history   the sentence 2a actually shipped, spiked back in   5 == 5
+    sibling slots     one family member's shape flipped                  1 == 1
+    verdict spaces    the declarations stripped                        44 == 44
+    consensus dupes   one real key written twice, still valid JSON       1 == 1
+    prose-only slots  the declarations stripped                        28 == 28
+    probe unreachable a pair declared though the probe reaches it        1 == 1
+    handsplit rows    one box's text copied into a sibling box            1 == 1
+    reference data    `corpus_data:` stripped from a citing .olx           1 fired
+    mapped slots      the counterpart declarations stripped                2 == 2
+
+Byte-identical findings, in identical order, in every case.
+
+### THE CONTROL CAUGHT A REAL BOUNDARY
+
+The first consensus-duplicates control produced INVALID JSON, so both sides took
+the parse-error arm -- and their messages differed, because each embeds its own
+parser's words ("Expecting ',' delimiter: line 3 column 9" against "Expected ','
+or ']' after array element"). A ported check whose finding text differs is
+indistinguishable, in a baseline diff, from a new fault. So the parse-error arm
+STAYS IN PYTHON and the rule is called only with text that already parsed. The
+boundary is recorded in `consensusDuplicates.ts`, not just observed.
+
+### THE DISPOSITION BUCKETS NEEDED READING, exactly as this plan warned
+
+Of the 34 unported "PORTABLE now (self-contained)" entries, SIX read our own
+source text (`inspect`, `__file__`, `read_text()`) and are not self-contained at
+all: `artifacts_record_their_era`, `every_check_is_invoked`,
+`action_attributes_are_declared_in_the_block`, `app_and_harness_send_the_same_request`,
+`no_module_shadow_in_scratchpad`, and `fails_verdict_is_mirrored_in_the_app`.
+
+But that scan is not a verdict either. `fails_verdict_is_mirrored_in_the_app`
+reads `slotSheet.ts` -- a lo-blocks file -- so it is MORE natural in lo-blocks,
+beside the code it reads, not less. A detector keyed on `read_text()` cannot
+tell whose source is being read.
+
+AND THE COUNT ITSELF WAS WRONG in the other direction: `handcoded_rules_are_being_cleared`
+reads as unported against the RULES registry, because it delegates to the SHARED
+`ratchets_only_tighten` rule rather than one of its own. Progress has to be
+counted by which checks call `lo_enforce.run`, not by registry names.
+
+### One that should NOT be ported, and why
+
+`no_file_points_into_a_developers_notes` scans every file in the repo. The fetch
+IS the check; porting it would mean shipping the whole tree's text across the
+bridge to run four regexes. It stays in python.
+
+### THE EIGHTH PORT DELETES A COPY, WHICH IS THE BEST CASE
+
+`every_reference_has_the_data_that_resolves_it` carried the build's rule
+TRANSCRIBED BY HAND, under a comment saying so: `olx.slice(0, 4000)` and
+`/^\s*corpus_data:\s*(\S+)\s*$/m`. A transcription is correct only while
+someone keeps it in step, and this one had already been wrong once -- it
+demanded a `---` fence at byte 0, every .olx here wraps its frontmatter in an
+HTML comment, and all fifteen reference-carrying files reported missing data,
+three of which plainly carried it.
+
+The port IMPORTS `corpusDataPath` and asks it. The check can no longer disagree
+with the thing it predicts.
+
+One detail had to be reasoned about rather than copied: `corpusDataPath`
+expands `$VARS` and THROWS when one is unset. It only reaches the expansion
+after matching, so a throw PROVES the line was present -- presence is
+`non-null OR threw`, which is exactly what the python regex tested. Reading a
+throw as absence would report a file that declares its data as one that does
+not, and there is a fire test pinning it.
+
+### WHERE THE EASY PORTS RUN OUT
+
+Of the 34 unported "self-contained" entries, after removing the six that read
+our own source and the ones that shell out to a script, EIGHTEEN remain -- and
+reading them shows the cheap half is now taken. What is left divides into:
+
+  * bound to PYTHON'S RUNTIME, not to a judgement: `json_cache_is_not_mutated`
+    asks whether a shared object was mutated after being handed out, which is a
+    fact about python object identity and does not cross;
+  * the FETCH IS THE CHECK: `no_old_environment_names`, `rewritten_artifacts_still_parse`
+    and `no_file_points_into_a_developers_notes` each walk the whole repo to run
+    a couple of regexes, and porting them means shipping the tree across a pipe;
+  * a WHOLE MODULE behind them: `property_vocabulary_has_not_grown` delegates to
+    `property_ratchet`, `criteria_primitives_hold_their_contracts` runs
+    `scorer_criteria.self_test()`. These are interpreter ports wearing a check's
+    clothes and should be judged as such, not counted among the easy ones;
+  * genuinely portable but LARGE: `fixture_follows_response_structure` (80 lines
+    over three prose-analysis helpers) and `blank_collapse_is_gated`, which
+    drives the real scorer and would go through the `scoreSlotSheet` bridge the
+    `score_recorded_sheets` probe already uses.
+
+The honest reading is that the next ports cost more each than these nine did,
+and the count should be expected to slow.
+
+### K HAS A SCALING PROBLEM, MEASURED 2026-09-25, AND IT GETS WORSE WITH EVERY PORT
+
+`lo_enforce.run` spawns a FRESH `tsx` process per call. Measured back to back:
+
+    one bridge call: 1.57s, then 1.61s      -- no warm reuse, no amortisation
+
+That is fine for one check in one audit. It is not fine in the SELFTEST, which
+runs the whole audit once per injection case:
+
+    18 delegating checks x 19 cases = 342 spawns ~ 9.2 minutes of startup
+
+and the cost is LINEAR IN PORTS. Projected at the 132 checks this plan calls
+portable: 132 x 19 x 1.6s is on the order of 70 minutes spent starting node,
+before a single judgement is computed.
+
+**THIS IS NOT HYPOTHETICAL: IT ALREADY COST A RUN.** The selftest was launched
+under a 40-minute ceiling on the evidence of earlier runs, and was killed at 40
+minutes having produced NOTHING -- it emits its report only at the end. The
+run got slower precisely BECAUSE two more checks had been ported into it. A
+goal that makes the audit's own verification unaffordable is defeating itself.
+
+THE FIX IS NOT MORE PATIENCE. Two shapes, either of which removes the term:
+
+  * ONE WARM PROCESS. `runner.ts` already reads `{check, payload}` from stdin;
+    have it loop on newline-delimited JSON and keep the process alive for the
+    duration of an audit. The per-call cost becomes a write and a read.
+  * ONE CALL PER AUDIT. Collect every delegating check's payload, send them as
+    a batch, and let the runner return findings keyed by check name. This also
+    makes the bridge's failure modes collective -- a dead runner is one finding
+    rather than eighteen.
+
+The first is smaller and preserves the current call signature; the second is
+faster still and changes `lo_enforce.run`'s contract. NEITHER IS DONE, and
+until one is, each further port should be counted as adding ~30 seconds to
+every selftest.
+
+## K: MAKING THE RULES CALLABLE FROM LO-BLOCKS (user, 2026-09-25)
+
+The user: *"We shouldn't create tests that can't be called by lo-blocks
+natively"*, and then *"add native entry points as each rule is authored, and
+verify that for all the ports already done."*
+
+A rule here is a pure function over plain JSON, so python can drive it. That is
+not the same as being callable from inside lo-blocks: a rule only PYTHON can
+FEED is a python test written in TypeScript. `enforce/native.ts` gives each rule
+an ASSEMBLER that builds its payload from the course's own records, and
+`nativeCoverage()` fails the suite for any rule with neither an assembler nor a
+declared statement of which derivation is missing.
+
+### It was not hypothetical, and the failures came in a run
+
+    gold_shared_prose  python pre-rendered its tuple keys into `keyRepr`   (user)
+    no_cell_is_both..  assembler handed the rule raw tables; it THREW      (diff)
+    consensus_dupes    wrong root: $COURSE_METADATA, not $COURSE_DATA      (diff)
+    hand_authored...   assembler would have SILENTLY DISAGREED; withdrawn  (reading)
+    parked_entries     python pre-rendered `repr(k)` -- a SECOND instance  (re-audit)
+    three assemblers   read NOTHING and "agreed" with python's zero        (sizes)
+
+THE LAST ONE IS THE ONE TO REMEMBER. `decodeTable` handled the tagged
+`{__dict__: ...}` form and not the BARE LIST OF PAIRS most declarations actually
+use, so three assemblers returned empty payloads -- and every one of them agreed
+with python, because a rule handed nothing finds nothing and python happened to
+find nothing too. The agreement was real and worthless. `emptyPayloads()` now
+refuses a payload whose every list is empty, and the suite runs it.
+
+AND THE FIRST AUDIT OF THIS MISSED THE SECOND CASE. A scan for pre-rendered
+values sliced each function body after its docstring and the slice landed past
+the payload, so it reported all 24 ports clean while `parked_entries_still_apply`
+was passing `repr(k)`. Scanning whole definitions finds it. Twice in one session
+a hand-written detector reported zero for what it was not told to look at.
+
+### What the budgets turned out to be
+
+Four rules could not be fed natively for ONE shared reason: all 11 ratchet
+ceilings were python module constants. `PROSE_ONLY_BUDGET = 27` is a fact about
+THIS course's rubric living in the engine, and a native caller could read the
+table but not the ceiling it is measured against.
+
+On the user's instruction they moved into the records -- and NOT into
+`declarations`, because the schema requires every declaration to be a list of
+[key, value] pairs and a ceiling is a number. The schema check said so
+immediately. They have their own `budgets` section, uniform `{name: int}`,
+identical in shape for every course: the user's standing rule is that
+`course.json`'s STRUCTURE is constant across courses and fixed once K and L are
+done, so a new KIND of value takes a new section rather than bending an old one.
+
+`PARKED_UNDECLARED` followed them, and that exposed the next layer: a table read
+from the course file with no authored twin fails
+`check_migrated_tables_match_their_source`, correctly -- nothing could say the
+migration was faithful. Its authored copy now lives in `declaration_source.py`.
+
+### THREE FINDINGS THAT ARE NOT MINE TO CLOSE
+
+**The course-file EXPORTER WAS BROKEN, and had been.** `rubric_export.py` died
+with `'list' object has no attribute 'items'` on `SIDE_INVERTED`, a list-valued
+table that `_pairs` could not handle. `course.json` could not be regenerated at
+all. Fixed -- a sequence is already JSON and passes through -- but nobody had
+noticed, because the pipeline reads the record rather than rebuilding it.
+
+**AND THE RECORD HAS DIVERGED FROM THE BUILDERS.** With the exporter working, a
+regeneration does NOT reproduce the stored file: `SIDE_INVERTED` and
+`PROBE_TYPE_FIELDS` are stored as pairs-with-`true` (they were dicts when they
+were exported) and rebuild as lists; `SIDE_ALIAS` values gain `__tuple__` tags;
+`handouts['2']` differs outright. The builders' last commit is NEWER than the
+record's. So the authored source and the record disagree about four entries, and
+`check_migrated_tables_match_their_source` reports none of them.
+
+**WHICH IS THE THIRD FINDING: that check PAIRS BY NAME.** A renamed authored
+table does not mismatch -- it drops out of the pairing and reports clean. That is
+how the E58 identifier pass renaming `HANDOUT_FIELDS` to `FORM_FIELDS` in a
+builder went unreported: the record still said `HANDOUT_FIELDS`, `forms.py` still
+read that key, and the check that exists to catch exactly this said nothing. The
+rename is reverted -- the name is a PERSISTED RECORD KEY, which belongs to E58
+step 3 and its both-spellings reader, not to an identifier pass.
+
+### A TYPESCRIPT EDIT GUARD, because this side had none
+
+The user asked, after a regex edit to `native.ts` orphaned a continuation line
+inside an object literal and broke the file. `editguard.safe_write` refuses
+exactly that on the python side and has done so a dozen times this session; the
+.ts files had nothing, while goal K was moving real judgement onto them.
+
+`scoring/tools/tsguard.cjs` refuses three losses that all PARSE as fine, or in
+the last case do not parse at all:
+
+  * an exported name that vanishes undeclared;
+  * a key that vanishes from a registry object (`RULES`, `NATIVE`) -- a rule
+    silently no longer offered;
+  * text that no longer parses.
+
+Same `dropping=` vocabulary as editguard, including the refusal when a declared
+drop is STILL PRESENT. Seven fire tests, one of which reproduces the exact edit
+that broke `native.ts`.
+
+### Where it stands
+
+    7 rules with verified assemblers, matching python on populated payloads
+    3 rules with declared missing derivations: `_sheet_tag`,
+      `_family_slot_structure` (partly built), `cli_signatures`
+    15 rules with neither -- named individually by a FAILING coverage test
+
+The rubric can now be read natively: `enforce/rubricSource.ts` parses
+`bmod_rubric.olx` with `fast-xml-parser` (the app's own `parseOLX` drags in
+redux and does not resolve standalone) and ports `slot_basis` exactly -- 26
+items, 116 slots, zero disagreements with python.
+
+## K, CONTINUED (2026-09-25): NINETEEN ASSEMBLERS, AND WHAT THE RECORDS GAVE UP
+
+Nineteen of the 25 ported rules can now be fed from inside lo-blocks. Three
+remain, each named by a FAILING coverage test rather than a note.
+
+### FIVE MORE TABLES MOVED INTO `$COURSE_METADATA`
+
+Every one was blocking a native call for the same reason: a table living in
+`enforcement.py` can be read by python and by nothing else.
+
+    the 10 ratchet BUDGETS       PROSE_ONLY_BUDGET = 27 is a fact about THIS
+                                 course's rubric, and it sat in the engine
+    PARKED_UNDECLARED            which findings this course has parked
+    VERDICT_SPACE_DIVERGENCES    keyed by a pair of FROZENSETS, stored tagged
+    SLOT_RULE_BACKLOG            a LIST, not a key/value table
+    HANDCODED_ITEM_RULES         the rules not yet expressed as primitives
+
+EACH HAS AN AUTHORED TWIN in `declaration_source.py`, because a table read from
+the course file with NO twin fails `check_migrated_tables_match_their_source` --
+correctly: nothing could then say the migration was faithful. That check is
+ORDER-SENSITIVE, and rightly so; the first twin was written sorted while the
+record kept its authored order, and it reported the difference at once.
+
+THE BUDGETS ARE NOT IN `declarations`. The schema requires every declaration to
+be a list of [key, value] pairs, and a ceiling is a number -- putting one there
+broke the invariant and `check_course_schema_is_complete` said so immediately.
+They have their own `budgets` section, uniform `{name: int}` for every course,
+on the user's standing rule that `course.json`'s STRUCTURE is constant across
+courses and fixed once K and L are done: a new KIND of value takes a new
+section rather than bending an existing one.
+
+AND THE FIRST READER FOR THE LIST-SHAPED ONE CROSSED A BOUNDARY:
+`_declaration_list` reached `coursedata._load()` from `enforcement`, which is
+exactly the crossing obligation 3 forbids. `coursedata.declaration_list()` is
+the accessor now.
+
+### THE VERDICT VOCABULARY: TWO COPIES BECAME ONE
+
+`slot_vocab.WEB_EXTRAS` was a VERBATIM transcription of
+`slotSheet.EXTRA_VERDICTS` -- measured identical, with the python docstring
+naming its source and nothing checking it still matched. The user: *"Obviously
+we only need to keep one copy."*
+
+THE FIRST FIX WAS NO BETTER and the user stopped it: a regex over the
+TypeScript SOURCE, which let a `//` comment run into the token after it and
+produced `"...missing here means invisible.   'PR"` as a verdict. A hand-rolled
+parser over someone else's syntax is the thing this project keeps being burned
+by.
+
+WHAT SHIPPED: `enforce/verdictVocabulary.ts` holds the vocabulary, a
+`verdict_vocabulary` PROBE exposes it, and `slot_vocab` fetches it lazily
+through a module `__getattr__` -- so every caller keeps its spelling and the
+value is EVALUATED rather than parsed. It refuses rather than falling back,
+because a vocabulary that reverts to a stale copy is how the scan stopped
+recognising `unclear` while twenty-one rubric slots declared it.
+
+### A WARNING FOR E58's SINGLETON PLAN, LEARNED HERE
+
+Serving names through a module `__getattr__` makes them INVISIBLE to
+`editguard`'s inventory: it reported all five moved names as VANISHED and each
+had to be accepted explicitly. E58 proposes exactly this mechanism for
+`paths.py`'s 15 derived constants, so that conversion will trip the same check
+fifteen times. Better known now than discovered mid-change.
+
+### `verdict_spaces_are_declared` TOOK FIVE FIXES, AND SIZE NEVER MOVED
+
+    searched a concatenated blob, not the item's own handout  -> wrong tag
+    passed empty verdict defaults instead of `met|absent`     -> 10 slots not 18
+    split `choices` groups on `;`                             -> 24 findings
+    split its pairs on `=` instead of `:`                     -> 16
+    omitted `cover` groups, then `codes` keys, from paper     -> 13, then 9
+
+The payload had 98 rows throughout, and the inputs were never empty. Both
+guards -- the empty-payload check and the size comparison -- passed at every
+step. Only comparing the FINDINGS themselves found any of it. A rule wired
+without that comparison will look correct and be wrong.
+
+### THE THREE VERIFICATIONS, and why all three are needed
+
+    findings match python        catches wrong contents
+    payload SIZES match python   catches under-coverage (25 .olx of 32)
+    payload is not empty         catches an assembler that read nothing
+
+The second was added after a flat directory listing read 25 files where python
+reads 32 RECURSIVELY and reported the same zero findings. The third after
+`decodeTable` handled only the tagged form and three assemblers returned
+nothing, agreeing with python for entirely the wrong reason.
+
+### ALSO FIXED, AND NOT LOSING IT
+
+**`migration/env.sh` pointed the DRY RUN at the LIVE lo-blocks.** It derived
+`MIGRATION_ROOT` from its own location -- with a comment explaining at length
+why spelling a path literally is dangerous -- and then spelled
+`/home/pdeane/code/update/lo-blocks` outright on the next line. Sourcing it here
+gave every migration command the live checkout: the shape of the incident in
+which both sweeps ran against the live server and wrote 1,866 files into it. It
+resolves from `MIGRATION_ROOT` now, verified from the dry run.
+
+**A TYPESCRIPT EDIT GUARD EXISTS**: `scoring/tools/tsguard.cjs`, refusing a
+vanished export, a vanished registry key, or text that no longer parses. It
+caught the same orphaned-line break one edit after it was written.
+
+### THE THREE STILL OPEN, and what each actually needs
+
+    prompts_carry_no_process_history   `leakage.authored` -- the authored prose
+                                       a grader sees, assembled python-side
+    every_designed_entry_ships         DESIGNED_TEXT plus assembled prompts
+    generated_attributes_have_a_declaration
+                                       `backed`: whether a rubric rule produces
+                                       the attribute. The 16 generators EXIST in
+                                       `attributeAssembler.ts`; what is missing
+                                       is feeding them from the rubric.
+
+`no_case_names_in_prompts` closed by reading the SHIPPED prompt body from the
+.olx instead of rebuilding it. The two differ only in reference rendering
+(`REF:id:target` against `<Ref id=... />`), measured equivalent for this rule
+across all 23 items and under a control. WHERE THAT WOULD STOP BEING TRUE: the
+rule looks for `p<digits>`, and a reference id containing one would appear in
+the shipped form and not the built one. None does today.
+
+## P: THE CONTRACT EXTENSION, DESIGNED (2026-09-25) — FOR DECISION
+
+P's six remaining sites were filed as one thing: "what a scorer contributes
+BACK". Reading them, they are TWO problems, and separating them makes one of
+them disappear from P entirely.
+
+### PROBLEM ONE: the contract has no way to contribute (four sites)
+
+    score.py:1414        composes this course's criteria PROMPT SECTION
+    score.py:1766,1771   emits `avoidance_frame` as an output RECORD FIELD
+
+The engine composes both because the contract expresses neither. A scorer today
+provides `derive_ledger`, `score_web`, `score_web_cadence` and `check_names` --
+all of them ways to CONSUME an item and return a verdict. Nothing lets a scorer
+say "and this text belongs in the prompt" or "and this field belongs in the
+record", so the engine does it, and to do it the engine must know the names.
+
+**PROPOSED, two optional entry points:**
+
+    prompt_section(item, ctx) -> str | None
+    record_fields(item, result) -> dict
+
+OPTIONAL, so a scorer that contributes nothing is unchanged and `credit` needs
+no edit. The engine asks every scorer it resolves and merges what comes back; it
+never names a section or a field itself.
+
+THE RULES THAT MAKE IT SAFE, each earned elsewhere in this project:
+
+  * **A malformed contribution REFUSES.** A scorer returning a non-string
+    section, or fields that are not a flat dict of JSON-able values, raises --
+    it does not contribute nothing. Silence is how a wrong scorer runs.
+  * **NO COLLISIONS.** Two scorers contributing the same record field is an
+    error, the same shape as `computed_rules_do_not_share_a_key`. The engine
+    cannot adjudicate which meant it.
+  * **NO OVERWRITING THE ENGINE'S OWN FIELDS.** `item_id`, `label`, `max`,
+    `score`, `deductions`, `unknown_codes`, `credit_checks` are the record's
+    contract; a scorer that returns one of those names is refused rather than
+    allowed to redefine what a score is.
+  * **DETERMINISTIC ORDER.** Sections concatenate in the order the item's
+    scorers are declared, not in dict order, so the prompt is stable and
+    `prompt_sha` means something.
+
+**HOW IT IS PROVED, and this is the part that makes it cheap:** the fingerprint
+must not move. For this course the contributed section must reproduce the
+CURRENT prompt byte for byte and the contributed fields the current records --
+so the change is verifiable the same way every other step in this migration was,
+and does not need the 960-cell re-sweep to be trusted.
+
+### PROBLEM TWO: `measured.py:3550` is not a contribution at all
+
+    _P._element(item, "observed_type")
+
+This is the engine READING a course fact name out of a sheet's `expect=`
+attribute. Nothing is being contributed back; the engine simply knows a name.
+That is the FACT-NAME problem -- the same family as the thirteen per-item slot
+names E58 found embedded in engine checks -- and no amount of contract makes it
+go away. It should move to the vocabulary/fact-name work and leave P.
+
+**So P is four sites and one contract extension, not six sites and a redesign.**
+
+### WHAT THIS DOES NOT SOLVE, stated so it is not assumed
+
+The contract extension lets a scorer contribute a section; it does not decide
+WHAT THE SECTION SAYS. `score.py:1414`'s block and `olx_prompts._criteria_section`
+were two copies that drifted -- criterion 5's example, criterion 7's, and
+criterion 10's WK1 rule all differed -- and the copies were reconciled by making
+the web's wording win. Moving the composition into a scorer must not quietly
+reintroduce a second copy: the scorer contributes ONE section and both prompt
+paths take it, or the drift comes back in a new place.
+
+### P, NARROWED AND PLACED (user, 2026-09-25): `record_fields` ONLY
+
+The user's decision after the analysis above: take `record_fields` and leave
+`prompt_section`. That is the right cut, and the reason is asymmetric risk --
+
+    record_fields    CANNOT change a score or a prompt. It adds fields to an
+                     output record, and the proof is a record comparison: the
+                     same fields with the same values, or it did not work.
+    prompt_section   CAN silently change a prompt, which changes `prompt_sha`,
+                     which invalidates every recorded column for the item. It
+                     needs its own verification and deserves its own step.
+
+**P's four sites therefore become two.** `score.py:1766,1771` -- emitting
+`avoidance_frame` as an output record field -- move behind
+`record_fields(item, result) -> dict`. `score.py:1414`'s prompt section stays
+where it is until `prompt_section` is taken up separately, and
+`measured.py:3550` leaves P for the fact-name work, as established above.
+
+#### WHERE IT GOES IN THE PRE-L QUEUE: with E58's mechanical pass
+
+    1. E62 + E61                        DONE 2026-09-25
+    2. K's remaining native gaps        in progress
+    3. E58 mechanical  + P/record_fields   <-- here
+    4. E58 singletons
+    5. E59
+    6. E60, then K's other 146
+
+IT BELONGS WITH E58's MECHANICAL PASS, not on its own, because it is the same
+job by a different name. E58 step 3 removes this course's vocabulary from engine
+code -- the 18 env vars, the namespace literals, the 24 `bmod_*` sites, the
+thirteen per-item slot names. `avoidance_frame` emitted from `score.py` IS one
+of those names; it is simply reached through the record rather than through a
+check. Doing them together means one pass over the same files and one
+verification, rather than two passes that each have to re-establish the same
+baseline.
+
+AND IT IS VERIFIED THE SAME WAY the rest of that pass is: the 156 shas must not
+move and the audit must hold at its baseline. `record_fields` adds the same
+field with the same value or it has not worked -- no sweep, no new instrument.
+
+NOT BEFORE K's 146, deliberately. That work rewrites `enforcement.py` heavily;
+landing a small contract change first means the 146 are ported against a settled
+contract instead of being rebased onto one.
+
+### P: `record_fields` DROPPED, AND THE SITE LIST RE-DERIVED (user, 2026-09-25)
+
+The site list in P's entry was measured 2026-09-24 and cites `score.py:1766,1771`
+for `avoidance_frame` as an output record field. **`avoidance_frame` does not
+appear in `score.py` at all.** It left when P's four tables moved to the course
+file that same day; the entry was never restated.
+
+So the user's decision: drop `record_fields` from P. There is no site for it.
+
+RE-DERIVED WITH THE PREPARED CLASSIFIER -- `course_inventory.inventory()`, which
+is what the plan's own J precondition quotes -- rather than with a hand-written
+name scan. The first attempt at one returned 108 sites by counting ordinary
+words (`baseline`, `behavior`, `week_1`) and sweeping in modules that are
+course-specific BY DESIGN.
+
+**FIFTEEN SITES, and they are E58's subject rather than P's:** the engine still
+KNOWING this course's ids, not the contract failing to let a scorer contribute.
+
+    TABLES carrying this course's item ids, in engine modules
+      enforcement.PROBE_PROVOCATIONS   1b, 3, NR, Q5, Q6
+      forms.FORMS                      Q5
+      goals.CLOSURES_APPROVED          DAY2, Q3, Q5, WK2
+      leakage.CADENCE                  DAY1, DAY2, WK1, WK2
+      precommit_gate.NOT_STUDENT_TEXT  Q4b
+      probe.ANSWERED_UNDER             2b, 3, DAY1, DAY2, NP, NR, PP, PR
+      scorer_fingerprint.TYPES         NP, NR, PP, PR
+
+    BARE ITEM-ID LITERALS
+      measured.py       '1c' x6   (record, error_profile, fixture_suspects,
+                                   declaration_conflicts, gold_rows..., _wrong_cells)
+      enforcement.py    '1c'      (_value_derived)
+      compare_runs.py   '1c'      (gold_for)
+
+WHAT WAS EXCLUDED, so the judgement is reviewable: the builders and
+`olx_prompts` (authored course content); modules already declared in the
+named-module budget; `oc.py`, `simulate_h3.py` and `course_segment.py` (goal E's
+extracted course scorers -- being course-specific is their job); the eleven item
+ids in `equivalence.py` and `reader_equivalence.py` (selftest injection
+fixtures, which must name something concrete and are guarded by
+`named_fixtures_still_name_something`); and all 34 `vocabulary` hits, which are
+PROSE in docstrings -- a comment describing the course is not the engine knowing
+a fact, the same judgement applied to the 53 prose `bmod_*` mentions.
+
+**WHAT REMAINS OF P**: `prompt_section` alone -- `score.py`'s criteria block,
+the half the user deferred for being the one that can silently move a prompt.
+
+### P: THE CONTRACT EXTENSION WAS ALREADY THERE (2026-09-25)
+
+The design two sections above proposed adding `prompt_section` and
+`record_fields` to the scorer contract. **`prompt_section` already exists and is
+already consumed**, and the proposal should not have been written without
+checking:
+
+    course_metadata/scorers/oc.py   provides prompt_section(item, asked)
+    score.py:1437                   parts.append(... _plugin.prompt_section(item, asked))
+    enforcement.py:3058             checks the resolved scorer HAS one, and that
+                                    it is the traceable source of the criteria prose
+
+So the contract already lets a scorer contribute a prompt section; the engine
+already asks for it rather than composing it. What the plan recorded as "the
+contract expresses nowhere" was true when it was written and stopped being true
+the same week.
+
+WITH `record_fields` DROPPED for having no site, and `measured.py:3550`
+reassigned to the fact-name work, **P has no remaining contract work**. Its
+residue is the fourteen sites where the engine still KNOWS this course's ids,
+and those are now E58's.
+
+AND THE DRIFT QUESTION IS ALREADY ANSWERED, which the paragraph first written
+here missed. `check_criteria_prose_has_one_source` exists for exactly it:
+
+  "It was stated twice for months... by the time anyone compared them they were
+   not verbatim: criterion 5's example, criterion 7's example and criterion 10's
+   WK1 rule had each drifted, so the two scorers put materially different words
+   to the model on all eight OC items and every audit passed, because each side
+   was internally consistent."
+
+It fails if `score.py`'s branch stops delegating, or if a long string literal
+reappears inside it. It reports ZERO. So the concern that a second renderer
+could grow back is not an open question -- it is a guarded one, and P has no
+contract work left at all.
+
+### THE PRE-L QUEUE, AS IT STANDS (user, 2026-09-25)
+
+    1. E62 + E61                    DONE
+    2. K's native gaps              DONE -- 21 assemblers verified, 1 declared
+    3. E58 mechanical               DONE as mechanical work -- 10 batches
+                                    certified; 2 sites left and NEITHER is
+                                    mechanical (see below)
+    4. E58 singletons               STARTED -- the ambiguity rule landed on
+                                    both roots; the 39 constants remain
+    5. E59
+    6. E60
+    7. FACT-NAME WORK               placed here on the user's instruction
+    8. K's other 146
+
+UPDATED 2026-09-25, LATE. Steps 1 and 2 are done as WORK; their GOALS.md entries
+are still `- [ ]` because a goal is never closed without asking, which is that
+file's standing rule and the thing `CLOSURES_APPROVED` exists to record.
+
+STEP 3's TWO REMAINING SITES are held back on purpose, not forgotten:
+`enforcement.PROBE_PROVOCATIONS` names its fixture targets, which is D2a's shape
+(select by shape, not by name) rather than a table move; and
+`tools/scorer_fingerprint.TYPES` is the fingerprint sweep's INPUT SPACE, which
+should derive from the rubric the `criteria` scorer already reads its facts
+from. `precommit_gate.NOT_STUDENT_TEXT` was measured prose-only and is excluded.
+
+STEP 7 IS THE TEN FACT NAMES -- `avoidance_frame`, `cadence_ok`,
+`observed_type` and seven more -- converged across the two engines AND removed
+from engine code, which the plan treats as ONE job: doing the rename first would
+touch every name twice. `measured.py:3550` joins it, having left P.
+
+IT CANNOT GO EARLIER THAN STEP 4: both change how the engine reaches course
+facts, and the plan's own argument against rename-first applies exactly.
+
+AND IT IS THE ONE ITEM ON THIS LIST THAT MAY NOT BE INERT. Everything above it
+is verified by the 156 shas not moving; a fact name can reach the model, so this
+one may legitimately move `prompt_sha` -- which is why the plan puts it before
+the re-sweep ("so the sweep is spent once on a settled vocabulary") and why it
+should not be buried mid-sequence.
+
+## NO PYTHON IN THE RECORDS ROOT (user, 2026-09-25)
+
+> *"Wait. I don't WANT python code in $COURSE_DATA or $COURSE_METADATA"*
+
+Raised mid-batch, while E58 step 3 was moving `probe.ANSWERED_UNDER`'s operant
+half into `oc.py` — which the user had approved the same day, and which is not
+what the objection was about.
+
+**First, what it was NOT about.** `$COURSE_DATA` is `/home/pdeane/molly_data`
+and had no python of ours in it: the only `.py` files under that root are
+`migration_reference/` and `pre_scrub_backup_*`, both untouched.
+`$COURSE_METADATA` is not under it either — `paths.py:402` resolves it to
+`edu.memphis.psych/course_metadata/`, inside the course repository.
+
+**What it WAS about.** That directory held exactly two `.py` files, both there
+since before this session: `scorers/oc.py` (932 lines, twenty definitions of
+code against two tables) and `fixture/course_segment.py`. A directory holding
+both records and code has no rule left about what may be written into it.
+
+### The move
+
+| from | to | constant |
+|---|---|---|
+| `course_metadata/scorers/` | `scorers/` | `paths.COURSE_SCORERS` (new) |
+| `course_metadata/fixture/` | `fixture/` | `paths.COURSE_FIXTURE` (repointed) |
+
+`course_metadata/` is now data only: eight `.json`/`.md` records and no python.
+
+**NOT back into the engine**, which is the other thing this is not. Goal E moved
+`scorer_oc` out of `scoring/` so that "the engine ships no subject's scorer",
+and that still holds — these sit BESIDE `scoring/` in the course repository, and
+the engine reaches them only through a name an item declares (`scorers.resolve`)
+or an optional hook it can do without (`segment.course_hook`). The move changes
+where a course keeps its code, not whether the engine knows what it does.
+
+**Rejected: dissolving `oc.py` into `course.json`.** It is the deepest answer
+and it is not a relocation — `derive_ledger` alone is 307 non-docstring lines.
+Recorded here so it is not re-proposed as if it were cheap.
+
+### AND IT UNCOVERED A LIVE BUG, which is the part worth keeping
+
+`course_segment.py` opened with `from segment import _handout_items, _markers`.
+**E58 step 1 renamed `_handout_items` to `_form_items` earlier the same day**, so
+that import had been raising `ImportError` ever since — and `segment.course_hook`
+catches `ImportError` and returns the default, because a course that ships no
+hook is a real answer and not a failure.
+
+So `utb_hint` had been `lambda _path: None` for `score.py`, `score_h1.py` and
+`agreement_app.py` at once. Nothing failed. Nothing reported it. **An engine
+rename turned off a course's hook in silence.** It reaches 5 of 60 submissions.
+
+Contained to this session: the rename is uncommitted, so nothing committed ever
+shipped with the hook off, and this session produced no scored runs — only
+audits and sha comparisons, neither of which the hook touches.
+
+Three things changed because of it:
+
+  * `course_segment.py` holds `utb_hint` and nothing else. The six
+    `H1/H2/H3_MARKERS` and `H1/H2/H3_ITEMS` aliases that fed the broken import
+    had **no consumer anywhere** — goal N had already moved every caller onto
+    `_markers(h)` — and their per-handout reasoning was never unique to them:
+    it is in `submission_markers_source.py:48-94`, beside the markers it
+    explains. The file now imports from the engine not at all.
+  * `course_hook` establishes that the module EXISTS (`find_spec`) before
+    importing it, and **raises** if a module that is there will not import.
+    Absent and broken are different answers and conflating them is what hid
+    this.
+  * It also imports `paths` for its side effect, since `COURSE_FIXTURE` reaching
+    `sys.path` is the whole search — without it `find_spec` misses a module
+    that is plainly there and the default comes back, the same silence by
+    another route.
+
+### Certified
+
+  * **45 undeclared, 156 shas unchanged** — the batch standard, unmoved.
+  * **PARKED 11 → 10**: `oc.py` and `course_segment.py` are now declared
+    `DATA_MODULES`, on the rule already written there — "modules that ARE
+    authored course data, by design". Ratcheting `oc.py` would have refused the
+    E58 migration that is putting facts INTO it, which is the failure
+    `generator_source.py` records one entry above it.
+  * 73 modules import clean; `scorers.resolve("oc")` and
+    `course_hook("utb_hint")` both resolve to the new locations.
+
+### TWO PRE-EXISTING RISES, NOT TIGHTENED, NOT MINE
+
+`course_inventory.py --tighten` refuses, and correctly:
+
+    course_metadata_source.py: 4 -> 7
+    paths.py:                  0 -> 1
+
+Both predate tonight and neither is in a file this work touched. `paths.py`'s is
+a J-4d docstring naming `psychology/` while explaining a per-course leak.
+`course_metadata_source.py`'s is three more item-id tables in a `*_source.py`
+builder — and note that **three of the five `*_source.py` builders are declared
+`DATA_MODULES` and two are not**, which is an inconsistency in the audit rather
+than a fact about the code. Exempting them would silence the refusal, so it is
+NOT being done as a side effect of an unrelated move: that is how an exemption
+gets widened. Left as the ratchet reports it.
+
+### THE INCONSISTENCY, LOOKED AT (user, 2026-09-25): THE SAME DRIFT, ONE TABLE OVER
+
+Three of five `*_source.py` builders were exempt from the ratchet and two were
+not. Nobody decided that. Git says exactly what happened:
+
+  * **2026-09-19** (`f5830d44`) — `DATA_MODULES` last edited, listing the two
+    builders that existed then plus `rubric_h2_source`.
+  * **2026-09-23** (`011f641e`) — *"split the source modules by category"*
+    created `course_metadata_source` and `submission_markers_source`, added both
+    to `migrated_tables.BUILDERS`, and **did not touch `DATA_MODULES` at all**
+    (0 matches in that commit's diff of `enforcement.py`).
+
+So the two new builders entered the budget at their then-counts and have been
+ratcheted ever since, while their two siblings were exempt.
+
+**`BUILDERS`' own comment is about this exact failure**, in the same week:
+*"it was two names until 2026-09-23 ... moving eight tables into new modules made
+this check report all of them as having NO builder, because it was looking in the
+wrong two files."* A hard-coded pair was diagnosed as a liability there and
+replaced by a list of record. The identical pair one table over was left, and
+broke the identical way.
+
+`DATA_MODULES` is now **derived**, in three parts:
+
+  1. `migrated_tables.BUILDERS` — the list of record, the one `rubric_export`
+     already reads to find the builders at all. A builder added there is exempt
+     here at once.
+  2. `rubric_h*_source.py`, by the same name pattern `rubric_export` resolves
+     them with.
+  3. The course's own code — `oc.py`, `course_segment.py` — named **one file at
+     a time on purpose. These RUN**, so unlike the builders they are reachable
+     from the scoring path, and a glob would exempt anything dropped into those
+     directories.
+
+Not a widening: every name is a module the engine does not import at scoring
+time, or course code it reaches only by name, and the existing check still
+refuses a declared module that is absent or carries no course data. The cost is
+stated in the docstring — `editguard` sees literal entries, so a derived table
+is invisible to it.
+
+**`paths.py: 0 -> 1` was the other blocker, and it was real.** A J-4d docstring
+named this course's `psychology/` while explaining a per-course leak — a
+course-data embedding inside the one module that exists to prevent them. Made
+generic: the leak is that `OLX_DIR` does not follow `COURSE_NS`, and whose
+directory it is stuck on is not part of the mechanism.
+
+#### Result
+
+    45 undeclared          unchanged
+    PARKED  11 -> 1        the one left is equivalence.py's declared D2d
+                           re-entry, which waits on D2a
+    156 shas               unchanged
+    budget                 tightened: 8 modules LOWERED, none raised except
+                           course_metadata_source (4 -> 7), which is now
+                           reported-not-ratcheted like every data module
+
+Eight of those lowerings are tonight's own E58 work showing as real tightening —
+`score.py 6 -> 3`, `enforcement.py 10 -> 8`, `measured.py 12 -> 11`,
+`probe.py 2 -> 1`, `slot_vocab.py 1 -> 0`.
+
+### E58 STEP 3, BATCHES E1 AND E2: THE NINE `"1c"` LITERALS
+
+Two properties wearing one item id, so two batches.
+
+**E1 — seven sites asking whether gold is rebuilt.** `forms.rebuild_declared_gold`
+has been item-agnostic since it was written, and says so: *"an item property
+belongs on the item, not in a lookup written into two analytic modules."* The
+callers that decide WHETHER to call it were still asking `if item == "1c"`. The
+general rule existed; the specific one was still being consulted.
+
+Added `forms.rebuilds_gold(item_id)`, reading `gold_from_deductions` off the
+rubric, and converted all seven. **Deliberately not "and then rebuild"** — some
+sites rebuild, and one (`measured`'s implied-charge inference) must SKIP
+precisely because the rebuild overrides the row. They share the question, not
+the answer.
+
+Also renamed `rebuild_1c` to `rebuild` on `_corrected_gold` and `gold_cell`: a
+parameter name is a course-data embedding too.
+
+**Two mistakes, both caught by the harness rather than by me.** An alias swap
+(`_H` where the function binds `H`) and a rename that changed a *caller's*
+argument — `gold_cell`'s `rebuild_1c` is KEYWORD-ONLY, and the AST check I wrote
+to verify bindings read `args.args` without `kwonlyargs`, so it cleared a site it
+had not looked at. The audit reported `NameError: name 'rebuild' is not defined`
+on four items. Making `_corrected_gold` unconditional was considered and
+rejected for the same reason: it would have changed eight other call sites, and
+E58's standard is inert.
+
+**E2 — two sites in `enforcement.py`, and the obvious generalisation was wrong.**
+
+`_value_derived` hardcoded 1c's `{title, x, y}`. Its own docstring says
+*"Provenance decides it, so read it off the JOBS spec"* — and 1c's spec has a
+`from_scorer` block holding exactly those three, so deriving from it looked
+correct. **Measured before writing it: eight items carry `from_scorer` and seven
+hold boxes a locator CAN find.** Deriving that way would have silently dropped
+Q6's eight boxes, Q3's five and four items' pairs from every locator-based
+check. What is special about 1c is the SOURCE — read off the chart, not the
+prose — so it is now a `value_derived` key on the job, beside the rest of that
+item's provenance. Regeneration added exactly three values and changed nothing
+else.
+
+`check_fixture_agrees_with_gold`'s `NAMED` dict — what the graders CALL each box
+— is course vocabulary and is now the `GOLD_BOX_WORDS` declaration. Tuples
+round-trip through the course file intact, including 1c's nested
+(must-say, must-not-say) pair, so the reader's shape discriminator is untouched.
+
+**Verified three ways, because the check reports ZERO findings on a clean tree
+and a table that silently arrives empty reports zero too:**
+
+  1. the nine resolved `(want, forbid)` pairs, captured before and after —
+     byte-identical;
+  2. a positive control on the check — poisoning Q6's `state_*` boxes yields 3
+     findings, all matched through the migrated vocabulary;
+  3. the same control with the table emptied — 0. The table carries the work.
+
+Emptying it on a CLEAN tree changes nothing, which is worth knowing and is not
+this migration's doing: the check's teeth only show under the control.
+
+#### Certified
+
+    audit      byte-identical to the 45-undeclared / 1-PARKED baseline
+    156 shas   unchanged
+    budget     132 embeddings, 3 more modules lowered
+
+### E58 STEP 3, BATCHES E3–E5: THE LAST THREE ENGINE TABLES WITH ITEM IDS
+
+**E3 — `forms.FORMS`, and it was a SHADOW.** Its `cited_participants` map held
+`{"Q5": []}` wrapped in 173 lines of measured reasoning — and the value is
+served from the course file's `HANDOUT_FIELDS`, which overwrites it at import.
+So the evidence was attached to the copy nobody reads.
+
+J-4c already names this exact hazard: *"The hardcoded values were kept as
+'documented defaults', which sounds conservative and is not: an UNDECLARED field
+did not come back empty, it came back as THIS COURSE'S."* The key is kept (the
+merge loop only fires `if _field in _cfg`) with an empty value; the 173 lines
+moved to sit beside `HANDOUT_FIELDS` in `course_metadata_source.py`, per the
+rule that a table's comments live with the table unless the table is generic.
+Nothing below is generic — every sentence names this cohort's participants and
+this course's probe numbers.
+
+`forms.py` left the inventory entirely; total literal ids 26 → 18.
+
+**E4 — `gold.H{1,2,3}_HEADER_TO_ITEM`, deleted rather than moved.** The check
+guarding them said what should happen: *"Under A2a the header map is DERIVABLE
+and should not be a stored table at all; until it is removed, this check holds
+the copy to the original."* The rubric's `label` IS the teacher's column
+heading. Derivation verified against all three stored maps first — 8, 12 and 6
+entries, identical, both directions — then the literals went and
+`gold.header_to_item(form)` replaced them.
+
+**That left the check comparing a derivation to itself**, which is worse than no
+check: it passes by construction and looks like coverage. So it now asks the
+graders' workbook whether `label + " Score"` and `label + " Feedback"` are real
+columns — the measurement its own docstring describes as having been done once
+by hand on 2026-09-18 and never encoded. Headers only; no data row is read.
+Positive control: relabelling Q1 in the rubric produces 2 findings against the
+real sheet.
+
+**E5 — `goals.CLOSURES_APPROVED`, to the ledger it is about.** 233 lines, 52
+approval notes naming this course's participants, items and measurements,
+sitting in the module that CHECKS the ledger. GOALS.md is already split the same
+way — generic rules in `scoring/`, this course's 112 entries with the course —
+so the approvals went to a JSON sidecar beside those entries at
+`$COURSE_DATA/courses/<ns>/CLOSURES_APPROVED.json`.
+
+**Not parsed out of the markdown**, which is the other thing "with the ledger"
+could have meant: a reader that scrapes prose for data is the shape rejected on
+2026-09-25 (*"The reader shouldn't do that!"*).
+
+Absent is a real answer — a course with no approved closures ships no file — but
+absent is not BROKEN: a file that exists and will not parse raises, because
+returning `{}` there would let every closure check pass while the record of
+approval was gone. Both controlled: absent → `{}`, malformed → raises, restored
+→ 52 identical entries, and `goals.py --check` still reports 118 goals.
+
+#### Certified, all three
+
+    audit      byte-identical to the 45-undeclared / 1-PARKED baseline
+    156 shas   unchanged
+    budget     139 -> 127 embeddings across the night
+
+#### What step 3 has left
+
+    enforcement.PROBE_PROVOCATIONS   ids 1b, 3, NR, Q5, Q6 -- fixture
+                                     provocations that name their target.
+                                     This is D2a's shape (select by shape,
+                                     not by name), not a table move.
+    tools/scorer_fingerprint.TYPES   ["", "PR", "NR", "PP", "NP"] -- the
+                                     sweep's INPUT SPACE. Should derive from
+                                     the rubric, since `criteria` reads its
+                                     facts there; a hardcoded space silently
+                                     fails to cover a new course. Not
+                                     mechanical, and the file records that a
+                                     wrong value space already made this
+                                     guard blind once.
+    precommit_gate.NOT_STUDENT_TEXT  prose-only; excluded earlier.
+
+Everything else the inventory reports now sits in a declared DATA module, which
+is where it belongs.
+
+## E58 STEP 4: THE SINGLETONS, STARTED FROM THE RULE THAT ALREADY EXISTS
+
+Step 4 was queued as *"needs a new shape: `__getattr__` is RULED OUT"*. The
+shape turns out not to need inventing, because the goal entry already names the
+governing decision:
+
+> AND ONE GLOBAL VARIABLE CANNOT NAME TWO COURSES' DATA. The lo-blocks half
+> already decided this: `$COURSE_DATA` is honoured only while a single course is
+> mounted, and refused — not guessed — when several are, naming them in the
+> refusal. **The python half should reach the same rule rather than invent a
+> second one.**
+
+So this step starts by importing the rule, not by redesigning `paths.py`.
+
+### WHAT THE TWO SIDES ACTUALLY DID, MEASURED FIRST
+
+| | python `paths.py` | lo-blocks `courseDir` |
+|---|---|---|
+| precedence | env → declaration → fallback | declaration → env → refuse |
+| namespace | implicit — the one course | a required argument |
+| several mounted | **not detected** | refuses, naming them |
+| nothing declared | historical fallback | refuses |
+
+Both resolved the same two directories for this course, so nothing was visibly
+wrong — which is the point: the divergence only appears with a second course
+mounted, and until today nothing could mount one.
+
+### LANDED
+
+**1. The symlink, one of the two smaller things the goal lists.** `courseDir`
+resolved `COURSE_METADATA` through the `content/<ns>` mount, so it returned
+`.../lo-blocks/content/edu.memphis.psych/course_metadata` for the directory
+python calls `.../edu.memphis.psych/course_metadata`. Same directory, two
+strings — the shape that makes a cross-engine comparison read as a difference
+when there is none. `courseDir` now returns `realpathSync` of its answer, and a
+path that does not exist is returned unchanged so the refusal stays with the
+caller that tried to read it. The two sides now agree string for string.
+`tsc --noEmit` clean; tsguard passed.
+
+**2. `paths.mounted_courses()`**, python's own twin of `mountedCourses` —
+reading the same directory, told nothing by lo-blocks, because lo-blocks must
+never depend on python and python reading its answer would point the dependency
+the other way for the sake of one list.
+
+**3. `$COURSE_DATA` and `$COURSE_METADATA` now refuse when they cannot be
+honest**, naming the mounted courses and quoting where to declare the root
+instead — the same message lo-blocks gives.
+
+**Precedence is deliberately NOT flipped.** Putting the declaration first would
+match lo-blocks exactly and would change what resolves today for anyone whose
+declaration and environment differ; `_rubric_declares` records that the safety
+of the whole arrangement rests on *"nothing that resolves today can resolve
+differently tomorrow"*. Only the AMBIGUITY half is added, which changes nothing
+for a one-course checkout. **That divergence is now the remaining half of this
+item, and it is stated rather than closed.**
+
+### THE CONTROL CAUGHT A REAL MISTAKE
+
+The first version refused whenever several courses were mounted and a value
+existed — including when `$COURSE_DATA` was unset and the course's own
+DECLARATION had supplied it. A declaration is already per course and cannot be
+the thing that names two courses' data; refusing it would refuse the very
+mechanism that makes several mounts workable. Only the environment is ambiguous.
+
+Verified by mounting a second course as a symlink under `content/` and running
+all three cases, for both variables:
+
+    2 mounted, variable SET     -> refuses, naming both courses
+    2 mounted, variable UNSET   -> the declaration decides
+    1 mounted                   -> unchanged
+
+### STILL OPEN IN STEP 4
+
+The 39 module-level constants in `paths.py` are still computed once at import,
+and ~20 of them derive from `DATA`/`COURSE_METADATA`/`NS`. A process serving two
+courses at once still cannot, and the goal is explicit that fixing it is *"a
+change to the reading habit of the whole package, not to `paths.py` alone"*. The
+refusal above makes the one-course assumption LOUD instead of silent, which is
+the precondition for changing it: nothing can now resolve to the wrong course's
+records without saying so.
+
+Also noted while reading both sides: **both engines hardcode the course's
+content-directory name** — `REPO / "psychology"` in python, `content/<ns>/psychology`
+in `courseData.ts`. Same class of embedding as the `psychology/` prose removed
+from `paths.py` earlier today, one level down, on both sides. The goal already
+lists python's half ("finds the rubric by shape under `REPO/psychology`, which
+is still first-match"); the lo-blocks half is not recorded anywhere and is now.
+
+#### Certified
+
+    audit      byte-identical to the 45-undeclared / 1-PARKED baseline
+    156 shas   unchanged
+    tsc        clean
+
+### E58 STEP 4, CONTINUED: DECLARATION-FIRST, AND NO DIRECTORY NAMES
+
+Three user rulings on 2026-09-25, taken together because they are one change:
+
+> *"declaration-first is correct"*
+> *"We need to standardize on the engines not assuming the name of the directory
+> that content lives in. That has to be inferred from $COURSE_LOCATION."* … *"And
+> that goes both for psychology/ and psychology/bmod … neither should be
+> hardcoded."*
+> *"we really don't trust env variables for course information as there may be
+> many courses so we really ought to be retiring them for that purpose."*
+
+**Precedence flipped, measured first.** `_course_root` now reads the course's
+declaration, then `$NAME`, then the historical fallback — lo-blocks' order.
+Verified inert before flipping: this course declares `~/molly_data` and the
+environment names the same directory, and no `$COURSE_METADATA` is set at all.
+
+Declaration-first means an explicit `COURSE_DATA=… python3 …` is now IGNORED
+when the course declares that root. That is correct and is also the kind of
+silence that costs an afternoon, so it is **announced once, naming both paths**.
+lo-blocks prefers the declaration silently; matching that too would trade a real
+ruling for a trap.
+
+**The directory names are gone from both engines.**
+
+The bootstrap has to exist: every root is read from the rubric's frontmatter, so
+something must find the rubric before any declaration can be honoured, and that
+something cannot itself ask a declaration. What it *can* do is refuse to spell a
+course's directory name.
+
+  * python — `paths._rubric_file()` globs `REPO/*/*_rubric.olx`, one level down,
+    by shape. The rubric now declares `course_location: ./psychology/bmod`;
+    `COURSE_LOCATION` reads it and **`OLX_DIR` is its parent**. `$COURSE_LOCATION`
+    is gone rather than deprecated — nothing in the repository set it, so unlike
+    `$COURSE_DATA` it had no caller to keep working.
+  * lo-blocks — `courseData.collectionDir(ns)` finds the collection by looking
+    for the directory under `content/<ns>` that holds a `*_rubric.olx`, and
+    `rubricFile(ns)` finds the file the same way. Five sites converted:
+    `handoutSrc`, `handoutBlob`, the OLX scan root, its finding label (now
+    `basename(dir)`, since python reports whatever that directory is called),
+    and **`rubricPath`, which spelled the collection AND `bmod_rubric.olx`** —
+    while `declaredRoot` thirty lines away finds the same file by shape and says
+    why. Ten assemblers read that path.
+
+**Verified to the three-way standard**, because findings matching is not enough
+when an empty payload agrees with zero: `collectionDir`, `rubricFile` and
+`rubricPath` all resolve to the real rubric, `readRubric` parses **26 items**,
+and python reports **26**. The audit's 26 `lo_enforce.run` calls are byte-identical.
+
+**Two regressions caught by the audit, both mine.** The new docstrings spelled
+the directory names while explaining their removal — `paths.py` went 0 → 4
+embeddings — so the prose is generic now and paths.py is out of the inventory
+entirely. And editing the rubric `.olx` made the staged build older than the
+content; rebuilt with `npm run build:static-content` (which needs `COURSE_DATA`
+set, or `resolveCorpusRefs` refuses).
+
+#### Certified
+
+    audit      byte-identical to the 45-undeclared / 1-PARKED baseline
+    156 shas   unchanged
+    tsc        clean; tsguard passed on both .ts edits
+
+### WHAT IS LEFT TO FINISH STEP 4
+
+Re-measured tonight rather than trusted — the goal's own scan is from before
+E58 step 1 and most of it is already closed:
+
+    (1, 2, 3) handout literals   WAS 70 across 15 modules, plus three
+                                 `HANDOUTS = (1, 2, 3)` constants. NOW: the
+                                 constants are gone and every remaining
+                                 occurrence is either PROSE recording the fix,
+                                 an authored declaration counting a criterion's
+                                 parallel slots (not handouts), or
+                                 `len(argv) in (1, 2, 3)`. CLOSED by step 1.
+    namespace literal            WAS five places. NOW: one, and it is prose in
+                                 a `paths.py` comment. CLOSED.
+
+Genuinely open, in the order I would take them:
+
+  1. **The per-course environment variables.** `paths.py` still reads five:
+     `COURSE_NS`, `COURSE_FILE`, `COURSE_MATERIALS`, `COURSE_MEDIA`,
+     `COURSE_OUT` — plus `COURSE_DATA`/`COURSE_METADATA`, which now warn but are
+     still honoured when a course declares nothing. Each is a global naming one
+     course's thing. (`CODE_HOME`, `LO_BLOCKS`, `LO_SERVER` are about the ENGINE
+     TREE, not a course, and stay.) The path is the one already built: give each
+     a `course_*:` declaration, read it first, then deprecate the variable.
+  2. **`NS` is a singleton, and `COURSE_NS` is an env var naming one course.**
+     Every per-course root derives from it. This is the same item as (1) but it
+     is the one that makes the others possible, because a per-course accessor
+     needs a namespace to take as an argument.
+  3. **The 39 module-level constants**, ~20 of them per-course, computed once at
+     import. THIS IS THE ITEM THE GOAL IS ABOUT and it is last on purpose: it is
+     "a change to the reading habit of the whole package", and doing it before
+     (1) and (2) would convert callers to an accessor that still cannot name a
+     second course. `__getattr__` is ruled out; the shape is a `roots(ns)`
+     accessor returning a frozen per-course record, with the module constants
+     kept as the single-course case.
+  4. **First-match rubric discovery**, now explicit and documented on both sides
+     rather than hidden, but still first-match. A repository holding two courses'
+     rubrics needs to be told which. Cheap to refuse; needs a decision on how a
+     caller says which course it means, which is (2).
+
+### E58 STEP 4: THE SINGLETONS, DONE (user: *"Go ahead"*, 2026-09-25)
+
+Taken in dependency order, because item 3 is only correct once 1 and 2 are.
+
+#### 1. The per-course environment variables are deprecated, not merely ordered
+
+`_course_root` gained the other half of declaration-first: when a variable IS
+honoured — which happens only where the course declares nothing — the run says
+once that it is deprecated, and says what to write in the rubric instead. A
+deprecation nobody is told about is a deprecation that never happens.
+
+`COURSE_OUT`, `COURSE_MATERIALS` and `COURSE_FILE` joined `COURSE_DATA` and
+`COURSE_METADATA` on that mechanism, each with a `course_*:` key. All five
+resolve to exactly what they did before.
+
+`COURSE_MEDIA` deliberately did NOT: it names a machine-scoped scratch directory
+for generated media, not a course's anything. `CODE_HOME`, `LO_BLOCKS` and
+`LO_SERVER` describe the ENGINE TREE and stay for the same reason.
+
+#### 2. `$COURSE_NS` is a SELECTOR, and that is why it stays
+
+The rule being applied is about variables carrying course INFORMATION — "there
+may be many courses", and one variable cannot describe them all. `$COURSE_NS`
+describes nothing. It selects which mounted course is active, which is exactly
+what a global is right for: there is one active course at a time by definition,
+and a process serving two asks for them BY NAME instead of changing it.
+
+Written into `_namespace` so the distinction is defensible rather than
+convenient: if it ever starts naming a root rather than a course, it has changed
+category and belongs with the others.
+
+#### 3. `roots(ns)` — asking for a course by name
+
+`paths.roots(ns)` returns a frozen `CourseRoots` record: repo, data, metadata,
+location, olx_dir, out, materials, course_file, changelog, fixture_data,
+submissions. `roots()` with no argument is the active course and returns exactly
+the module constants, **by construction** — so `roots().data` and `DATA` cannot
+drift.
+
+**Not `__getattr__`**, which was the obvious mechanism and is ruled out: goal K
+measured that serving names through it makes them invisible to `editguard`'s
+inventory — five moved names reported VANISHED, each accepted by hand — and
+doing that to fifteen constants would trade a check that works for a
+convenience. So the constants STAY as the single-course case, which is every
+caller today, and the accessor sits beside them. Nothing has to be converted for
+it to be correct; a caller converted to it stops depending on which course
+happened to be active at import.
+
+**Environment variables are not consulted for a NAMED course**, stated in the
+docstring rather than left as an oversight: a global cannot name two courses'
+roots — it is why they are retiring — so asking for a course by name and then
+honouring `$COURSE_DATA` would hand the named course the active one's data.
+
+#### Verified against a real second course
+
+Not a mock. A second course repository with **a differently named collection**
+(`coursework/`, not `psychology/`), a differently named course folder (`sub`,
+not `bmod`), its own `zz_rubric.olx`, and its own declared roots, mounted beside
+this one:
+
+                        ACTIVE (edu.memphis.psych)    NAMED (zz.test.course)
+    data                ~/molly_data                  ~/zz_other_data
+    olx_dir             …/psychology                  …/coursework
+    location            …/psychology/bmod             …/coursework/sub
+    metadata            …/edu.memphis.psych/…         …/zz.test.course/…
+
+Both distinct, the active course unchanged — and **lo-blocks resolved the same
+two courses independently**, finding `coursework/` and `zz_rubric.olx` by shape,
+neither side telling the other. That is the whole chain working at once:
+shape-based discovery, declaration-first, per-course roots, on both engines.
+
+Test mount and fixture removed afterwards; `content/` is clean.
+
+#### Certified
+
+    audit         byte-identical to the 45-undeclared / 1-PARKED baseline
+    156 shas      unchanged
+    73 modules    import clean
+    tsc           clean
+    inventory     paths.py holds no course data
+    goals/tables  118 goals; every migrated table equals its source
+
+#### What step 4 does NOT close
+
+The accessor exists; **the package has not been converted to it**, and that was
+deliberate — converting callers before `roots(ns)` was proved against a real
+second course would have been converting them to a guess. The remaining work is
+now mechanical and can be done a module at a time, or left until a second course
+is actually scored.
+
+Still first-match: `_rubric_file` and lo-blocks' `collectionDir` both take the
+first rubric they find in a repository. That is correct for one course per
+repository, is now explicit and documented on both sides rather than hidden, and
+is the only place the one-course assumption still lives.
+
+### E58 STEP 4 FINISHED: CONVERTED TO `roots(ns)`, AND FIRST-MATCH IS GONE
+
+User, 2026-09-25: *"Use the stub course as the source for a second course to
+test with temporarily and convert to roots (ns), and get rid of the first-match
+one course assumption, for heaven's sake."*
+
+#### The second course was real, and it was the instrument
+
+Built from `lo-blocks/packages/shared/lib/grading/stub_course` — its rubric,
+`course.json`, gold and fixture — mounted at `content/edu.example.stub` with
+
+  * a collection directory named `coursework/`, NOT `psychology/`;
+  * a course folder named `stub`, NOT `bmod`;
+  * its own `course_data:`, `course_metadata:` and `course_location:`.
+
+Everything below was verified against it while `edu.memphis.psych` stayed
+active. Removed afterwards; `content/` is clean.
+
+#### First-match is gone, both engines
+
+It was the last place the one-course assumption lived, and it did not fail
+loudly — it succeeded on the wrong course.
+
+  * python `_rubric_file`: one candidate is returned; with several, each
+    collection's `manifest.yaml` namespace is matched against the selector; if
+    that still cannot tell, it REFUSES and names the candidates. Controlled with
+    a repository holding two rubrics: no namespaces → refuses; namespaces
+    declared → `ns=alpha` and `ns=beta` each resolve correctly; an unknown ns
+    refuses.
+  * lo-blocks `collectionDir` and `rubricFile`: the same rule, refusing rather
+    than sorting, with `collectionNamespace` reading the same manifest key.
+
+**A NameError was waiting in it**, and the file had already recorded being
+bitten this way once. `want = ns or NS` names a constant bound 400 lines below,
+while `_rubric_file` runs DURING module initialisation — invisible until the day
+a repository held two rubrics. It reads the SELECTOR (`$COURSE_NS`, then
+`globals().get("NS")`), which is readable at any time.
+
+#### Converted: 80 code reads across 31 modules
+
+`CourseRoots` first gained the remaining fields, so every per-course constant
+has one — 20 fields, each checked equal to its constant before anything moved.
+
+**Only CODE was rewritten.** The first attempt used a plain regex and editguard
+refused it: it was rewriting `paths.OUT` inside DOCSTRINGS, which is prose about
+a constant, not a read of one. The 45 substitutions already written were
+reversed and the audit confirmed the baseline restored, then the conversion was
+redone with a tokeniser that skips STRING and COMMENT tokens entirely.
+
+**`declaration_source.py`'s 55 reads were deliberately NOT converted**, and that
+is the distinction worth keeping: they compose this course's own screen ids
+(`f"{paths.NS}/bmod_h1_q1"`). That is a course's builder naming its own things,
+which is correct where it is; rewriting it would be churn that made a data
+module look like engine code. After the conversion it is the ONLY module still
+reading the constants directly.
+
+#### And a real inconsistency, found by converting
+
+`coursedata.data_root()` read `$COURSE_DATA` BEFORE `paths.DATA` — env-first,
+while `paths` had become declaration-first the same day. With a course declaring
+`course_data:` and the variable set elsewhere, **gold and overrides resolved
+against the variable while every other reader used the declaration**: two halves
+of one run reading two different corpora. It goes through `paths.roots(ns)` now,
+which applies the whole rule, variable included, in one place.
+
+`course_path`, `data_root`, `gold_path` and `overrides_path` all take `ns`.
+
+#### Proof it works
+
+The converted package, asked about the second course, returned that course's own
+`course.json` and parsed it — 2 items — with its out/, olx_dir and ledger all
+under its own roots, while the active course's paths were unchanged.
+
+#### Certified
+
+    audit         byte-identical to the 45-undeclared / 1-PARKED baseline
+    156 shas      unchanged
+    73 modules    import clean
+    tsc           clean; tsguard passed
+    goals/tables  118 goals; every migrated table equals its source
+    budget        127 embeddings
+
+Step 4 is complete. The remaining singleton exposure is that the module
+constants still exist — which is the point: they are the single-course case, and
+every engine read now goes through `roots()`, so a caller that means a
+particular course changes one call rather than being unable to.
+
+## E59: THE DURABILITY QUESTION, MEASURED AND DECIDED (2026-09-25)
+
+The goal said *"do not start L without settling it"* and this plan read that as
+"settle it during L" — which is circular, since L does not start until E59 is
+done. The user corrected it: the measurement is E59's work and needed no part of
+L. It was run.
+
+### THE PREFERRED REMOTE, for now
+
+    remote      coursedata:            (rclone, type=drive, the only one configured)
+    work root   drive folder id 1bE4ChgyYcMLHDXGb3hfg5mFE3JMCcoj5
+                -> already holds `scoring_course_data/courses`
+    source      drive folder id 1JMqB0-XOCm1uY3k3Ww-IPcPo8ag04kDe
+                -> where the Behavioural Modification materials ALREADY live:
+                   the three handouts and their PPTs, the three Scoring &
+                   Feedback Dictionaries, the PSYC 1030 syllabus and schedule,
+                   and "Handout Submissions with Scoring and Feedback"
+
+THE SECOND FOLDER IS SOURCE, NOT A DESTINATION. It holds the graders' workbooks
+and the submissions — the records this project's write-scope has never allowed
+writing locally — and the same rule applies to the Drive copy. Subfolders for
+our own work go under the FIRST folder.
+
+AND `coursedata:` IS SCOPED TO THE WHOLE DRIVE (`scope = drive`, no
+`root_folder_id`), so an unqualified `rclone mount` of it exposes the user's
+entire personal Drive. Every command in this measurement passed
+`--drive-root-folder-id` explicitly. L should pin the remote itself rather than
+rely on each caller remembering.
+
+### WHAT WAS MEASURED
+
+**1. Does an rclone write produce a Drive revision?** YES. The file ID was
+IDENTICAL across a rewrite (`1XTam_…qkK6c`, 14 → 65 bytes), so rclone updates in
+place rather than delete-and-recreate. A delete-and-recreate would have meant no
+history at all.
+
+**2. How many revisions, and with what retention?** Three successive writes gave
+three revisions — and every one came back `keepForever=False`:
+
+    modified 00:05:29Z  size  44  keepForever=False
+    modified 00:05:33Z  size  84  keepForever=False
+    modified 00:05:36Z  size 124  keepForever=False
+
+That is Drive's DEFAULT policy for binary files: roughly 30 days, or eviction
+past ~100 versions. **A ledger relying on it would keep about a month and then
+silently lose the rest** — which is worse than no history, because it looks like
+history.
+
+**3. Does `--drive-keep-revision-forever` actually pin?** YES, measured the same
+way: two writes with the flag, both revisions `keepForever=True`.
+
+### THE DECISION (user, 2026-09-25)
+
+> *"We'll have to use keep forever, with very rigorous zipping up of data before
+> we put it in the remote drive."*
+
+Pinned revisions count against quota, so the archive's size decides how many
+snapshots fit. Measured against the 2.103 GiB free on this account:
+
+    records only (no composed/, no materials/)   680 KB  ->  3,256 snapshots
+    everything under courses/                    5.1 MB  ->    429 snapshots
+    out/                                         1.7 GB  ->  does not fit TWICE
+
+**THIS IS THE ARITHMETIC BEHIND THE GOAL'S OWN WARNING** that `out/**` is
+regenerable while the course records are not, and that pooling them under one
+root gives them one policy when they want two. One pinned snapshot of `out/`
+would consume most of the account; 3,256 snapshots of the records fit in the
+same space. Zipping is what makes keep-forever affordable, and the split between
+regenerable and irreplaceable is what makes the zip small.
+
+`composed/` (1.7 MB) is DERIVED from the generic and specific halves and
+`materials/` (4.1 MB) already exists in the source folder above, which is why
+excluding them takes the archive from 5.1 MB to 680 KB.
+
+### 403 QUOTA FAILURES ARE L's TO HANDLE (user's instruction)
+
+Both revision queries failed first with HTTP 403:
+
+    Quota exceeded for quota metric 'Queries' and limit
+    'Previous quota: Requests per minute' of service 'drive.googleapis.com'
+    for consumer 'project_number:202264815644'
+
+That project is **rclone's own shared Google Cloud project**, not this account's
+— the consequence of `client_id = ` being empty in the remote's config. The
+quota is shared with every rclone user who never made their own client, so the
+403s were other people's traffic: this measurement made about a dozen calls and
+was refused twice in twenty minutes. A retry with ~25 s of backoff cleared it
+both times.
+
+L MUST HANDLE THIS, and it is two requirements, not one:
+
+  * **Retry with backoff on 403 rate-limit**, everywhere the mount or the API is
+    touched. A scoring run that dies because a stranger was busy is not
+    acceptable, and neither is one that reads a 403 as "no data".
+  * **Get off the shared client_id.** rclone prints on every call that it *"is
+    being retired and will stop working during 2026"*. L's whole access design
+    rests on this credential; an own client_id in the user's own Google Cloud
+    project removes both the rate limiting and the expiry, and wants doing
+    before the mount becomes load-bearing rather than after.
+
+### STILL OPEN IN E59
+
+The 47 residue lines in the three generic document halves. The instrument that
+finds them is now in place (see below); the moves are proposed and awaiting a
+decision, and they push content INTO the records that this section has just
+shown are one `rm` from gone — which is an argument for landing the archive
+mechanism in the same pass.
+
+### EVALUATED: SHOULD `$COURSE_METADATA` MOVE TO THE REMOTE? (user, 2026-09-25)
+
+Measured before answering.
+
+    course.json              123 KB   AUTHORED   generated by rubric_export from
+                                                 builders that live in this repo
+    MEASURED.json             91 KB   ACCUMULATED  the sweep ledger
+    LEAKAGE_REVIEWED.json     24 KB   ACCUMULATED
+    DESIGNED_TEXT_SHA.json   7.3 KB   ACCUMULATED
+    PROBED.json              3.8 KB   ACCUMULATED
+    CHANGELOG.md             2.0 KB   AUTHORED
+    PROBE_RECEIPTS.json      1.3 KB   ACCUMULATED
+    CARRIED_NOTES.json       0.4 KB   ACCUMULATED
+                            ------
+                            268 KB total, 8 files
+
+**SIX OF THE EIGHT ARE ON THE WRONG SIDE OF THIS PROJECT'S OWN LINE**, and that
+is the real finding. `paths.COURSE_LOCATION` states the test: *"CONTENT in the
+content repository, DATA outside it. The test is whether a file is AUTHORED or
+ACCUMULATED -- `course.json` and a course-specific document half are authored
+and live here; `gold.json`, the override log and 826 run artifacts are
+accumulated and live under `$COURSE_DATA`."* By that test the six ledgers above
+are accumulated records sitting in a repository, exactly like `gold.json` was
+before C1b moved it out.
+
+**BUT THE REMOTE IS THE WRONG DESTINATION, and for three reasons.**
+
+  * **It would REMOVE durability, not add it.** The E59 case for Drive is that
+    `$COURSE_DATA/courses/<ns>/` is not a git repository -- no history, no
+    backup, one copy. `course_metadata/` is the opposite: it is tracked, and its
+    diffs are how you see what a sweep changed. Pinned Drive revisions give
+    snapshots, not per-change diffs tied to the commit that caused them. For a
+    LEDGER that is a downgrade.
+  * **It would add a 403 to every audit.** `enforcement` reads the ledger and
+    `DESIGNED_TEXT_SHA` during a run, and `measured` reads the ledger
+    constantly. Latency is cacheable -- an `rclone mount` VFS caches after first
+    read -- but the failure mode is not: the shared-client-id refusals measured
+    tonight would become a way for an ordinary audit to fail, or worse, to read
+    a 403 as absence.
+  * **Size makes it pointless.** 268 KB against a 382 MB `.git`. Nothing is
+    being saved.
+
+**IF THEY MOVE, THEY SHOULD MOVE TO `$COURSE_DATA`, NOT TO DRIVE** -- joining
+`gold.json` and the override log, where the accumulated records already live and
+where `tools/snapshot_records.py` would pick them up automatically. The archive
+goes from 677 KB to roughly 800 KB, which costs nothing and keeps ONE durability
+mechanism rather than two. `course.json` and `CHANGELOG.md` stay in the repo:
+the first is regenerable from builders that are themselves in the repo, and the
+second is authored.
+
+**NOT DONE, because it is not free.** Moving the ledgers out of git trades
+per-commit diffs for snapshots, and those diffs are currently how a sweep's
+effect on `MEASURED.json` is read -- one commit here rewrote 272 lines and
+deleted 263. That trade wants deciding rather than assuming, and it belongs with
+goal L, which is already choosing where `$COURSE_DATA` itself lives.
+
+CAVEAT ON THE CHURN FIGURES: `course_metadata/` does not exist in the live tree
+at all -- it is this refactor's own creation -- so the 1-3 commits per file are
+the dry run's history, not a long-run rate.
+
+### E59, SECOND HALF: THE RESIDUE, AND A PROPOSAL I WITHDREW
+
+The instrument gap closed first: `GENERIC_DOCS` never listed the generic halves
+of the split documents, so three of the four had never been examined. It is
+DERIVED from `compose_docs.SPLIT_DOCS` now -- the list of record -- which is the
+third time today a hand-written copy of a list of record turned out to be the
+defect (`DATA_MODULES`, `paths.roots().documents`, this).
+
+That surfaced 80 signals across three documents. They were not one problem.
+
+**`EQUIVALENCE.md` -- 24 lines, moved.** These named participants, items and
+corpus spans outright. Each passage kept its generic lesson and gave up its
+case: *"Declaring a split is not reading the boxes"* keeps the lesson and loses
+"Q3, Q4b and Q6 ... Q3/p19's misaligned pair"; the Q4b block keeps *"the rate
+must exclude self-graded cells"* and loses the table of `p4 / p7 / p20
+gold=2.00 pred=5.00`. Seventeen passages in all, each with its cells appended to
+the course half under a heading that says where they came from. The generic half
+is now CLEAN -- zero signals of any kind.
+
+**`README.md` -- 1 line, genericised.** The sentence's job is to explain why
+template subtraction is load-bearing, and it does that without the participant
+or the corpus reference. The case moved; the front door no longer needs the
+corpus to render.
+
+**`QUALITY_CONTROL.md` -- 22 lines, DECLARED, and this reverses what was
+proposed.** The plan was to move the "measured histories" and keep the
+"methodological illustrations". Reading all 22 killed that distinction.
+
+    signals in QUALITY_CONTROL.md:  run_score x37
+                                    cell x0
+                                    item_and_participant x0
+                                    corpus_ref x0
+
+Every line is already anonymous -- "cell A (gold 4, must be charged)", "one cell
+was won early", "eight moved cells across three items". The proposed split
+separates what a passage is ABOUT; only whether it NAMES a cell is what generic
+means here. Moving anonymised prose into the course half would satisfy the
+detector and reduce identifiability by exactly zero, which is how a check trains
+its readers to shuffle text instead of fixing something.
+
+So `course_inventory.ANONYMOUS_RATE_ALLOWANCE` declares the 37, with the reason
+and the measurement. IT RATCHETS: the count may fall and may not rise, and it
+covers `run_score` ONLY -- a named cell is reported whatever the allowance says.
+
+Controlled in three directions, scoped to the one file:
+
+    37 rates (as declared)      -> silent
+    38 rates (one more)         -> reported, naming the ratchet
+    37 rates + 1 named cell     -> reported, naming the cell signal
+
+#### Certified
+
+    audit      byte-identical to the 45-undeclared / 1-PARKED baseline
+    156 shas   unchanged
+
+#### E59's state
+
+The instrument gap and the residue are CLOSED. The durability half is measured
+and decided (keep-forever plus zipping, one snapshot taken and pinned), and what
+remains of it belongs to L: the 403 handling, the shared client id, and whether
+`out/` gets a policy of its own.
+
+### E60 DONE: A CHECK FOR ENUMERATED-SLOT CEILINGS
+
+`check_enumerated_slots_cover_the_rubric`, reported as ENUMERATION SHORTER THAN
+THE RUBRIC.
+
+**TWO OF THE FOUR SITES WERE ALREADY GONE.** The goal named four `(1, 2, 3)`
+slot enumerations; `probe.py`'s two were replaced by `_count_aggregates()`
+during E58 step 3 earlier tonight, which derives them from the rubric's own
+`counts` groups. Only `declaration_source.py`'s remain, and they are authored
+course data in a data module, which is where an enumeration of THIS course's
+slots belongs.
+
+**SO THE DELIVERABLE IS THE CHECK, as the goal argued.** The ceiling is not
+wrong today -- measured, eleven parallel families across the rubric, widths 2
+and 3:
+
+    1a week 3   2a how 2   2b sentence 3   3 example 2   Q1 reason 3
+    Q2 reason 3   Q4a antecedent 2   Q4a antecedent_kind 2
+    Q4b behavior 2   Q4c consequence 2   Q5 example 2
+
+Raising it to five would be the same mistake one number further out. What was
+missing is anything that NOTICES the rubric outgrowing it: a criterion with a
+fourth parallel slot would not be built, and the table would be silently SHORT
+rather than loudly wrong -- the form count's shape exactly.
+
+**CONTIGUOUS-FROM-ONE IS THE DISCRIMINATOR**, and it is stated as the heuristic
+it is. A table enumerating `1..k` looks like a loop that ran out; a table naming
+a SELECTION (slots 1 and 3, or slot 2 alone) is a deliberate choice about which
+entries diverge and is left alone. Without that, every partial declaration would
+read as a truncated one.
+
+**EVERY DECLARATION TABLE, not a named one.** It reads
+`rubric_export.DECLARATION_TABLES`, so a new `(item, slot)`-keyed table is
+covered the day it is added. That is the fourth time today a check was built to
+read a list of record rather than restate one.
+
+Controlled three ways:
+
+    rubric grows Q1 reason_4, table enumerates 1..3   -> reported
+    rubric grows example_3 on item 3, table has 1..2  -> reported
+    table names a NON-CONTIGUOUS selection            -> silent
+
+#### Certified
+
+    audit      byte-identical to the 45-undeclared / 1-PARKED baseline
+    156 shas   unchanged
+
+### STEP 7 DONE: THE FACT NAMES, AND A GUARD THAT HAD GONE BLIND
+
+The honest starting count was **36 code sites across 7 engine modules**, not the
+12 the earlier pass recorded. Both figures came from the same kind of error, in
+opposite directions: that pass counted prose in ordinary strings as usage; my
+first scan here excluded ALL string literals and reported ZERO, missing
+`_P._element(item, "observed_type")` -- a name USED as a string. Only docstrings
+and comments are prose; a string passed as an argument is code.
+
+**`oc_grid.py` -- 13 sites, moved to the course.** Its own first comment always
+said where it belonged: *"THE PLUGIN, not `score`. Goal E: this grid exercises
+the OC ledger, so it belongs with the scorer it exercises."* It sat in the engine
+anyway, holding thirteen fact names and eight item ids. Now `scorers/oc_grid.py`,
+beside the `oc.py` it already reached through `scorers.resolve("oc")`, with the
+`__main__` guard MODULE_AUDIT's finding **F2** asked for -- importing it no longer
+runs it. Output verified byte-identical, 56 rows.
+
+**`enforcement.VERDICT_PAIRS` -- 63 entries, declared.** The web->rubric token
+bridge, keyed by this course's `item/slot`, living in the engine's audit module.
+Authored in `declaration_source` with all of its reasoning, exported, bound
+through `_declaration`, verified identical, and `migrated_tables` agrees.
+
+**`scorer_fingerprint.py` -- the real finding.** Its sweep space was three
+hardcoded tables, and measured against what the scorers actually DECLARE, all
+three were wrong:
+
+    REST    listed 5 boolean facts; the schemas declare 11. The six never
+            swept were agent_delivers_consequence, aimed_correctly, contingent,
+            follows_behavior, states_a_contingency, stimulus_is_arranged --
+            every one a GATE, so the gate paths were the least covered part.
+    PICKS   held 3 enum facts of the 7 declared.
+    MOVES   swept stimulus_move over ["", "added", "removed"]; the schema
+            declares given_desirable / given_undesirable / taken_desirable /
+            taken_undesirable. NOT ONE VALUE OVERLAPPED.
+
+The last is the same error this file already records finding once -- *"the sweep
+did vary `restriction_authored`, so it looked covered. It was varying it over
+values the rule can never match"* -- repeated on a different fact in the same
+file. That is why the space is now DERIVED from each scorer's own
+`schema_fragment` and the values are not written here at all.
+
+**TWO MISTAKES OF MY OWN, both caught by measuring rather than trusting.**
+Taking the facts in declaration order crossed `stimulus_move` with
+`restriction_authored`, spent the budget, and covered **6 of the 18**
+pick-combinations this check had always crossed -- a coverage LOSS disguised as
+a widening, found only by comparing against the old set. Ordering by cardinality
+ascending fits the most facts into a fixed budget and reproduces the historical
+18 exactly. And the derivation ran inside `_profiles()`, called 6,400 times per
+check: the same 115,200 cases took **69s instead of 23s** until it was memoised.
+
+Net: same 18 profiles, same 115,200 cases, **23.9s** -- with 11 booleans varied
+instead of 5 and every declared enum value swept. Re-baselined through
+`certify` with `--why`, which refused a re-record that could not say what moved.
+
+**`evidence.py`** -- a self-test of the evidence mechanism used a live course
+fact name as its prose example. A nonce does the job and the test no longer
+depends on this course's vocabulary.
+
+#### What is left, and why each stays
+
+    olx_prompts.py 3    criterion assembly: `CLI_CRITERIA_NOTES` and the
+                        criterion 10/11 parameters. Migrating these means
+                        declaring the criterion NUMBERING too, which is its
+                        own job, not a rename.
+    canonicalise_verdicts.py 1  a one-off migration tool holding STUDENT-FACING
+                        labels -- a different category from engine vocabulary,
+                        and the module's own comment says relabelling is "not a
+                        mechanical edit".
+    precommit_gate.py 1 prose inside a declared incident note, describing what
+                        `avoidance_frame` once reproduced. History, not logic.
+
+#### Certified
+
+    audit      byte-identical to the 45-undeclared / 1-PARKED baseline
+    156 shas   unchanged
+    fingerprint  re-baselined, 115,200 cases, sha 876f05356c1e787c
+
+### STEP 8 STARTED: K's REMAINDER, MEASURED AND CLASSIFIED
+
+**THE NUMBER IS 168, NOT 146.** `enforcement.py` defines 192 `check_*`
+functions; 25 were routed through `lo_enforce` before tonight, leaving 167, and
+E60 added one more. The 146 in the queue predates several passes.
+
+#### The classification, and a correction to it
+
+A first pass matched the checks' DOCSTRINGS, which mention `.py` files
+constantly, and reported 86 PYTHON-ONLY against 47 portable. Stripping
+docstrings and comments -- the same lesson the fact-name scan had just taught,
+one hour earlier -- inverted the picture:
+
+    PORTABLE        50   reads the course file, rubric, OLX or run artifacts
+    PYTHON-ONLY     38   reads python source, the AST, the import system,
+                         the editguard inventory, or git
+    unclassified    80   reaches its data through helpers; needs reading
+
+THE 80 ARE THE REAL WORK-LIST, and they are not deferred because they are hard
+-- they are deferred because classifying them by regex is exactly the mistake
+this entry already made once. Each needs its data source read, not guessed.
+
+#### One ported end to end, to prove the list is actionable
+
+`check_rubric_items_are_unique` -> `enforce/rubricItemsUnique.ts`. Python keeps
+the FETCH (which forms the course declares, how to reach a rubric view); the
+JUDGEMENT is native. Generic by the project's own test: *a list of items must
+not carry the same id twice, and an index over it must reach every one* assumes
+nothing about any course.
+
+**VERIFIED DIFFERENTIALLY, not by both sides reading zero.** Both DO read zero
+on a clean tree, which is precisely the evidence that proves nothing -- so the
+pre-port python logic was kept and run against the native rule on six payloads,
+five of them mutated to produce findings:
+
+    clean        python  0  native  0   identical
+    dup id       python  1  native  1   identical
+    byId+1       python  1  native  1   identical
+    dup credit   python  1  native  1   identical
+    apostrophe   python  2  native  2   identical   <- python's repr() quoting
+    all three    python  2  native  2   identical
+
+Byte-identical in every case, including `repr`'s quote choice for an id
+containing an apostrophe. Payload non-empty and sized: 3 forms, 26 item ids,
+116 credit slots.
+
+    native rules: 25 -> 26
+    audit         byte-identical to the 45-undeclared / 1-PARKED baseline
+    156 shas      unchanged
+    tsc           clean; tsguard passed on both .ts edits
+
+#### What step 8 needs next
+
+Read the 80 unclassified and place each. Then port the portable set in batches,
+each to the three-way standard above -- findings byte-identical on inputs known
+to differ, payload sizes matched, payload non-empty. At one port per ~30 minutes
+of careful work this is days, not an evening, and it should be planned as such
+rather than rushed: a ported check that agrees with python for the wrong reason
+is worse than one not yet ported.
+
+### STEP 8: THE WORK-LIST, COMPLETE — 100 TO PORT, 54 THAT NEVER WILL
+
+Every one of the 192 `check_*` functions is now placed. The list is written to
+`scoring/K_PORT_WORKLIST.json` so the next pass starts from a measured basis
+rather than re-deriving it.
+
+    already native                      25
+    delegates to a native rule           2
+    retired tombstone                   11
+    PORTABLE (reads course data)        82
+    PORTABLE (pure logic over data)     18
+    python-only by nature               54
+                                       ---
+                                       192
+
+    REMAINING PORT SURFACE: 100
+
+#### It took four rounds, and each round was a correction of the last
+
+  1. **Regex over whole function bodies** — matched DOCSTRINGS, which mention
+     `.py` files constantly. Reported 86 python-only, 47 portable.
+  2. **Docstrings and comments stripped** — inverted it: 50 portable, 38
+     python-only, 80 unclassified. The same lesson the fact-name scan had taught
+     an hour earlier, learned again.
+  3. **Helper vocabulary** — read the names the unclassified checks actually
+     CALL (`getsource` and `_scoped_closure` on one side, `build_schema` and
+     `load_action` on the other) rather than guessing. 80 -> 50.
+  4. **What each one opens** — imports and path constants. This resolved the
+     rest into families: `measured`/`probe`/`compose_docs` readers are portable,
+     `tools`/AST/`getsource` readers are not.
+
+**AND THE LAST BUCKET WAS SAMPLED, NOT ASSUMED.** "Pure logic" began as "no
+signal matched", and promoting that to PORTABLE unread is precisely the error
+round 1 made. Four were read: three genuinely iterate the rubric's items and
+hold, and the fourth turned out to be `return []`.
+
+#### 11 tombstones, and they are honest ones
+
+Checking for that fourth case found ELEVEN whose entire body is `return []`.
+Every one declares it: *"RETIRED 2026-09-24 with the python web engine. ALWAYS
+RETURNS []"*, *"RETIRED. `probe_declaration_tables` already answers this, and
+better."* They are kept so the check inventory does not report a vanished name,
+which is the right call — but they are not part of the port surface, and
+counting them as portable would have overstated it by 11.
+
+#### What the 54 python-only are
+
+They read the python source, the AST, the import system, the editguard
+inventory, or git. A native port is not merely hard for these — lo-blocks has no
+python to read. They stay, and the boundary is now documented rather than
+rediscovered each time someone counts.
+
+#### Next
+
+Port the 100 in batches, each to the standard the first port set: findings
+byte-identical against the pre-port logic on inputs known to differ, payload
+sizes matched, payload non-empty. The work-list makes that schedulable.
+
+### THE PORT THAT WAS NOT CALLABLE, AND THE GUARD I DID NOT RUN
+
+Asked whether K was really finished, the answer was no — and checking turned up
+a gap **I had just made**.
+
+`rubric_items_are_unique` was registered in `RULES` with no entry in `NATIVE`
+and none in `NATIVE_BLOCKED`. The rule existed; nothing could feed it from
+inside lo-blocks. That breaks the user's standing instruction —
+*"We shouldn't create tests that can't be called by lo-blocks natively"* and
+*"add native entry points as each rule is authored"* — on the very first port
+after it was given.
+
+Fixed: the assembler reads the rubric and groups by the form each item declares,
+so no python is needed. Verified to the three-way standard NATIVELY rather than
+through python's payload: 3 forms, 26 ids, 116 credit slots — the same sizes
+python assembles — and the rule returns `[]` fed from its own side.
+`nativeCoverage(Object.keys(RULES))` now reports 0.
+
+**THE GUARD WAS ALREADY THERE AND I DID NOT RUN IT.** `enforce.test.ts` has
+both `nativeCoverage` and `emptyPayloads` wired in; the suite is 141 tests and
+takes 1.4 seconds. Before the fix it would have failed — measured, not assumed:
+the same coverage function reported exactly one gap, and it named this rule.
+
+MY CERTIFICATION ROUTINE WAS THE HOLE. Every batch tonight was certified with
+the python audit plus the 156 shas, and sometimes `tsc --noEmit`. None of those
+look at rule/assembler coverage, because that guard lives in a vitest suite on
+the other side. A TypeScript-side gap is invisible to a python-side audit, which
+is the same shape as every other finding in this plan: the check existed, and
+nothing ran it.
+
+**SO THE STANDARD FOR A PORT IS NOW FOUR THINGS, not three:**
+
+    1. findings byte-identical against the pre-port logic, on inputs known
+       to differ
+    2. payload sizes matched against python
+    3. payload non-empty
+    4. `npx vitest run packages/shared/lib/llm/enforce/enforce.test.ts`
+       -- which is what proves the rule is callable from lo-blocks at all
+
+## E58–E62 CLOSED, AND E63 FILED (user, 2026-09-25)
+
+> *"let's close E58-E62, then set the goal to make the runner self-assembling
+> first so that we'll be able to remove the python assembly code."* … *"And
+> that's over all portable cases."*
+
+Five closures, each with its approval note recorded in `CLOSURES_APPROVED.json`
+(57 entries now) rather than merely ticked. The ledger reads **119 goals, 15
+open, 104 closed**, and `GOAL_STATES.json` is re-recorded.
+
+EACH CLOSURE NOTE SAYS WHAT IS **NOT** DONE, which is the part that keeps a tick
+honest. E58's records that the module constants still exist as the single-course
+case by design and that `declaration_source.py` still reads them directly, being
+a course's own builder. E59's records that the 403 handling, the shared client
+id and `out/`'s policy move to L. E62's keeps the lesson that two of its four
+divergences broke enforcement at IMPORT because the fix was tested against the
+old shape.
+
+E59's note also records that its approved plan was REVERSED in part:
+`QUALITY_CONTROL.md`'s 22 lines were declared under a ratchet rather than moved,
+because all 37 of its signals are bare rates naming no cell. A closure that hid
+that would be the wrong kind of tidy.
+
+### E63: the runner assembles, and then python's assembly goes
+
+Filed because the question *"what could be ported AND REMOVED"* has a sharper
+answer than the 100 checks: the bridge itself.
+
+    27 delegating checks          418 python lines of fetch behind the bridge
+    of which have an assembler     23 checks, 329 lines
+
+`runner.ts` calls `RULES[check](payload)` and never consults `NATIVE`, so the
+assemblers serve only lo-blocks' own tests while python re-assembles the same
+payload on every audit. **A port currently ADDS python** -- `rubric_items_are_unique`
+added 14 lines of it tonight -- and with 100 portable checks left that compounds
+in the wrong direction.
+
+Scoped, on the user's clarification, to **all portable cases**: the deliverable
+is not retro-fitting the 23 but the RULE for the remaining 100 -- every portable
+check gets a native assembler as it is authored, the runner feeds it, python
+keeps only the delegator.
+
+ORDERING IS THE WHOLE POINT. Landed first, the remaining ports REMOVE python;
+landed after, each one is written twice. And it is verified by comparing the
+native assembler's payload against the one python builds today, before any
+python is deleted -- because a self-assembling runner that builds a DIFFERENT
+payload would make every ported check agree with python for the wrong reason,
+which is the failure this goal has already hit once.
+
+#### Certified
+
+    audit      byte-identical to the 45-undeclared / 1-PARKED baseline
+    156 shas   unchanged
+    ledger     119 goals, 15 open, 104 closed; GOAL_STATES.json re-recorded
+    snapshot   679 KB pinned to Drive, with the closures in it
+
+### E63 LANDED: THE RUNNER ASSEMBLES, AND 137 LINES OF PYTHON ARE GONE
+
+**THE COMPARISON CAME FIRST, and it is why this is a gated allowlist rather
+than a flag.** Every assembler's output was compared against the payload python
+actually sends, captured by intercepting `lo_enforce.run` across the whole
+audit:
+
+     9  IDENTICAL
+     3  identical once ordering is normalised
+     9  GENUINELY DIFFERENT -- same keys, different data
+     4  no assembler at all
+
+**NINE ASSEMBLERS DO NOT BUILD WHAT PYTHON BUILDS.** They pass the existing
+coverage test because it asks only whether a payload is non-empty, never
+whether it is the RIGHT payload. Had the runner simply been made
+self-assembling, those nine rules would have judged different data than the
+audit feeds them and every one would still have reported clean — the exact
+failure K already hit when three assemblers returned empty and agreed with
+python's zero. They are named below as the work that earns them a place.
+
+ONE OF THE MISMATCHES WAS MINE, from the port an hour earlier: python sends the
+form as an INT and my assembler sent a string. Both render `H1` in the finding,
+so no finding would ever have differed — visible only in the payload
+comparison, which is the argument for having built it.
+
+#### What landed
+
+`runner.ts` assembles its own payload when a request carries none, for the rules
+in `SELF_ASSEMBLING` and no others. A rule outside the list is REFUSED with the
+reason, not silently assembled. The namespace comes from the request or, when
+exactly one course is mounted, from the mount.
+
+Eight python checks are now one-line delegators — **137 lines of fetch deleted**
+— with their findings compared before and after: all eight unchanged.
+
+    audit         byte-identical to the 45-undeclared / 1-PARKED baseline
+    156 shas      unchanged
+    enforce.test  141 passed
+    control       an explicit bad payload still produces both findings;
+                  a rule not on the list refuses, naming why
+
+#### The nine that must be reconciled before they join
+
+    computed_rules_do_not_share_a_key      mapped_slots_have_no_unreachable_verdict
+    consensus_fixes_are_unique             maps_tables_are_attached
+    every_designed_entry_ships             no_case_names_in_prompts
+    no_cell_is_both_corrected_and_declared parked_entries_still_apply
+    ratchets_only_tighten
+
+Each needs its assembler brought to python's payload, or python's payload
+brought to the assembler where the assembler is the better answer — decided per
+rule, by reading, not by preferring one side. THREE MORE are order-only
+(`gold_tables_have_no_duplicate_keys` is already in the list; the other two need
+their rules shown to be order-insensitive before they can join), and FOUR have
+no assembler, which is the `NATIVE_BLOCKED` backlog.
+
+#### The rule for the remaining 100
+
+Every portable check gets a native assembler as it is authored, the assembler is
+compared against the payload python would have built, and only then does python
+keep the delegator alone. That ordering is the whole point of doing E63 before
+the port batches: each port now REMOVES python instead of adding it.
+
+### E63, CORRECTED: WHAT THE EVIDENCE ACTUALLY SUPPORTED
+
+The first write-up of E63 was too confident, and auditing my own allowlist
+against the measurements found four entries that did not meet the standard the
+code comment beside them states. Recorded in full because the corrections are
+the useful part.
+
+**FOUR MISTAKES IN THE MEASUREMENT, each found by checking rather than trusting:**
+
+  1. **The capture kept only the LAST call per rule.** `ratchets_only_tighten`
+     is asked TWICE per audit, once per ratchet; its assembler builds the union
+     and was therefore scored a mismatch when it was right. Verified: the
+     assembler's two entries are exactly python's two calls combined.
+  2. **Two assemblers wrote `handout: null`** while `itemForms` sat in the same
+     file holding the answer -- a genuine defect, and one a lo-blocks caller
+     would have judged on while the audit judged on the real form. Fixed with a
+     shared `formOf`, which also types the form as python types it.
+  3. **The second capture was taken AFTER eight checks began sending `null`**,
+     so it compared `null` against the assemblers and called everything
+     different. The valid baseline is the pre-conversion capture.
+  4. **"The findings agree" was vacuous.** Every rule returns `[]` on today's
+     data, so the two sides agreed by both being empty -- the same both-read-zero
+     trap this package has now hit four separate times.
+
+**AND THE ALLOWLIST ITSELF WAS WRONG.** Of nine names, five were payload-
+identical, three rested on order-only evidence, and one --
+`gold_tables_have_no_duplicate_keys` -- IS NOT A RULE IN `RULES` AT ALL. That
+was written one paragraph below a comment promising the list "ratchets upward
+only by measurement, never because it looks right".
+
+**THE THREE WERE THEN PROVEN PROPERLY.** Each was mutated until it produced
+findings -- 1, 7 and up to 28 of them -- and its top-level collections permuted:
+the finding SET is unchanged in every firing case. The first attempt at that
+proof was itself wrong and is recorded in the code: it reversed NESTED arrays
+too, turning the pair `['Q6','link_c2']` into `['link_c2','Q6']` and reporting
+order-sensitivity that was the test's own corruption. A nested array here is a
+TUPLE, not a set.
+
+Removing them meanwhile BROKE three checks -- python delegated with `null` to a
+runner that now refused -- caught immediately by running them.
+
+#### Where E63 stands
+
+    SELF_ASSEMBLING     8 rules: 5 payload-identical, 3 order-only and proven
+    python deleted      137 lines of fetch, findings unchanged
+    assembler bugs      2 fixed (handout: null), 1 fixed earlier (int vs string)
+    still to reconcile  7 with real payload differences, 4 with no assembler
+
+    audit         byte-identical to the 45-undeclared / 1-PARKED baseline
+    156 shas      unchanged
+    enforce.test  141 passed
+    tsc           clean
+
+### E63, RECONCILED: 16 RULES SELF-ASSEMBLE, 263 LINES OF PYTHON GONE
+
+Working through the mismatches found THREE MORE ASSEMBLER DEFECTS, each of
+which made a rule blind when fed from lo-blocks while the audit saw correctly.
+None would ever have been reported: the assemblers pass `emptyPayloads` because
+a payload built from the wrong shape is still non-empty.
+
+**THE SERIOUS ONE.** `no_cell_is_both_corrected_and_declared`'s assembler
+emitted `{cell: [item, pid]}` and `goldTables.ts` reads `c.item` and `c.pid`.
+Every entry therefore resolved to `undefined/undefined`, and the rule returned
+clean WHATEVER the data held. Proven rather than argued: a cell planted so that
+it is both corrected and declared divergent raises the finding on python's
+payload and raised NOTHING on the assembler's. Fixed, and the same planted cell
+now fires on both.
+
+    handout: null           2 assemblers, fixed with a shared `formOf`
+    {cell:[item,pid]}       1 assembler, fixed to {item, pid}
+    a dead `count` key      1 assembler, removed -- no rule reads it
+
+**AND TWO MORE ORDER-ONLY RULES WERE PROVEN** with targeted mutations after the
+generic ones failed to fire: a planted collision for the gold rule, and
+`inSpec`/`attached` flipped for the maps rule. Both keep their finding SET under
+permutation.
+
+#### Where E63 now stands
+
+    SELF_ASSEMBLING        16 rules  (was 8)
+    python fetch deleted   263 lines (137 + 126), findings unchanged throughout
+    assembler defects      4 found and fixed, none of which any check reported
+    remaining              5 with real payload differences, 4 with no assembler
+
+    audit         byte-identical to the 45-undeclared / 1-PARKED baseline
+    156 shas      unchanged
+    enforce.test  141 passed
+    tsc           clean
+
+#### The five still unreconciled
+
+    consensus_fixes_are_unique          every_designed_entry_ships
+    mapped_slots_have_no_unreachable_verdict
+    no_case_names_in_prompts            ratchets_only_tighten
+
+`ratchets_only_tighten` IS NOT ONE OF THEM, and the first write-up of it here
+was wrong twice. Asked why two checks test the same thing, they turn out not to:
+
+    check_slot_rules_backlog_is_being_cleared   SLOT_RULE_BACKLOG
+                                                SLOT_RULE_BACKLOG_BUDGET
+    check_handcoded_rules_are_being_cleared     HANDCODED_ITEM_RULES
+                                                HANDCODED_BUDGET
+
+Different tables, different budgets, different remedial advice — *"put the text
+in the credit component's `rule` field"* against *"a declaration is a promise to
+convert it, not a licence to keep it"*. What they share is the JUDGEMENT SHAPE,
+"a ratchet may only tighten". That is one generic rule parameterised by subject,
+which is the design working rather than duplication.
+
+SO MERGING THEM WOULD BE A REGRESSION, not a design decision: it would collapse
+two findings into one and lose WHICH backlog grew, and one of the two pieces of
+advice would have to go.
+
+AND IT IS NOT A PAYLOAD MISMATCH EITHER. Python parameterises per subject
+because each check owns one backlog; the assembler builds the union because a
+lo-blocks caller asking "check the ratchets" wants all of them. Both are right
+for their caller. What it would need is a SUBJECT passed alongside the check
+name — or, at 8 lines, for python simply to keep passing its own payload, which
+is the honest answer until a native caller needs one backlog rather than all.
+
+### E63: 17 SELF-ASSEMBLING, AND ONE FIX THAT WAS PYTHON'S TO MAKE
+
+**`consensus_fixes_are_unique` — the assembler was RIGHT and python was wrong.**
+Python sent each fix in full, `["set","title","Sleep Duration Over 4 Weeks"]`;
+the assembler sent `["set","title"]`. Reading the rule settles it:
+`declarations.consensusFixesAreUnique` takes `fix[0]` (the kind) and the box
+name(s) after it, and NEVER looks at index 2. Index 2 is the replacement SPAN —
+student sentences, from the largest store of response text in the repository.
+
+So python was shipping **13 KB of student writing across the bridge on every
+audit**, for a rule that cannot read it. Trimmed, which fixed the mismatch and
+took the student text off the bridge in the same edit — and the direction
+matters: the fix belonged to the side that was over-sending, not the side that
+looked different.
+
+    SELF_ASSEMBLING      17 rules
+    python deleted       282 lines of fetch
+    assembler defects    4 found and fixed
+    python defect        1 found and fixed (over-sending student spans)
+
+#### The four left, each diagnosed
+
+    every_designed_entry_ships                  DIFFERS -- not yet read
+    mapped_slots_have_no_unreachable_verdict    DIFFERS, and the ASSEMBLER may
+        be the better side: python sends `offered: null` for Q2's
+        `wgb_inverts_utb` where the assembler resolves `["absent","met"]`. The
+        rule falls back to `rubricVerdicts` when `offered` is null, and here
+        that yields the same set, so today the outcome agrees — but one side is
+        resolving something the other cannot, and that wants settling rather
+        than leaving.
+    no_case_names_in_prompts                    DIFFERS -- not yet read
+    ratchets_only_tighten                       NOT a mismatch; see above
+
+Plus four with no assembler, which is the `NATIVE_BLOCKED` backlog.
+
+    audit         byte-identical to the 45-undeclared / 1-PARKED baseline
+    156 shas      unchanged
+    enforce.test  141 passed
+    tsc           clean
+
+### E63 COMPLETE: 20 RULES SELF-ASSEMBLE, 345 LINES OF PYTHON GONE
+
+Every rule that HAS an assembler now self-assembles. What remains is the
+`NATIVE_BLOCKED` backlog — four rules with no assembler — and `ratchets_only_tighten`,
+which is not a mismatch (see above).
+
+#### The last two were the same divergence, and it is by design
+
+`no_case_names_in_prompts` and `every_designed_entry_ships` differ because
+PYTHON REBUILDS the prompt and the ASSEMBLER READS THE SHIPPED BODY from the
+.olx — so the two differ in reference rendering (`REF:id:target` against
+`<Ref id=... />`) and in leading whitespace. That is the divergence this plan
+already recorded when `no_case_names_in_prompts` was first ported; what was
+missing was a firing control, since both read zero on a clean tree.
+
+    planting a case name in EVERY prompt      23 findings each, same set
+    wiping ONE designed entry's prompt,
+    four times, one prompt at a time          agrees on all four
+
+The second is the discriminating one: a whole-payload wipe could agree by
+making everything fail, so each prompt was emptied alone and the findings
+compared per case.
+
+#### `mapped_slots_have_no_unreachable_verdict` — the assembler was RIGHT
+
+Python's helper returned an empty set BOTH when a slot offers nothing beyond
+met/absent AND when the slot could not be found at all, and its caller wrote
+`... if extra else None`. So a slot offering only the defaults sent
+`offered: null`, and the rule falls back to the RUBRIC's verdict list on null —
+which subgoal E52 records as having *"let the exact fault this check was built
+for survive a whole sweep"*.
+
+One mapped slot is affected today and its rubric list happens to equal the
+sheet's defaults, so nothing was misreported. The defect was LATENT, waiting for
+a slot where the two differ. `_olx_slot_verdicts` returns `None` for "not found"
+now and a set — possibly empty — for "the sheet spoke".
+
+#### E63's ledger
+
+    SELF_ASSEMBLING       20 rules
+    python fetch deleted  345 lines
+    assembler defects     4, none of which any check reported
+    python defects        2 -- over-sending student spans, and the E52 conflation
+    left                  4 rules with no assembler (NATIVE_BLOCKED)
+
+    audit         byte-identical to the 45-undeclared / 1-PARKED baseline
+    156 shas      unchanged
+    enforce.test  141 passed
+    tsc           clean
+
+#### What this buys the remaining 100 ports
+
+A ported check's python side is now a five-line delegator with no fetch. The
+standard it must meet is set and has been exercised twenty times: build the
+assembler, compare its payload against python's, and where they differ, decide
+WHICH SIDE IS RIGHT by reading the rule — twice tonight that was python.
+
+### E63: A BLOCKER THAT HAD GONE STALE — 21 RULES, 393 LINES
+
+`prompt_prose_names_only_offered_verdicts` was in `NATIVE_BLOCKED` with this
+reason: porting it *"would make a THIRD copy"* of the verdict vocabulary, since
+`slot_vocab.WEB_EXTRAS` was already a verbatim copy of `slotSheet.EXTRA_VERDICTS`
+with nothing checking they agreed.
+
+**THAT WAS TRUE WHEN WRITTEN AND STOPPED BEING TRUE THE SAME DAY.** Goal K made
+`verdictVocabulary.ts` the single source and taught `slot_vocab` to READ it —
+so the vocabulary is already on this side and python is the copy. The blocker
+outlived its cause, which is the ordinary way a declared limitation goes wrong:
+nothing re-reads it when the thing it depended on changes.
+
+Everything else it needed was here too: `parseSlots` for the sheet's `slots=`,
+`readRubric` for credit and cover, `slotNotes` for per-slot prose,
+`actionMap`/`sheetTag`/`tagAttr` for reaching the element.
+
+ONE THING HAD TO BE WRITTEN FRESH RATHER THAN REUSED. `webSlotOptions` forces
+`met` and `absent` into every slot, which is right for its callers and wrong
+here: python's `offered` is the slot's own options plus its pick's choices, and
+forcing the defaults in would hide a slot offering neither.
+
+Result on the first attempt: **217 slots, same set, identical byte count** —
+order-only. Proven on firing data, an unoffered verdict planted in every note:
+**213 findings on both sides, identical set**.
+
+    SELF_ASSEMBLING       21 rules
+    python fetch deleted  393 lines
+    NATIVE_BLOCKED        3 left
+
+#### The three that remain blocked, and they are not alike
+
+    probe_unreachable_pairs_still_apply   needs `cli_signatures`, produced by
+        RUNNING the python probe. Not a file this package can read, and no
+        amount of assembler work changes that. GENUINELY blocked.
+    generated_attributes_have_a_declaration   needs the EXTRACTION half of
+        sixteen attribute generators, each able to be quietly wrong. Real work,
+        and the blocker's reasoning still holds.
+    sibling_slots_share_their_structure   needs `_family_slot_structure`. The
+        blocker says "the rubric carries the parts; nothing in TS assembles
+        them" -- which is a statement about effort, not possibility. This one
+        is buildable and should be re-read before it is assumed blocked, the
+        way the vocabulary one should have been.
+
+## THE THREE BLOCKERS, WORKED IN SEQUENCE (user, 2026-09-25)
+
+> *"Can't we develop a comparable web probe to unblock
+> probe_unreachable_pairs_still_apply? Let's work on all three in sequence."*
+> … *"Is python's scorer the paper scorer? If so, that one may not be one we
+> want to port to .ts ... paper scorer unique things have to be python only."*
+
+### 1. `probe_unreachable_pairs_still_apply` — A BOUNDARY, NOT A BACKLOG ITEM
+
+The web-probe idea was worth asking and the user's own correction answered it.
+`cli_signatures` is a BEHAVIOURAL probe: it fails one slot, then two, and reads
+the arithmetic off the scorer python runs — and since goal O eliminated the
+python web mirror, **the only scorer python runs is the PAPER one**. The ledger
+confirms it: the surviving sides are `olx`, `paper`, `paper_opus`.
+
+So a comparable web probe would answer a DIFFERENT QUESTION. The declarations
+are pairs the WEB states outright that the PAPER-side probe cannot discover;
+probing the web scorer would measure the side that already declares them, and
+the gap would close by construction rather than by being closed.
+
+And porting the paper scorer here to run the probe natively would be worse.
+`score.py` records real paper-unique behaviour — *"the paper path is handed the
+assembled response TEXT, not the page ... a real platform limit"* — so a copy
+would either reproduce limits this side does not have or quietly diverge.
+**PAPER-UNIQUE STAYS PYTHON.**
+
+The blocker's reason is rewritten to say that. It had said "not a file this
+package can read", which is true and incidental; the real reason is a boundary
+that will not move. The alternative — python RECORDS the signatures for this
+side to read — is recorded as considered and declined: it buys native
+callability at the cost of judging a product that can go stale.
+
+### 2. `sibling_slots_share_their_structure` — UNBLOCKED
+
+The blocker said *"the rubric carries the parts; nothing in TS assembles them"*
+— effort, not possibility, and only a third true. The FAMILIES already derive
+from the rubric's `<Item family=...>`, which `readRubric` exposes; the BUDGET
+was already in `course.json`. Only the DIVERGENCE table was a python literal,
+and that was the actual block.
+
+So it moved: `SLOT_STRUCTURE_DIVERGENCES` is a declaration now, with the
+reasoning for its emptiness travelling with it — *"a new entry here means
+someone chose an exemption over a name"*.
+
+The assembler then built an **IDENTICAL payload on the first attempt** — budget,
+divergences and families all — and fired identically under the control the
+original port used, one item's gate flipped: 1 finding each, byte-identical.
+
+### 3. `generated_attributes_have_a_declaration` — MEASURED AND LEFT
+
+125 rows over 16 attributes, and `backed` is FALSE in exactly ONE place:
+`because`, backed on 4 of the 8 sheets carrying it. Every other attribute is
+backed wherever it appears.
+
+**SO FIFTEEN OF SIXTEEN DERIVATIONS COULD BE WRITTEN AS `return true` AND MATCH
+TODAY EXACTLY.** A port verified against this corpus alone would prove almost
+nothing — the both-read-zero trap wearing a different hat, and the blocker
+already named this shape: *"the error that took five fixes on
+verdict_spaces_are_declared"*.
+
+Not attempted. The measurement is written into the blocker instead, with the
+standard a port must meet: the 125-row boolean matrix matches AND each
+derivation is shown to READ the rubric, by removing the material it derives from
+and watching `backed` go false. A half-done version that matches today is worse
+than the declared blocker, because it looks finished.
+
+    SELF_ASSEMBLING   22 rules
+    NATIVE_BLOCKED     2 rules -- one permanent, one measured and scoped
+    audit             byte-identical to the 45-undeclared / 1-PARKED baseline
+    156 shas          unchanged
+    enforce.test      141 passed
+
+### THE FIRST PORT UNDER E63's RULE: `codes_reachable`
+
+The point of E63 was that a port should now REMOVE python rather than add it.
+This is the first one done that way, and it took three attempts at the
+assembler — each caught by the SAME check, which is the part worth recording.
+
+**DRAFT 1** read `readRubric` for `derive_from_credit`: 26 items, **ZERO**
+credit-derived.
+**DRAFT 2** read `courseJson(ns).items`: 26 items, **ZERO** credit-derived and
+**ZERO** deductions — `course.json`'s items carry only the prompt fields.
+**DRAFT 3** reads the rubric with the parser extended: 26 items, **18**
+credit-derived, 107 deductions — matching python exactly.
+
+**BOTH BAD DRAFTS RETURNED `[]` AND SO DID PYTHON.** The findings agreed every
+time. Only counting what the payload CONTAINED separated a rule that checks 18
+items from a rule that checks none — which is the entire argument for the
+payload comparison E63 built, made concrete on the first port after it.
+
+`rubricSource.readRubric` gained `deriveFromCredit`, `blankCode`,
+`unreachableCodes` and `charges` (each deduction's code and points; `deductions`
+already existed but keeps only the PROSE, which is what the leak checks read).
+One detail worth its comment: `unreachableCodes=""` is a DECLARATION OF NONE and
+one item writes it that way, so the empty case is filtered rather than split
+into a phantom code.
+
+Verified: payload identical to python's, and findings BYTE-IDENTICAL on two
+firing controls — an orphan code and a ghost declaration, 18 findings each.
+
+python's check is now a five-line delegator that takes no payload, and the
+`items` argument it was handed is no longer read. The property ratchet noticed
+immediately that `deductions` had stopped being branched on in python and asked
+to be re-tightened, which is the reduction being locked in rather than left
+reversible.
+
+    SELF_ASSEMBLING   23 rules
+    port surface      99 left
+    audit             byte-identical to the 45-undeclared / 1-PARKED baseline
+    156 shas          unchanged
+    enforce.test      141 passed
+
+### PORT 2 UNDER E63's RULE: `countable_families_converted`
+
+Same pattern, and the payload comparison earned its keep a second time — this
+time on a difference that changed NOTHING and was fixed anyway.
+
+`readRubric.counted` folds in each `Counts` group's OWN key alongside the slots
+it covers ("its own key included", says its comment); python's set is the slots
+alone. So the assembler's `counted` carried `reasons_given` and `changes_given`
+where python's did not.
+
+IT COULD NOT HAVE CHANGED A FINDING. The rule only asks whether every member of
+a `stem_N` family is in `counted`, and a group key is not of that shape — the
+extra element is unreachable. Both firing controls agreed before the fix and
+after it.
+
+FIXED ANYWAY, and recovering the narrower set by SUBTRACTION would have been
+guessing: `readRubric` now records `countKeys` separately, so the assembler
+takes `counted` minus those rather than inferring which member was the key.
+A rule that agrees today because an extra element happens to be unreachable is
+one edit away from agreeing for no reason at all.
+
+Verified: payload identical, findings identical on two firing controls — a
+counted family un-counted (4 findings) and a counted family given a second code
+(4 findings).
+
+    SELF_ASSEMBLING   24 rules
+    already native    27 checks
+    port surface      98 left
+    audit             byte-identical to the 45-undeclared / 1-PARKED baseline
+    156 shas          unchanged
+    enforce.test      141 passed
+
+## STEP 8, PORTING AUTONOMOUSLY (user: *"keep going autonomously until all of K's cases are ported"*)
+
+### THE SURFACE IS 85, NOT 98 — the classifier was missing three data sources
+
+Triage kept turning up checks the classifier called PORTABLE that read things
+lo-blocks cannot reach. Three families, now named in the scan:
+
+    load_h1/2/3, _grid, .xlsx        the graders' WORKBOOK
+    _fixture_cells, _span_boxes,     the .docx FIXTURES and the segmenter
+      docx, segment, sections_for
+    signature, probe_baseline,       the PAPER SCORER'S OWN BEHAVIOUR
+      probe_fail, derive_ledger,       (the boundary E63 recorded)
+      build_schema, cli_signatures
+
+Twelve checks moved from portable to python-only. The honest surface is **85**.
+
+A SECOND LIMIT, stated because the count still overstates: a check whose body is
+`return goals.check()` looks like pure logic and is a whole module's work. Two
+are in the list that way (`check_goals_record_is_intact`,
+`check_course_schema_is_complete`). They are counted portable and are not
+small.
+
+### Ports 3 and 4
+
+`exclusion_claims_are_data` — "a claim about a NUMBER left in prose goes stale
+without anything noticing". `PER_ITEM_EXCLUDE` is already a gold declaration, so
+the assembler was four lines. Python's regex carried over character for
+character: an UNSIGNED integer is deliberately not a claim, because "gold 0" is
+ordinary prose. Verified on a control that strips every `expect_error`.
+
+`the_course_links_the_rubric_and_every_form` — and this one found an embedding.
+`paths.py` read the component filenames from the collection's manifest with
+DEFAULTS: `_manifest("course_olx", "bmod_course.olx")`. The manifest declared
+none of the three, so **this course's filenames were sitting in the engine as
+fallbacks** — the same embedding the directory names carried until E58 moved
+those out.
+
+The collection declares `course_olx`, `rubric_component` and `handout_olx` now.
+Resolution is unchanged (verified), the engine needs no default, and lo-blocks
+reads the same three keys through a new `collectionDeclares` — which later ports
+will want too.
+
+    SELF_ASSEMBLING   26 rules
+    port surface      83 left
+    audit             byte-identical to the 45-undeclared / 1-PARKED baseline
+    156 shas          unchanged
+    enforce.test      141 passed
+
+### PENDING, ON THE USER'S INSTRUCTION (2026-09-26) — AFTER THE PORTS, NOT BEFORE
+
+> *"When the autonomous run through all ports finishes (and NOT before!), I want
+> you to analyze what it would take to do most of the audit/enforcement work
+> natively inside lo-blocks as a test that runs during the npm build process and
+> reports warnings when check fails, and does the managing of as much of the
+> quality control process as can easily be done natively. Then suggest a plan...
+> By that time the python code should mostly be just a shell around native .ts,
+> except where the work really only can be done in python, like where the paper
+> scorer is involved."*
+
+Recorded here so it survives a context break. The analysis is NOT to start until
+the port run is finished.
+
+### PORTS 5-7, AND TWO PARSER DEFECTS THE COMPARISON FOUND
+
+`gold_corrections_land_on_attainable_scores` — the attainable grid is `max`
+minus every SUBSET of the scorable points, clamped at 0, plus 0 where a gate can
+take the item. Verified on a control that pushes every correction off the grid
+by 0.01: 15 findings, identical.
+
+**IT FOUND A PARSER DEFECT.** `pts=""` appears four times in the rubric and
+`Number("")` is **0**, so `readRubric` was turning "no points" into a
+zero-point SCORABLE component. Harmless in this grid -- adding 0 to a subset
+changes nothing -- and wrong for anything that asks whether a slot carries
+points at all. Two ordering fixes came with it: items and corrections are sorted
+as python sorts them, because a payload that differs is a payload nobody can
+compare.
+
+`no_judging_field_states_what_a_verdict_costs` — arithmetic in a judging prompt
+is executed by the model (subgoal Q41). 146 fields, payload identical, and each
+of the pattern's nine alternatives was fired individually. The lookahead earns
+its comment: `worth \d(?! of)` spares "worth 3 of 5", which describes the SCALE
+rather than charging a verdict.
+
+`probed_fields_keep_their_text` — and this one CORRECTS python. Its message
+hardcoded "the other 145", written when `DESIGNED_TEXT_SHA.json` held 145
+fields; it holds 146 now, so the literal had drifted. The assembler derives the
+count. The message renders only for a receipt whose text is unrecorded, and
+every receipt's is recorded, so nothing observable moves -- but the port fixes
+the number rather than transcribing a stale one.
+
+    SELF_ASSEMBLING   31 rules
+    port surface      81 left
+    audit             byte-identical to the 45-undeclared / 1-PARKED baseline
+    156 shas          unchanged
+    enforce.test      141 passed
+
+### PORT 8, AND A CATEGORY THE CLASSIFIER WAS MISSING
+
+`check_carried_notes_are_intact` -> `carried_notes_are_intact`. The rule is a
+comparison of two counts; the assembler reads the EXPANDED rubric (not the
+authored one -- `materialiseRubric` expands templates during the build, and
+reading the authored copy would mean implementing that grammar a second time)
+and `CARRIED_NOTES.json`. New helper `expandedRubricPath(ns)`, which finds the
+staged file BY SHAPE from the authored path rather than spelling the course's
+collection directory or rubric filename, and honours `COURSE_RUBRIC_OLX`.
+
+Certified: payload identical to python's own reads (17 tags / 111 blocks /
+2115 lines); findings byte-identical across six cases -- clean, a tag gone, a
+tag with fewer blocks, a tag with fewer lines, every tag gone, and one that
+GREW, which must not fire and does not. Audit 45/1, 156 shas unchanged, 141
+tests pass.
+
+CROSS-ENGINE CHECKS ARE PYTHON-ONLY, a category the port classifier had no
+name for. `check_contains_matcher_agrees_across_engines` runs PYTHON's
+`contains_hit` against a TS-authored case table: python's matcher is the
+SUBJECT. Porting it would have TS assert against the table TS already asserts
+against in its own tests -- vacuous, and it would delete the only thing
+checking the paper scorer's matcher. It stays where it is, for the same reason
+the paper scorer does.
+
+The classifier also missed checks that read PYTHON SOURCE via `inspect`
+(`check_weighted_slots_are_scored` reads the scorer's own text through
+`_source_through_delegates`). Both signals added. Port surface, measured
+honestly: 77.
+
+### THE PORT STANDARD WAS MISSING AN ITEM, AND TWO PORTS HAD ALREADY FAILED IT
+
+Found 2026-09-26 while porting `check_slot_codes_exist`, which takes `items` as
+an ARGUMENT. Asking what the argument was for surfaced a class.
+
+THE AUDIT'S SELF-TEST INJECTS IN MEMORY. Each case mutates a table --
+`rubric_h3.BY_ID[i]["credit"][0]["codes"]["absent"] = "NO_VERDIKT"`,
+`COUNTABLE_EXEMPT[("2b","sentence")] = ...` -- and then FORKS, so the child
+inherits the mutation copy-on-write. That is how 41 cases share one 36.6s audit
+without writing to disk.
+
+A SELF-ASSEMBLING DELEGATOR CANNOT SEE IT. `lo_enforce.run(name, None)` makes
+the runner build the payload by reading the rubric FILE, and the file was never
+mutated. So the injected fault is invisible, the check returns clean, and the
+audit agrees with itself for the wrong reason.
+
+MEASURED, NOT REASONED. Applying each case's own injection in process:
+
+    check_codes_reachable                before=0  after=0   BLIND
+    check_countable_families_converted   before=0  after=0   BLIND
+    check_slot_codes_exist (unconverted) before=0  after=1   detects
+
+Both blind ones were ports of mine, both certified against the four-item
+standard, and both had passed it -- because the standard compares findings on
+inputs I CONSTRUCT, and never asked whether the audit's own injection still
+reaches the rule. `all_items()` was the argument, and passing `None` threw it
+away. The comment I left on each said "`items` is no longer needed here".
+
+REPAIRED by having python pass the items it was HANDED. The assemblers stay:
+they serve callers inside lo-blocks, which have no python to ask, and the
+runner reaches one only when the payload is null -- which python no longer
+sends. After the repair both produce exactly the finding their case expects:
+
+    check_codes_reachable                before=0  after=1   DETECTS
+    check_countable_families_converted   before=0  after=1   DETECTS
+    check_slot_codes_exist (ported)      before=0  after=1   DETECTS
+
+THE FIFTH ITEM, now required of every port: a ported check that takes an
+argument MUST still detect its self-test injection, measured by applying that
+case's own mutation and watching the finding appear. A port that takes no
+argument is exempt only because there is no injection path to break -- which
+has to be CHECKED, not assumed.
+
+Certified after the repair: audit 45/1, 156 shas unchanged, 141 tests, tsc
+clean. The full `--enforcement --selftest` is the gate that would have caught
+this on its own and is running.
+
+### THE REMAINING PORT SURFACE, MEASURED PROPERLY
+
+Two successive framings of "what is left" were both wrong, and the second was
+wrong in the more expensive direction.
+
+FRAMING 1 -- COUNT THE CHECKS. "81 portable checks" counted check bodies. But a
+19-line check that calls `GI.mine(roots, inv)` is not a 19-line port, and
+`check_weighted_slots_are_scored` reads the scorer's own PYTHON SOURCE through
+`inspect`, which cannot be ported at all.
+
+FRAMING 2 -- WEIGHT BY MODULE. Adding each check's transitive module LOC gave a
+very different order: only SIX checks are self-contained, and the rest cost
+150-2250 lines because they pull in a module. That framing said `measured` was
+4755 lines to unlock 27 checks.
+
+BOTH OVERSTATE IT, because a check does not use a module -- it uses NAMES. The
+measured surface, counting what the dependent checks actually call:
+
+    module             checks   distinct names used
+    measured             27     29, dominated by `_jobs`(18)
+    olx_prompts          22     22, dominated by `ACTION`(13), `FORM`(7)
+    agreement             9      8, dominated by `load_action`(6)
+    compose_docs          5      4  (composed_path, duplicated, missing, stale)
+    score                 4      4
+    rubric_component      3      4
+    probe                 3      2  (question_for, py)
+    coursedata            2      3
+
+And much of that is ALREADY NATIVE:
+
+  * `olx_prompts.ACTION` is `_action_from_rubric()` -- TS has `actionMap(items)`,
+    the same derivation from the same rubric. 13 checks, already there.
+  * `FORM` is `itemForms(ns)`. `parse_slots` is `parseSlots`. Already there.
+  * `forms.nearest_attainable` / `attainable_scores` were ported in
+    `goldAttainable.ts`. `forms.config(h)["rubric"]` is
+    `readRubric(rubricPath(ns))`. `CORRECTED_GOLD` is `gold(ns).CORRECTED_GOLD`.
+  * `measured._jobs()` is `agreement_app.JOBS`, which is
+    `coursedata.declaration("JOBS")` -- A DECLARATION, already in `course.json`
+    and natively readable. One accessor plus the namespacing transform unlocks
+    the 18 checks that use it.
+
+SO THE PLAN IS PER-ACCESSOR, NOT PER-MODULE. Build the named accessor, prove it
+against python's value, and the checks that use it become ordinary ports. None
+of this requires moving 4755 lines of `measured.py`, and the parts of `measured`
+and `agreement` that are the PAPER SCORER stay where the user ruled they stay.
+
+THREE CATEGORIES THAT ARE NOT PORTABLE AT ALL, applied across the list:
+
+    cross-engine, python is a SIDE          3   contains_matcher_agrees_across_engines,
+                                                engines_reach_the_model_identically,
+                                                json_cache_is_not_mutated
+    greps lo-blocks SOURCE (see below)      4   fails_verdict_is_mirrored_in_the_app,
+                                                action_attributes_are_declared_in_the_block,
+                                                engines_offer_the_same_verdicts,
+                                                the_cli_sends_the_apps_prompt
+
+THE FOUR SOURCE-GREPPING ONES ARE A DESIGN QUESTION, NOT A PORT. They assert
+that lo-blocks' own source contains `export function parseMaps(` and the like.
+Ported literally they stay text greps. Ported HONESTLY they become imports and
+type references, so a missing export fails `tsc` instead of failing a regex --
+strictly stronger, and NOT byte-identical, so the four-item standard cannot
+certify them. Flagged for the user rather than decided here; they belong with
+the "audit natively during npm build" analysis, which is the deferred task.
+
+VERIFIED, not assumed, for the biggest of those accessors: `course.json` holds
+`declarations.JOBS` with 26 entries, and `agreement_app._namespaced_jobs()` is
+a FIVE-LINE transform over it -- add `ns`, and prefix `screen` with `ns/` when
+it carries no `/`. So the accessor that unlocks 18 checks is a JSON read plus
+five lines, not a port of `measured.py`.
+
+### A HARDCODING THAT HAD MOVED INTO THE TS SIDE
+
+While deriving the handout pattern for the port above: `native.ts` spelled
+`bmod_handout${form}.olx` in `handoutSrc` and `/^bmod_handout\d+\.olx$/` in
+`handoutBlob` -- this course's filenames inside engine code, in two helpers that
+ten assemblers read through. That is exactly what the user ruled out ("neither
+should be hardcoded") and what `manifest.yaml` and python's `_manifest` exist to
+end; the sibling assembler `the_course_links_the_rubric_and_every_form` was
+already doing it correctly through `collectionDeclares(ns, 'handout_olx')`.
+Introduced by my own earlier ports, and no check reported it because the audit
+compares FINDINGS and both sides agree on a course whose files happen to match.
+
+Replaced with `handoutStems(ns, names)` and `handoutName(ns, form)`, which read
+the declared `%d` template. Two notes on the implementation:
+
+  * NO REGEX IS BUILT FROM THE PATTERN. Escaping a course-supplied string into a
+    character class is a second thing to get wrong for no gain; prefix, suffix
+    and "characters between" is the whole grammar of a `%d` template. The first
+    attempt did build one, through a nested heredoc, and the escaping collapsed
+    `(\\d+)` to `(d+)` -- caught by reading the staged file back before running
+    it, not by any test.
+  * IT MATCHES ANY CHARACTERS, NOT JUST DIGITS, because python derives its glob
+    by replacing `%d` with `*`. Digits-only is the more faithful reading of the
+    template and would have been a silent divergence. Measured: both select the
+    same three files here.
+
+### A FOURTH CATEGORY, AND A QUESTION FOR THE USER
+
+SIX checks are about the SCORING HARNESS'S OWN DOCUMENTS, not about course
+content or the built page:
+
+    check_composed_documents_are_current          (compose_docs)
+    check_every_document_is_where_its_readers_look (compose_docs)
+    check_no_composed_document_repeats_itself     (compose_docs)
+    check_convertible_prose_rules_have_subgoals   (compose_docs)
+    check_closed_goals_that_changed_code_were_exercised (compose_docs)
+    check_goals_record_is_intact                  (goals)
+
+They guard GOALS.md, QUALITY_CONTROL.md, EQUIVALENCE.md and README.md, each
+split into a generic half and a course half and composed into
+`$COURSE_DATA/courses/<ns>/composed/`. Mechanically they are portable -- file
+reads and string comparison. But they would put the harness's documentation
+machinery inside the CONTENT ENGINE, and `npm build` has no stake in whether
+this project's ledger is composed. FLAGGED, NOT DECIDED: they belong with the
+deferred "audit natively during npm build" analysis, where the question is which
+parts of QC lo-blocks should own at all.
+
+COUNTED BY IMPORT, NOT BY PROSE. A first pass matched document NAMES and
+returned twelve, two of which were checks I had just read and which have nothing
+to do with documents -- they mention `BACKLOG.md` in a comment. The count above
+matches `import compose_docs` / `import goals`, which is what the question
+actually asks.
+
+### `decodeTable` DECODES KEYS AND NOT VALUES
+
+Found while validating the `JOBS` accessor BEFORE wiring it -- by computing it
+standalone and diffing against python's table, which is the discipline that
+keeps catching these.
+
+The accessor looked right and was wrong in three fields of one entry:
+
+    fallback._wgb   py [1, "Q2"]              ts {"__tuple__": [1, "Q2"]}
+    value_derived   py ["title", "x", "y"]    ts {"__tuple__": [...]}
+    sim             same contents, different key order (a comparison artefact)
+
+`pythonRepr.decodeKey` walks nested tagged shapes correctly, but `decodeTable`
+applies it only in KEY position. A python tuple sitting inside a VALUE -- which
+is where `JOBS` keeps `fallback` and `value_derived` -- arrives as the literal
+tagged object, so a consumer testing `Array.isArray(spec.value_derived)` gets
+`false` and reads nothing. That is the both-read-zero trap with a new face: the
+rule would have agreed with python's empty findings for entirely the wrong
+reason.
+
+A recursive `decodeValue` fixes it; all 26 entries then compare IDENTICAL.
+
+THE POPULATION, enumerated rather than inferred from the one I noticed: five of
+the 31 `course.json` declarations carry tagged shapes in value position --
+`JOBS`(25), `CONTEXT_SOURCE`(17), `GOLD_BOX_WORDS`(9), `SIDE_ALIAS`(9),
+`GOLD_COMMENT_PHRASES`(6). NONE of the other four is read by any ported
+assembler, and the one assembler that does read `JOBS`
+(`handsplit_rows_are_disjoint`) touches only `spec.handsplit`, a string. So the
+defect is LATENT, not active: no shipped port is wrong because of it. It is
+fixed before the accessor that would have been the first to hit it.
+
+### CORRECTION TO THE ACCESSOR COUNT ABOVE
+
+The table of "distinct names used" counted CALL SITES, and I reported
+`measured._jobs`(18) as "18 checks". It is 18 call sites across ELEVEN checks,
+and only FIVE of those need nothing from `measured` beyond `_jobs`:
+
+    34  pick_choices_match_rubric
+    35  one_writer_per_computed_key
+    38  verdict_vocabularies_correspond
+    39  olx_attributes_are_all_generated
+    67  every_failing_verdict_has_a_charge
+
+The other six each want something further -- `_runs_doc`, `web_code_sha`,
+`SIDES`, `SIDE_CONTRACT`, `_parts_for`, `paper_render_sha` -- and those are
+about the RUN RECORDS and the sweep ledger rather than about course content.
+They are the measurement side, which is where the paper scorer lives and where
+the user has already ruled the work stays.
+
+So the JOBS accessor is worth FIVE ordinary ports, not eighteen. Still the best
+single unlock on the list, and still a JSON read plus five lines -- but the
+figure in the section above overstated it and is corrected here rather than
+left to be discovered.
+
+EXTENDED TO `gold.json`, which the paragraph above did not cover: 3 of its 16
+declarations carry tagged shapes in value position -- `GOLD_SLOT_CHARGES`(50),
+`GOLD_DIVERGENCES`(10), `GOLD_CEILINGS`(1). Two are read by no assembler, and
+the one that reads `GOLD_DIVERGENCES` decodes its cells EXPLICITLY with
+`decodeKey`, which does walk nested tags. Sixteen `decodeTable` call sites were
+checked; six read the value as a collection and none of the six reads an
+affected declaration.
+
+So the "no shipped port is wrong because of it" claim now rests on both record
+files rather than on one, which is what it should have rested on the first time.
+
+### NINE OF TWELVE PORTS WERE BLIND. ALL NINE ARE FIXED.
+
+The two blind ports found earlier were not a coincidence, and finding them by
+noticing one check's unused argument was luck. Enumerating properly: TWELVE
+ported checks carry an enforcement self-test case, and NINE of them could not
+see their own injection.
+
+    rubric_items_are_unique                    before=0 after=0   BLIND
+    no_cell_is_both_corrected_and_declared     before=0 after=0   BLIND
+    handsplit_rows_are_disjoint                before=0 after=0   BLIND
+    consensus_fixes_are_unique                 before=0 after=0   BLIND
+    consensus_fixes_have_no_duplicate_cells    before=0 after=0   BLIND
+    exclusion_claims_are_data                  before=0 after=0   BLIND
+    prompt_prose_names_only_offered_verdicts   before=0 after=0   BLIND
+    codes_reachable                            before=0 after=0   BLIND  (found earlier)
+    countable_families_converted               before=0 after=0   BLIND  (found earlier)
+
+EVERY ONE PASSED THE FOUR-ITEM STANDARD. The standard compares findings on
+inputs the porter constructs; it never asks whether the AUDIT'S OWN injection
+still reaches the rule. E63's self-assembly reads from disk, and every one of
+these cases mutates an in-memory table and forks.
+
+`_handsplit_tables` had SAID SO, in its own docstring: "A seam, not a
+convenience: the selftest replaces this to inject a bad row, which is the only
+way to prove the check below still detects one." So had
+`check_consensus_fixes_have_no_duplicate_cells`: "`_CONSENSUS_SOURCE` STAYS,
+because it is the selftest's injection point." Both comments survived the edit
+that made them false.
+
+THE RULES WERE NEVER WRONG. Proven rather than assumed: feeding
+`rubric_items_are_unique` a payload with a duplicated id makes it fire
+correctly. The blindness was entirely in the FETCH.
+
+THE REMEDY, per check: python passes the payload it builds from the in-memory
+tables. The assemblers stay -- they serve callers inside lo-blocks, and the
+runner reaches one only when the payload is null, which python no longer sends.
+
+ONE NEEDED MORE THAN THAT. `prompt_prose_names_only_offered_verdicts` reads 217
+slots, and python no longer has the slot-sheet machinery to rebuild them --
+rebuilding it would restore the duplicate implementation the port removed. So
+the runner grew an `assemble` PROBE: python asks for the payload the assembler
+built, replaces the ONE field it owns (`note`, from `SLOT_NOTES`), and sends it
+back. The assembler stays the single definition of the payload's shape and the
+seam is one line. Checked before relying on it: python reproduces the
+assembler's `note` on all 217 slots.
+
+The probe also closes a gap in the port standard itself -- item 2 asks for a
+payload comparison against python, and until now there was no way to read an
+assembler's output FROM python at all.
+
+A STANDING GUARD, not a one-off. `tools/injection_reach.py` applies each case's
+own injection and reports `before`/`after` per check, in seconds rather than the
+ninety minutes the full self-test takes. All ten covered cases now report
+"sees it". It is the fifth item of the port standard, made runnable.
+
+THE OTHER 21 SELF-ASSEMBLERS ARE SAFE, checked from both directions: each has a
+resolvable finding label, and none of those labels is among the 54 a self-test
+case asks for. So no self-assembling delegator has a case that could be blinded.
+
+Certified after the batch: audit 45/1 (unchanged -- the restored fetches alter
+no finding, only what the checks can SEE), 156 shas unchanged, 141 tests, tsc
+clean. `injection_reach.py` itself had to be registered with
+`editguard --track` and `course_inventory --tighten`; before that the audit read
+46/2, and BOTH of those were the new tool, not the fix.
+
+### WHAT "ALL OF K'S CASES" ACTUALLY CONTAINS
+
+Classified all 192 checks in `enforcement.py` by what they READ, using imports
+rather than prose:
+
+    47  need a MEASUREMENT/SCORER accessor   (agreement, score, agreement_app, measured)
+    36  ALREADY PORTED
+    35  need a CONTENT accessor              (olx_prompts, forms, coursedata, rubric_component, probe)
+    16  retired tombstones
+    15  self-contained                       (broken down below)
+     9  python-only: read PYTHON SOURCE via `inspect`
+     7+ repo-hygiene checks reading `ast`/`tools`
+     5  grep lo-blocks SOURCE                (reshaping decision)
+     5  the harness's OWN documents          (user's call)
+     2  cross-engine, python is a SIDE
+
+THE "SELF-CONTAINED" FIFTEEN ARE MOSTLY NOT PORTABLE, which only reading their
+subjects showed:
+
+  ABOUT THE PYTHON REPOSITORY -- nine of them. `every_check_is_invoked`,
+  `module_has_no_course_data`, `no_module_shadow_in_scratchpad`,
+  `no_module_is_named_for_a_course_artifact`, `course_data_reentries_are_current`,
+  `no_old_environment_names`, `no_file_points_into_a_developers_notes`,
+  `rewritten_artifacts_still_parse` ("every .py compiles"),
+  `artifacts_record_their_era`. These police THIS TREE's hygiene. `npm build`
+  has no stake in whether a python module is named after a question.
+
+  CROSS-ENGINE GRAMMAR PARITY -- two. `reference_grammars_agree` ("the two
+  corpus-reference resolvers"), `slot_grammars_agree` ("the two slot-sheet
+  parsers"). Python is one of the two sides; porting makes TS compare itself.
+
+  WITHDRAWN -- one. `no_slot_is_both_asked_and_computed` "ALWAYS RETURNS []".
+
+  GENUINELY PORTABLE -- two or three: `no_unresolved_reference_reaches_the_page`
+  (staged), `criteria_table_is_complete`, and arguably
+  `fixture_follows_response_structure`, which is fixture work and therefore
+  closer to the paper side.
+
+SO THE HONEST END STATE OF K is not "192 checks ported". Roughly half the file
+is measurement and scoring, where the user has ruled the work stays; a large
+block is this repository's own hygiene, which belongs to this repository; and
+the genuinely portable remainder is the CONTENT checks -- the 35 needing a
+content accessor, plus a handful of self-contained ones. Those 35 are where the
+accessor plan above pays, and they are the population that the deferred
+"audit natively during npm build" analysis should be scoped to: lo-blocks can
+own the checks about COURSE CONTENT and the BUILT PAGE, and should own nothing
+about python's modules, python's documents, or the paper scorer.
+
+### THE FULL SELF-TEST, RUN PROPERLY: ALL TWELVE PORTED CASES PASS
+
+The first attempt produced NOTHING in ninety minutes, and that was an invocation
+error, not a suite failure: piping python through `tail` makes it block-buffer
+stdout, and `timeout`'s SIGTERM discards the buffer. Re-run with `python3 -u`
+writing to a file.
+
+    61 detected, 8 failed, 0 skipped, 69 of 72 expected
+    restored state is clean: True (46 findings, baseline 46)
+
+EVERY CASE FOR A PORTED CHECK PASSES -- all twelve, including the nine that were
+blind this morning:
+
+    a rubric item is duplicated                     -> RUBRIC ITEMS NOT UNIQUE
+    a corrected cell is also declared               -> CELL BOTH CORRECTED AND DECLARED
+    a hand-split row puts one sentence in two boxes -> HANDSPLIT ROW OVERLAPS
+    two span fixes name the same box                -> TWO FIXES FOR ONE BOX
+    two CONSENSUS_FIXES entries for one cell        -> TWO FIXES FOR ONE CELL
+    an exclusion states a point figure only in prose-> EXCLUSION CLAIM IN PROSE
+    prompt prose asks for an impossible verdict     -> PROMPT ASKS FOR AN IMPOSSIBLE VERDICT
+    a verdict is dropped, retiring its code         -> CODE UNREACHABLE
+    a stale exemption outlives its conversion       -> PRIMITIVE APPLIED UNEVENLY
+    a slot points at a code that does not exist     -> RUBRIC REFERENCE BROKEN
+    a rubric declaration is removed, its attribute  -> GENERATED ATTRIBUTE HAS NO DECLARATION
+    a content file never reaches the build          -> AN UNRESOLVED REFERENCE REACHED THE BUILT PAGE
+
+THE EIGHT FAILURES ARE IN CHECKS THAT WERE NEVER PORTED, and they are a
+PRE-EXISTING defect in the suite rather than fallout from this work.
+
+Six are "the scorer stops computing `equals`/`expect`/`forbid`/`derived`",
+"stops expanding a count", "stops honouring `cover`". Each patches
+`agreement.apply_computed` / `expand_counted` / `satisfied_map`. But the check
+they expect to fire, `check_scorer_behaviour_is_unchanged`, drives
+`tools/scorer_fingerprint.sweep()`, which calls `oc.derive_ledger` on the scorer
+from `scorers.optional("oc")` -- module `_course_scorer_oc`, which does not
+import `agreement` AT ALL:
+
+    apply_computed   present in _course_scorer_oc: False
+    expand_counted   present in _course_scorer_oc: False
+    satisfied_map    present: True, but it is that module's OWN, not agreement's
+
+So the injections land on functions the check never calls. This is the same
+shape as the port defect above -- an injection aimed where the code under test
+does not read -- and it almost certainly dates to goal O, which eliminated the
+python web engine and moved the scorer out of `agreement`. The retirement notice
+for two SIBLING cases is right there in the file: "TWO FIRE CASES RETIRED
+2026-09-24 with the python web engine (goal O) ... there is nothing left to
+inject into." Six more needed the same treatment and did not get it.
+
+The seventh, "olx is blinded to a scored slot", targets
+`check_scored_slots_are_answered_by_both_engines` -- also unported.
+
+NOT FIXED HERE, DELIBERATELY. These are scorer-side cases, the scorer is the
+paper scorer, and repairing them means deciding what the post-goal-O seam should
+be -- a scoring question, not a porting one. Recorded for the user rather than
+guessed at. The suite also reports 1 VACUOUS case and 3 LOST cases against its
+own ratchets (`SELFTEST_VACANT_MAX=0`, `SELFTEST_EXPECTED=72`); same owner, same
+reason.
+
+AND AN OPERATIONAL NOTE worth keeping: `pgrep -f 'equivalence.py ... --selftest'`
+MATCHED MY OWN SHELL and reported the suite still running after it had exited --
+the self-matching wait-loop trap, hit again.
+
+### THE SELFTEST WAS BROKEN BY GOAL O, NOT BY THE PORTS
+
+`equivalence.py` mtime is 2026-09-25 20:50 -- BEFORE any of the 09-26 port work
+(`enforcement.py` is 02:52). Every failure predates this session.
+
+ALL SEVEN FAILING CASES ASSERTED A LABEL THAT NO LIVE CHECK EMITS:
+
+    6 cases  -> "SHEET REACHES NO ARITHMETIC"
+               = check_web_scorer_exercises_its_sheet
+               RETIRED 2026-09-24. `return []`.
+    1 case   -> "SCORED SLOT ANSWERED BY ONE ENGINE ONLY"
+               = check_scored_slots_are_answered_by_both_engines
+               RETIRED 2026-09-24. `return []`.
+
+A case whose check always returns nothing cannot pass. All seven had reported
+NOTHING FIRED on every run since, and one (`cover`) also ran VACUOUS, tripping
+`SELFTEST_VACANT_MAX=0` and adding an eighth to `bad` -- which is why the tally
+read "8 failed" while only SEVEN `FAIL` lines printed. (`detected = built - bad`
+mixes case outcomes with a ratchet penalty, so `detected` under-reports by one.
+Cosmetic, left alone.)
+
+AND THE THREE LOST CASES ARE THE SAME EVENT. `SELFTEST_EXPECTED` was raised to
+72 on 2026-09-16 for the scored-slot case; goal O then retired three fire cases
+(two on 09-24, one on 09-25 -- both retirements are recorded in the file) and
+nobody lowered it. 72 - 3 = 69, which is exactly what the suite constructed.
+
+I HAD THIS WRONG FIRST. I read the six scorer cases as targeting
+`check_scorer_behaviour_is_unchanged` and spent a while proving they inject into
+`agreement.apply_computed` while the fingerprint drives `scorers/oc.py`. True,
+and beside the point: `_scorer_case`'s default `want` is `WANT = "SHEET REACHES
+NO ARITHMETIC"`, ten lines above the cases. Reading the default would have been
+quicker than reasoning about the call graph.
+
+THE REPAIR, in the file's own idiom -- "A retirement is not finished until its
+callers and its fire cases go with it":
+
+  * SEVEN CASES RETIRED with a notice naming the retired check each asserted.
+  * THREE LIVE REPLACEMENTS ADDED for the question the CRITERIA scorer still
+    answers. `scorers/oc.py:derive_ledger` re-imports `score._equals_rule`,
+    `_expect_rule` and `_forbid_rule` ON EVERY CALL, so rebinding one on the
+    module is a live seam; returning None is exactly "stops computing it".
+    Each measured to fire (115,200-case fingerprint moves) BEFORE being written.
+    `derived`, `count` and `cover` get no replacement: they are slot-sheet
+    primitives with no criteria-path equivalent, and inventing a seam would
+    test nothing.
+  * SELFTEST_EXPECTED 72 -> 65, lowered deliberately with the arithmetic written
+    beside it (72 - 3 retired earlier - 7 retired here + 3 added).
+
+### STAGING: NO, AND 85% OF IT IS NOT CONTENT
+
+`materialiseRubrics --out .stage/expanded` and `resolveCorpusRefs --out
+.stage/content` copy a mounted source WHOLE, minus a top-level deny-list
+(`NEVER_STAGE`). Measured on this course: 8.3 MB staged, of which 7.0 MB is not
+content -- 85%.
+
+THE DENY-LIST HAD FALLEN BEHIND, and one of the gaps is mine. `scorers/` is the
+directory this session created as the new home for course python, at the user's
+direction; `NEVER_STAGE` was never told about it, so `oc.py`, `oc_grid.py`,
+`fixture/course_segment.py` and three `__pycache__/*.pyc` were being copied into
+the build tree. The `.pyc` files could not be excluded by that list on their own
+-- it excludes by TOP-LEVEL name and a `__pycache__` sits one level down -- so
+excluding the two directories was what removed them.
+
+Verified before excluding: nothing reads either directory from the stage; the
+Python package reads them from the REPOSITORY (`paths.roots().scorers`,
+`.fixture`). After: 0 `.py`, 0 `.pyc` staged, rubric checks and 141 tests clean.
+
+WHAT IS STILL STAGED AND SHOULD NOT BE -- A DECISION, NOT A DEFECT. The
+remaining 7 MB is the planning documents: `RUBRIC_MIGRATION_PLAN.md` (743 KB and
+growing every time this file is appended to), `SCORING_REFACTOR_PLAN.md` (267
+KB), `ADOPTION_POSTMORTEM.md`, `PENDING_DECISIONS.md`, `MATERIAL_CLASSIFICATION.md`,
+`AGENDA_FROM_CLASSIFICATION.md`, `VERDICT_VOCABULARY_PLAN.md`, `STAGE5_RUNBOOK.md`.
+
+They are staged ON PURPOSE: the list's own comment says "WHAT IS LEFT IS CONTENT
+AND ITS DOCUMENTATION -- psychology/, lo.yaml, the licence and the plans." But
+the very next sentence states the rule as "if a build resolves .olx and serves
+pages, the stage should carry what becomes a page", and a plan does not become a
+page. The two sentences disagree, and the disagreement costs 7 MB per expand.
+NOT changed unilaterally -- that is the author's stated line and the user's call.
+
+THE DEEPER FIX IS AN ALLOW-LIST. A deny-list stages every NEW directory by
+default and fails SILENTLY; it has now fallen behind twice (`course_metadata`
+once, `scorers`/`fixture` here). What the stage needs is discoverable: the
+collection directory the manifest names, plus the mount metadata (`lo.yaml`,
+`manifest.yaml`, `.lo-blocks`, `.lo-server`) and the licences. Proposed, not
+built, because inverting it changes what every course stages.
+
+### STAGING, SETTLED: THE COLLECTION, NOT THE TREE
+
+The user's question cut through two wrong answers of mine.
+
+FIRST I DEFERRED TO THE COMMENT. `NEVER_STAGE`'s own note says "WHAT IS LEFT IS
+CONTENT AND ITS DOCUMENTATION -- psychology/, lo.yaml, the licence and the
+plans", so I added `scorers`/`fixture` to the deny-list and left 7 MB of
+planning documents staged, flagging them as the author's call. But the very next
+sentence states the rule as "if a build resolves .olx and serves pages, the
+stage should carry what becomes a page", and a plan does not become a page.
+
+THEN I ENUMERATED EXTENSIONS, and the build refuted it four times running:
+
+    allow .olx                                    -> 28 parse errors
+    + .mmd .cast .json .textSelectionpeg          -> 14 (assets sit in
+                                                     subdirectories with no .olx)
+    + inherit content-ness into subdirectories    ->  2
+    next would have been .liquid                  -> and then the one after that
+
+Every asset kind an author invents would have been another build failure and
+another entry in a list. The axis was wrong.
+
+THE UNIT IS THE COLLECTION. A course's content lives in ONE directory -- the one
+holding `manifest.yaml`, which is also the one holding the `.olx` -- and
+everything under it is content by construction. Stage that subtree whole, plus
+the mount metadata beside it (`lo.yaml`, `.lo-blocks`, `.lo-server`,
+`static.config.json`), and nothing else. Found BY SHAPE: `isCollectionRoot`
+looks for the manifest, never for the name `psychology`.
+
+AND THE COPY WAS DUPLICATED. Trimming `resolveCorpusRefs.copyTree` changed
+nothing at first, because `materialiseRubrics` had its OWN byte-identical
+`copyTree` that ran afterwards over `./content` -- whose entries are SYMLINKS to
+the course repos -- and refilled the stage. `NEVER_STAGE` had been exported to
+that module precisely because the exclusion SET was duplicated ("a second copy
+of the mounting rule is how the two would come to disagree about what the
+content is"); the FUNCTION around it stayed duplicated and did exactly that.
+There is one `copyTree` now.
+
+PROVEN BY REBUILD AND DIFF, not by argument:
+
+    staged course tree   113 files / 8,297,886 B  ->  73 files / 7,090,336 B
+    top level            17 entries               ->  .lo-blocks .lo-server
+                                                      lo.yaml psychology
+    .py / .pyc staged    3 / 3                    ->  0 / 0
+    all.json             5540 ids                 ->  5540 ids, identical set
+    activities.json, manifest.json                ->  byte-identical
+
+A first comparison showed all.json differing by 5,253 bytes. That was MY
+BASELINE, not the change: the full-stage build had been run over an UNCLEARED
+stage, so files deleted from the source on 09-25 were still there and still
+being parsed. Rebuilding both from `rm -rf` left a THREE-byte difference, and
+the three bytes are an mtime cache-buster inside an id
+(`manifest.yaml#1790417705977` vs `#1790417661404`) -- the two builds ran
+seconds apart. Semantically identical.
+
+WHAT IS STILL 7 MB is `psychology/` itself: 2.8 MB images, 2.6 MB `defiance/`,
+and the handout OLX. That is content, and it is what the stage is for.
+
+ONE FLAKY TEST observed and NOT attributed to this change: `xml2graph.test.ts`
+failed once in a full run and passed both alone and on re-run (2727/2727, 115
+files, the same as before the change). Several tests write
+`./apps/server/public/content` concurrently, which is the likely race.
+
+### THE SELFTEST PASSES, AND PARALLELISM FOUND THREE DEFECTS SERIAL HID
+
+    65 detected, 0 failed, 0 skipped, 65 of 65 expected
+    restored state is clean: True (46 findings, baseline 46)
+    22 minutes, twice, against a 1h54m serial baseline
+
+Zero failures (was 8), zero lost cases (was 3), no vacancy (was 1).
+`SELFTEST_EXPECTED = 65` is exactly right: the seven retirements and the three
+live replacements account for every case.
+
+RUNNING IT IN PARALLEL IS WHAT FOUND THE DEFECTS. Serial ran clean for 1h54m
+over all three of these:
+
+  1. `lo_enforce` KEPT ITS WARM NODE RUNNER IN A MODULE GLOBAL. A forked child
+     inherited the parent's pipe and would have written its requests into the
+     same stdin its siblings used. Replies interleave and each reader takes
+     whichever line arrives first -- not a crash, WRONG FINDINGS, in the suite
+     whose whole job is to be trusted. Fixed by stamping the owning pid; proved
+     by forking four children and watching each start its own runner while the
+     parent kept answering correctly.
+
+  2. `materialiseRubrics` DELETED THE STAGE AND REPOPULATED IT. Every audit
+     shells out to `build:assemble-prompts` (via
+     `check_the_forms_agree_with_the_assembler`), so sixteen forked audits each
+     `rm -rf`'d `.stage/expanded` while fifteen siblings read it. Two runs died
+     on `FileNotFoundError: .../bmod_rubric.olx`; a third won the timing and
+     passed, which is worse. Fixed by writing each file beside its destination
+     and renaming it into place -- atomic within a directory -- and removing
+     stale files AFTER the write rather than before. Measured: a polling loop
+     across a full rebuild saw 0 gaps where the rubric previously vanished for
+     hundreds of milliseconds, and the confirming run survived 25 rebuilds.
+
+  3. `course_inventory.item_ids` SWALLOWED THE CAUSE. A bare
+     `except Exception: ids = set()` turned every failure into one message
+     asserting "the rubric modules did not import" -- a cause it had not
+     established, and which sent me to look at imports while the real error was
+     a missing file. It carries the actual exception now. Defect 2 was invisible
+     until this was fixed; the first two runs died with no usable information.
+
+THE FINDING THAT KEPT RECURRING was my own: FOUR times I killed a process with
+`pgrep -f <pattern>` where the pattern appeared in my OWN command line, once
+taking out the monitor watching the run, and once writing a monitor whose
+`$(count)` subshells matched themselves so it could never terminate. Match on
+`/proc/<pid>/exe` and exclude `$$`.
+
+WORKER DEFAULT: was 1 (serial). Now `min(cpus - 4, 16)` with a memory floor of
+MemAvailable/400 MB, measured at ~375 MB per worker; 16 on this box.
+
+STILL ON THE TABLE, NOT DONE: every audit runs a full `npm run
+build:assemble-prompts`, so a 65-case suite runs ~65 node builds and that is
+almost certainly where the 22 minutes goes. Either compare against the existing
+stage, or run the assembler once in the parent as the baseline audit already
+does. Wants measuring first -- the check's docstring argues the shell-out is
+deliberate ("re-implementing it here would make this a third opinion rather
+than a check"), so any fix has to keep that property.
+
+### PORT 10: `no_unresolved_reference_reaches_the_page`
+
+The built-page check moves to lo-blocks, which is where it always belonged: it
+reads lo-blocks' OWN artefacts (`.stage/content`, `apps/static/public/static-content`)
+and python was never the natural place for it.
+
+CERTIFIED ON EIGHT BRANCHES, because the real tree exercises NONE of them --
+every branch of this check is silent on a clean tree, so a comparison there
+certifies nothing. Eight synthetic trees, one per branch, with python's findings
+AND python's payload captured for each: clean, stale, missing-from-stage,
+no-stage, no-static, foreign-stage, one-hit, ten-hits.
+
+  * Seven byte-identical.
+  * Payload identical to python's own reads on the real tree.
+  * Item 5: its self-test case is a DISK write (`_selftest_provenance.olx`),
+    unlike the in-memory injections that blinded nine earlier ports -- so
+    self-assembly is safe here, and it was CHECKED rather than assumed:
+    before=0, after=3.
+
+`builtPagePayload(lo, olxDir, ns)` is split out of the assembler deliberately:
+`loBlocksRoot()` walks up from the module's own location and cannot be
+overridden, so an assembler that called it directly could only ever be tested
+against the real tree -- the one where every branch is silent.
+
+A DECLARED DIVERGENCE, THE EIGHTH CASE. The rule names the first EIGHT hits then
+"and N more", so ORDER decides which eight a reader is told about:
+
+    hits detected   py 10   ts 10
+    findings        py  9   ts  9
+    files named     py  8   ts  8
+    tail line       identical
+    differs         py names extra8; ts names extra2
+
+Python takes them in `rglob` order -- RAW FILESYSTEM ORDER, 5,0,1,3,7,6,8,4 on
+the fixture -- while node's `readdirSync` SORTS. Measured directly: the two
+orders are structurally different and can never agree. Matching python would
+mean reproducing an order python does not mean, and which would differ on
+another disk anyway. So the assembler sorts, and the divergence is declared:
+the SET and the COUNT are unchanged, only which of an over-long list prints.
+
+Also fixed in passing: `handoutSrc` and `handoutBlob` spelled
+`bmod_handout${form}.olx` and `/^bmod_handout\d+\.olx$/` -- this course's
+filenames inside engine code, in two helpers ten assemblers read through. They
+read the declared `%d` template now, via `handoutStems`/`handoutName`.
+
+Certified: audit 45/1, 156 shas unchanged, 141 tests, tsc clean,
+`injection_reach` all "sees it". SELF_ASSEMBLING now 34 rules.
+
+### `decodeValue`, THE `JOBS` ACCESSOR, AND PORT 11
+
+DECODEVALUE LANDED. `decodeTable` decoded tuple KEYS and left tagged tuples
+sitting inside VALUES, so a consumer's `Array.isArray` returned false and read
+nothing -- the both-read-zero trap. `pythonRepr.decodeValue` walks values
+recursively. Verified on the two fields that were wrong:
+
+    1c.value_derived   {"__tuple__": [...]}  ->  ["title","x","y"]   (array)
+    1c.fallback._wgb   {"__tuple__": [...]}  ->  [1,"Q2"]
+
+THE `JOBS` ACCESSOR LANDED, and it is what the plan said: a JSON read plus a
+five-line transform. `courseJson(ns).declarations.JOBS` decoded, `ns` added, and
+`screen` prefixed with `ns/` when it carries no `/`. All 26 entries compare
+IDENTICAL to `agreement_app.JOBS`, field for field.
+
+PORT 11: `one_writer_per_computed_key`. Two computed primitives writing one slot
+resolve by LOOP ORDER -- and on 2026-09-08 the two engines ordered them
+oppositely, so a box correctly failing as `consequence` came out `met`. The
+check also reports read-after-write: an `expect`/`equals` whose OPERAND is a key
+another primitive writes.
+
+    payload      26 items, identical to python's reads on all 26
+    findings     byte-identical on 5 cases -- clean, two-writers,
+                 expect-reads-written, equals-reads-written, counts-collision
+
+TWO THINGS THE PARSER DID NOT CARRY, both added:
+
+  * `Equals`/`Expect` OPERANDS. `kinds` records only which keys a primitive
+    WRITES; the read-after-write arm needs what they READ. `Expect` has no
+    `right` -- its second operand is a literal `value` -- so only `left` is
+    carried for it.
+  * `counts` AS A WRITER. python's COMPUTED tuple lists it beside
+    equals/expect/forbid/maps/derived and `kinds` does not carry it: a
+    `<Counts>` group's own `key` is a slot it writes. The `counts-collision`
+    control exists because leaving it out would have missed exactly the
+    collision the check is for.
+
+AND A TWO-CHARACTER DIFFERENCE THAT MATTERED. The finding interpolates
+`sorted(prims)`, and python's `str(['expect', 'maps'])` has a SPACE after the
+comma while `JSON.stringify` writes `["expect","maps"]` -- double quotes, no
+space. Two cases differed on nothing else. `pyList` renders it python's way
+through `pyReprStr`. A finding that differs from python's by two characters is
+indistinguishable, in a baseline diff, from a new fault.
+
+Certified: audit 45/1, 156 shas unchanged, 141 tests, tsc clean,
+`injection_reach` all "sees it". SELF_ASSEMBLING 35 rules.
+
+### PORTS 12-14: THE REST OF THE `JOBS` COHORT
+
+    12  verdict_vocabularies_correspond     5 cases byte-identical
+    13  every_failing_verdict_has_a_charge  6 cases byte-identical  (98 lines)
+    14  pick_choices_match_rubric           4 cases byte-identical
+
+Each: payload compared against python's own reads and IDENTICAL; audit 45/1,
+156 shas unchanged, 141 tests, tsc clean, `injection_reach` all "sees it".
+
+A VOCABULARY MOVED, RATHER THAN BEING COPIED. `VERDICT_HEDGES = {"unclear"}`
+was a set literal in `enforcement.py` -- the THIRD vocabulary this project has
+had to keep in step by hand, which is the position `EXTRA_VERDICTS` was in
+before `verdictVocabulary.ts` existed. `score.py` reads it too, so it could not
+simply move: it lives in `verdictVocabulary.ts` now and python reads it through
+the `verdict_vocabulary` probe, exactly as `slot_vocab` reads `KNOWN_VERDICTS`,
+refusing rather than defaulting. One copy.
+
+THREE PARSERS THE TS SIDE WAS MISSING, all added to `rubricSource`:
+
+  * `Equals`/`Expect` operands -- `kinds` says what a primitive WRITES, and the
+    read-after-write arm needs what it READS.
+  * `<Choices name= options=/>` -- the menus a `pick()` slot offers, which the
+    deleted `rubric_h2` carried as `SLOT_OPTIONS`.
+  * `cadence`, from `params="cadence=daily"`. It GATES the choices table:
+    python returns it only for a handout carrying a cadence item. The gate reads
+    `params` and NOT `conditions` -- those hold `cadence_daily`/`cadence_weekly`
+    and testing them for the bare string `cadence` finds nothing.
+
+AND `olxSlotVerdicts`, the sheet's declared verdicts for one slot. NULL AND
+EMPTY ARE DIFFERENT ANSWERS -- empty means "offers the defaults and nothing
+else", the sheet SPEAKING; null means the slot was never found. Conflating them
+makes the caller fall back to the rubric, the side already known to be wrong,
+which is the fault E52 exists to stop and which was reintroduced once already.
+Verified across ALL 116 slots: identical to python, 18 null and 21 empty
+preserved as such.
+
+TWO NUMBERS THAT CONFIRMED THE PORTS RATHER THAN MERELY PASSING:
+
+  * 63 live slots against 63 `VERDICT_PAIRS` entries -- an exact correspondence.
+  * 12 `pick` entries preserved with no rubric source, which is precisely what
+    python's docstring names: "`named_type` and `observed_type` -- twelve
+    slot-instances across the cadence items".
+
+NOT PORTED, AND WHY. `olx_attributes_are_all_generated` calls the python
+GENERATOR functions in `olx_prompts.GENERATED_ATTRS` (`gen = fn(item)`), so
+porting it means porting the prompt generator. Its DIVERGED arm already
+duplicates what `check_the_forms_agree_with_the_assembler` does natively
+through the TS assembler; only its UNACCOUNTED arm (is every attribute claimed
+by SOME generator) is additional. Left for the generator work.
+
+### PORTS 15-17
+
+    15  olx_corpus_references          44 findings, byte-identical, 3 budget arms
+    16  rubric_slots_reach_the_sheet   4 cases byte-identical  (E48)
+    17  sheet_slots_reach_the_rubric   4 cases byte-identical  (E49)
+
+PORT 15 IS THE FIRST PORT OF A CHECK THAT ACTIVELY FIRES. All 44 standing
+findings reproduce byte for byte, including the budget line -- so the comparison
+was non-vacuous by nature rather than by constructed control. The arms that do
+NOT fire naturally were still exercised: at-budget, below-budget (which asks for
+the ratchet to be LOWERED, holding ground gained) and an unreadable handout.
+
+    THE UNREADABLE ARM CAUGHT A DIVERGENCE. python writes
+    `cannot read the .olx ({exc})` -- it interpolates the exception -- and the
+    first payload carried only `src: null`, so the finding came out two-thirds
+    the length of python's. The assembler does its own read now, rather than
+    going through `handoutSrc`, precisely because `handoutSrc` swallows the
+    error and returns ''.
+
+PORTS 16/17 ARE A PAIR and share their machinery: E48 asserts every rubric slot
+reaches the sheet, E49 that the sheet asks nothing the rubric has never heard
+of. E49 IS THE HARDER DIRECTION -- a naive version reports 119 orphans of which
+ONE is real -- so its three exclusions are load-bearing and each is reproduced:
+`confident` (a meta-slot on every item), the EIGHT criteria-derived items (whose
+rubric holds composites while the sheet enumerates sub-checks), and aliased
+names through `webName`. Controls prove each: the same removal fires without an
+alias and is silent with one.
+
+FOUR MORE PARSER FACTS the TS side was missing:
+
+  * `prompt_sheet_only` -- three items of twenty-six are scored from a sheet
+    with NO `<LLMAction>`; omitting them skips exactly the items whose slot list
+    has no prompt to cross-check it. It is in `course.json`'s items, not the
+    rubric OLX.
+  * `deriveFromClauses="true"` -> `deriveFromCriteria`. EIGHT items, which is
+    exactly the set python's `_criteria_derived()` returns.
+  * `SIDE_ALIAS` and `APP_ONLY_SLOTS` as declarations -- `SIDE_ALIAS` is one of
+    the five carrying tagged tuples in value position, so it needed the
+    `decodeValue` fix landed earlier this session.
+  * The two checks parse `slots=` DIFFERENTLY -- E48 through `parseSlots`, E49
+    by raw `split(':')[0].lstrip('!')`. They agree on this corpus; each is
+    reproduced where it is used, so that stays an observation rather than an
+    assumption.
+
+Verified before building on it: all 26 slot-sets identical to python, including
+the three sheet-only items. Certified: audit 45/1, 156 shas, 141 tests, tsc
+clean, `injection_reach` all "sees it". SELF_ASSEMBLING 41 rules; 45 ported
+delegators.
+
+### PORTS 18-19, AND A BLIND PORT THE GUARD DID NOT CATCH
+
+    18  the_expanded_rubric_is_current      4 arms, 0 real differences
+    19  slot_rules_are_vocabulary_neutral   4 cases byte-identical
+
+PORT 18 CARRIES A SECOND DECLARED DIVERGENCE, and it is the same shape as the
+`hits` ordering in port 10: python names the authored file with
+`os.path.relpath`, which is relative to WHATEVER CWD THE AUDIT WAS STARTED FROM
+-- `../psychology/bmod_rubric.olx` from `scoring/`, something else from
+anywhere. Its own output is not a stable string and cannot be a specification.
+The port names it relative to the collection. Measured: 0 real differences; the
+two arms that differ are the ones naming a MISSING or templated file, both
+unreachable in a tree that builds, and the byte comparison the check exists for
+is identical.
+
+AND THE PART THAT MATTERS MORE. Port 19 came back BLIND on its own self-test
+injection -- and so, it turned out, had PORT 13, certified two batches earlier.
+
+`injection_reach.py` had passed after port 13. It passed because its case list
+was HAND-WRITTEN and did not know about the case: a check ported AFTER the tool
+was written carries its case into the suite while the tool says nothing about
+it. The tool reported "every ported check still sees its injection" while one
+of them could not see its own. A guard whose population is hand-maintained
+certifies the checks somebody remembered.
+
+FIXED AT THE LEVEL OF THE GAP, not the instance. `injection_reach.py` now
+DERIVES the population -- ported delegators cross-referenced against the labels
+the suite's cases ask for -- and REFUSES when a case it does not exercise
+exists. Turned on, it immediately named three more uncovered checks; all three
+are now exercised, and the count reads `all 15 ported checks carrying a
+self-test case are covered by this tool`.
+
+ONE OF THOSE THREE WAS A FALSE ALARM, and the tool was wrong rather than the
+port. Two checks report under `GENERATED ATTRIBUTE HAS NO DECLARATION`; the
+case that removes a rubric declaration is aimed at ONE of them, and demanding
+the other fire too reported a blindness that was not there. The suite matches a
+case to its finding BY LABEL, so the tool does too now: a label is covered when
+ANY check reporting it sees the injection.
+
+Both blind ports repaired by giving python back the fetch: port 13 builds its
+payload from the in-memory `UNCHARGED_VERDICTS`, port 19 from the in-memory
+credit `rule`. Both now report before=0, after=1.
+
+Certified: audit 45/1, 156 shas, 2727 tests across 115 files, tsc clean,
+`injection_reach` covering all 15 and all seeing their injections.
+
+### THE ENGINE CAN READ GOLD NOW
+
+The user's correction: "the lo-block engine should be able to read gold for its
+items". I had classified twelve checks as python-only because gold lives in the
+three `Scoring & Feedback` workbooks -- reasoning from the CHANNEL rather than
+from the principle. Gold for a course's own items is course DATA; the workbook
+is only where it was first written down.
+
+`gold_export.py` says as much itself: it writes the DECLARATIONS ABOUT gold and
+states "Not the graders' scores -- those live in the three workbooks". So the
+marks had no record, and every reader had to open a workbook.
+
+`tools/export_grader_marks.py` writes one:
+`$COURSE_DATA/courses/<ns>/gold_rows.json`, beside `gold.json`. PYTHON STAYS THE
+ONLY READER OF THE WORKBOOKS and exports what it read; the engine reads a
+record like it already does for `course.json` and `gold.json`. Verified: 520
+cells, identical to what python reads from the workbooks.
+
+THREE THINGS I GOT WRONG BUILDING IT, each caught and fixed:
+
+  1. IT WROTE OUTSIDE THE WRITE SCOPE. `paths.roots().data` is the SHARED
+     `$COURSE_DATA` root on a course declaring `shared_data_layout`, so the
+     first run put a participant-keyed file at the root, beside every course's
+     data -- and outside this session's writable paths. Removed, and the
+     exporter now asks `coursedata.data_root()` for the course directory, the
+     same way `gold_export.default_path` does.
+  2. ITS DOCSTRING WAS FALSE. It claimed corrections are not applied. They are:
+     `forms.config(h)["gold"]()` folds `CORRECTED_GOLD` in as it reads, so
+     `1a/p11` is 6.0 where the workbook says 8.0. Both docstrings now say so.
+     A record that misdescribes what it holds is worse than no record.
+  3. IT WAS NAMED FOR A COURSE ARTIFACT. `export_gold_rows.py` tripped
+     `check_no_module_is_named_for_a_course_artifact`, which is a RATCHET --
+     the modules already named for a question or a handout are baselined and
+     the population MAY SHRINK AND MAY NOT GROW. Renaming is the only fix, and
+     adding a tenth would have undone a reduction somebody made. The RECORD
+     keeps `gold_rows.json`: records under `$COURSE_DATA` are course data, and
+     naming them for the course is what they are for.
+
+### PORTS 20-21
+
+    20  prompt_deviation_tables_are_current   4 cases byte-identical
+    21  gold_scores_are_attainable            4 cases byte-identical, 519 cells
+
+PORT 20 WAS CONVERTED BEFORE ITS COMPARISON RAN, and threw on first use:
+`OMIT_GUIDANCE[item]` is a MAP of phrase -> reason, and python's
+`sorted(omitted)` yields its KEYS while spreading the object yields nothing
+iterable. The comparison exists to catch exactly that; running the conversion
+first was my error, and the audit caught it within the minute.
+
+Its `CONTEXT` table also needed the course-level residue merged
+(`generator.CONTEXT__non_item` -- a handout's section headings, `_utb`/`_wgb`).
+Those keys are `_`-prefixed and the rule skips them, so the findings matched
+either way -- but the payload did not, and it would have stopped matching the
+day a non-underscore key appeared there. All six tables now match python key
+for key.
+
+Certified: audit 45/1, 156 shas, 2727 tests, tsc clean, injection_reach 15/15.
+48 ported delegators; SELF_ASSEMBLING 45.
+
+### PORTS 22-23, AND THE RECORD GREW A SECOND VIEW
+
+    22  gold_tables_have_no_duplicate_keys   5 arms byte-identical
+    23  corrected_gold_matches_the_sheet     5 cases byte-identical
+
+PORT 22 IS TWO KINDS OF DUPLICATE and only the raw text sees the first.
+`JSON.parse` keeps the LAST of two same-named object keys, so the evidence is
+gone before anything can look at the parsed document -- the rule walks the text
+tracking brace depth so two keys in DIFFERENT objects are not mistaken for one.
+The second kind survives parsing: a tagged table stores pairs in a LIST, so two
+pairs may carry the same key until `decodeTable` collapses them. Both arms fire,
+plus the missing-table and unparseable ones.
+
+PORT 23 NEEDED THE RECORD TO GROW. A correction records the value it corrects
+FROM, and `gold_rows.json` carried only the corrected view -- so comparing `was`
+against it would have reported a mismatch on all fifteen entries, because that
+value IS what the correction produced. The exporter now carries BOTH:
+
+    score       corrections applied -- what every consumer of gold wants
+    score_raw   what the workbook says
+
+Measured: they differ on exactly 15 cells, which is exactly the number of
+`CORRECTED_GOLD` entries. Carried explicitly rather than only where they differ,
+so no reader has to know to fall back.
+
+TWO CONSEQUENCES OF PORT 23 THAT THE AUDIT CAUGHT WITHIN THE MINUTE:
+
+  * `RAW_GOLD_READERS` exempts this check BECAUSE it reads gold raw on purpose;
+    the first delegator did not, so the exemption went stale and the audit said
+    so. Restoring the fetch -- which it needed anyway -- made the exemption true
+    again rather than editing the table to match a weakened check.
+  * Its self-test injection rewrites a `CORRECTED_GOLD` entry's `was` IN MEMORY,
+    so the self-assembling version was blind. `injection_reach`'s derived
+    coverage named it the moment the port landed, which is the whole point of
+    making that population derived rather than hand-written. Now 16/16 covered,
+    all seeing their injections.
+
+Certified: audit 45/1, 156 shas, 2727 tests, tsc clean. 50 ported delegators.
+
+### PORTS 24-25, AND TWO DUPLICATES REMOVED FROM PYTHON
+
+    24  enumerated_slots_cover_the_rubric   4 cases byte-identical
+    25  citations_match_exclusions          4 cases byte-identical
+
+STUDENT DATA WAS SITTING IN ENGINE CODE, and the user named it: "we shouldn't be
+keeping duplicates of student data or metadata in python code". `forms.FORMS`
+held `exemplar_participants: [10, 8, 6]` and `suspect_participants: [2, 3]` --
+participant NUMBERS -- while `course.json`'s `HANDOUT_FIELDS` already carried
+both, and the merge at the foot of `forms.py` overwrites the literals at import.
+They were SHADOWS: data nothing reads, which is the worst place for it, because
+a copy nothing reads cannot drift loudly.
+
+Emptied, following the precedent E58 step 3 set for `cited_participants` on the
+same table. The reasoning stays; only the numbers went. Verified: `FORMS` still
+resolves `[10, 8, 6]` and `[2, 3]` from the record, and NO participant id
+remains anywhere in python.
+
+TWO STALE NAMES REMOVED FROM `DECLARATION_TABLES`, also on the user's
+instruction. `SLOT_STRUCTURE_FAMILIES` and `BLOCKS` moved to the course file on
+2026-09-19 and then went FURTHER -- both are derived from the rubric now
+(`coursedata.slot_structure_families()` off `<Item family="...">`,
+`coursedata.gradable_blocks()`). With no authored source `_authored(name)`
+returned None, so the export skipped them every run and the list promised two
+tables the course file has never carried.
+
+    before  33 names, 2 of them writing nothing
+    after   31 names == course.json's 31 declarations, same order
+    proof   the course file REGENERATES BYTE-IDENTICALLY
+
+The data itself was never in python for those two; what was stale was a list
+that named what it does not write, which reads as coverage.
+
+AND THE SUBMISSIONS ARE ALREADY IN `$COURSE_DATA`, which the user also asked:
+`$COURSE_DATA/Handout Submissions with Scoring and Feedback`. At the SHARED
+root rather than under `courses/<ns>/`, because this course declares
+`shared_data_layout: true` -- a legacy layout the manifest documents and tells a
+new course not to set.
+
+PORT 25 WAS BLIND ON ARRIVAL and the derived coverage caught it in the same
+breath: its case adds a participant to `FORMS[1]["cited_participants"]` IN
+MEMORY. Fetch restored; it reads the record through the object the injection
+touches. 17/17 covered, all seeing their injections.
+
+Certified: audit 45/1, 156 shas, 141 tests, tsc clean. 52 ported delegators.
+
+### STANDARDISING THIS COURSE'S DATA LAYOUT (PLANNED, PARTLY BLOCKED)
+
+The user: standardise this course to the standard layout rather than the legacy
+one, when convenient. `psychology/manifest.yaml` declares
+`shared_data_layout: true`, which the manifest itself documents as legacy and
+tells a new course not to set.
+
+WHAT THE FLAG ACTUALLY GOVERNS -- measured, not assumed. Three roots sit at the
+shared `$COURSE_DATA` root, and only TWO of them were gated by the flag:
+
+    out/                                     1.7 GB   gated
+    Handout Submissions with Scoring...      11 MB    gated
+    handsplit/                               28 KB    NOT GATED -- a bug
+
+`HANDSPLIT = DATA / "handsplit"` read the shared root UNCONDITIONALLY, so a
+course declaring the standard layout would still have found it there. That is
+the same collision J-4c closed for `out/`: a second course finds the first's
+hand-split rows with no way to say otherwise. Made layout-aware here. NOTHING
+MOVES FOR THIS COURSE -- it still resolves `$COURSE_DATA/handsplit` -- so the
+fix is inert until the migration and is a precondition of it, not a part of it.
+
+THE MIGRATION ITSELF IS BLOCKED BY THE WRITE SCOPE, and deliberately so:
+
+    out/          -> courses/<ns>/out           IN SCOPE
+    handsplit/    -> courses/<ns>/handsplit     REFUSED (protected records)
+    submissions   -> courses/<ns>/submissions   REFUSED (protected records)
+
+Two of the three are source records this session may never write -- and the flag
+is all-or-nothing, so moving only `out/` is not possible without adding a
+per-root knob, which is a worse shape than the thing it works around. Flipping
+the flag before the data moves would repoint `submissions` at a directory that
+does not exist and take every gold read down with it.
+
+SO IT NEEDS THE USER, AND IT NEEDS ONE ORDERED OPERATION:
+  1. `mkdir -p $COURSE_DATA/courses/edu.memphis.psych`
+  2. move `handsplit/` and `Handout Submissions with Scoring and Feedback/`
+     (-> `submissions`) and `out/` under it
+  3. drop `shared_data_layout` from `psychology/manifest.yaml`
+  4. `equivalence.py --enforcement` (expect 45/1) and the 156 shas
+
+Steps 1, 3 and 4 are mine; step 2 is the user's, because it moves the
+submissions and the hand-split rows. The code is ready for it now.

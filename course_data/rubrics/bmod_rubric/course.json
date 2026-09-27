@@ -1,0 +1,4722 @@
+{
+ "schema_version": 1,
+ "course": "edu.memphis.psych",
+ "handouts": {
+  "1": {
+   "authored": {}
+  },
+  "2": {
+   "authored": {
+    "AVOIDANCE_SCORES": {
+     "__tuple__": [
+      "DAY1"
+     ]
+    },
+    "BARRIER_PICK_ITEMS": {
+     "__tuple__": [
+      "DAY1",
+      "DAY2",
+      "WK2",
+      "NR"
+     ]
+    },
+    "CADENCE_BARRIER_ITEMS": {
+     "__tuple__": [
+      "DAY1",
+      "DAY2",
+      "WK2"
+     ]
+    },
+    "CONTINGENCY_GATE_ITEMS": {
+     "__tuple__": [
+      "DAY1",
+      "DAY2",
+      "WK2"
+     ]
+    },
+    "EXPECT": {
+     "WK1": [
+      {
+       "key": "targets_own_behavior",
+       "left": "trigger_behavior",
+       "value": "utb",
+       "lenient": [
+        "wgb"
+       ]
+      }
+     ]
+    },
+    "MOVE_PICK_ITEMS": {
+     "__tuple__": [
+      "PR"
+     ]
+    },
+    "POLARITY_GATE_ITEMS": {
+     "__tuple__": [
+      "DAY1",
+      "DAY2",
+      "WK2"
+     ]
+    },
+    "SLOT_SPEC": {
+     "D1": [
+      {
+       "key": "defines_type",
+       "label": "Which type this definition describes",
+       "seg": "pick(operant_or_unclear)"
+      },
+      {
+       "key": "named_type",
+       "label": "Which type you chose",
+       "seg": "pick(operant_or_unclear)"
+      },
+      {
+       "key": "matches_chosen_type",
+       "label": "Definition matches the type you chose",
+       "gate": true
+      },
+      {
+       "key": "add_or_remove",
+       "label": "Says whether something is added or taken away",
+       "seg": "unclear",
+       "pts": "1"
+      },
+      {
+       "key": "increase_or_decrease",
+       "label": "Says whether the behavior increases or decreases",
+       "seg": "unclear",
+       "pts": "1"
+      },
+      {
+       "key": "confident",
+       "label": "All judgments confident"
+      }
+     ],
+     "D2": [
+      {
+       "key": "defines_type",
+       "label": "Which type this definition describes",
+       "seg": "pick(operant_or_unclear)"
+      },
+      {
+       "key": "named_type",
+       "label": "Which type you chose",
+       "seg": "pick(operant_or_unclear)"
+      },
+      {
+       "key": "matches_chosen_type",
+       "label": "Definition matches the type you chose",
+       "gate": true
+      },
+      {
+       "key": "add_or_remove",
+       "label": "Says whether something is added or taken away",
+       "seg": "unclear",
+       "pts": "1"
+      },
+      {
+       "key": "increase_or_decrease",
+       "label": "Says whether the behavior increases or decreases",
+       "seg": "unclear",
+       "pts": "1"
+      },
+      {
+       "key": "confident",
+       "label": "All judgments confident"
+      }
+     ],
+     "DAY1": [
+      {
+       "key": "names_behavior",
+       "label": "Names a behavior of yours the plan acts on",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "names_stimulus",
+       "label": "Names what is added or taken away",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "contingent",
+       "label": "The consequence depends on that behavior",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "follows_behavior",
+       "label": "The consequence arrives after the behavior",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "you_arrange_it",
+       "label": "Something you arrange, not an automatic result",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "observed_type",
+       "label": "Which of the four types this actually is",
+       "seg": "pick(operant_or_none)"
+      },
+      {
+       "key": "phrased_directly_gate",
+       "label": "Phrased directly rather than by what is avoided",
+       "gate": true
+      },
+      {
+       "key": "named_type",
+       "label": "Which of the four you said you would use",
+       "seg": "pick(operant_or_unclear)"
+      },
+      {
+       "key": "cadence_is_daily",
+       "label": "Checked each day rather than against the week",
+       "gate": true
+      },
+      {
+       "key": "matches_chosen_type",
+       "label": "Matches your first chosen type",
+       "pts": "2"
+      },
+      {
+       "key": "states_a_contingency",
+       "label": "A condition on your behavior, a clause granting or withholding something, and the consequence delivered afterwards",
+       "gate": true
+      },
+      {
+       "key": "trigger_expects",
+       "label": "Which way a working plan would run from your condition",
+       "seg": "pick(valence_or_none)"
+      },
+      {
+       "key": "restriction_authored",
+       "label": "Whether the undesirable thing was created by the plan or was already there",
+       "seg": "pick(authorship)"
+      },
+      {
+       "key": "consequence_not_a_setup",
+       "label": "Not a restriction the plan sets up that your success then lifts",
+       "gate": true
+      },
+      {
+       "key": "restricts",
+       "label": "What the plan holds back, if it holds anything back",
+       "seg": "pick(restriction_target)"
+      },
+      {
+       "key": "targets_own_behavior",
+       "label": "Aimed at your own target or goal behavior",
+       "pts": "1"
+      },
+      {
+       "key": "consequence_asserted",
+       "label": "The consequence is asserted to follow from the behavior",
+       "pts": "1"
+      },
+      {
+       "key": "confident",
+       "label": "All judgments confident"
+      }
+     ],
+     "DAY2": [
+      {
+       "key": "names_behavior",
+       "label": "Names a behavior of yours the plan acts on",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "names_stimulus",
+       "label": "Names what is added or taken away",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "contingent",
+       "label": "The consequence depends on that behavior",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "follows_behavior",
+       "label": "The consequence arrives after the behavior",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "you_arrange_it",
+       "label": "Something you arrange, not an automatic result",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "observed_type",
+       "label": "Which of the four types this actually is",
+       "seg": "pick(operant_or_none)"
+      },
+      {
+       "key": "phrased_directly",
+       "label": "Phrased directly rather than by what is avoided"
+      },
+      {
+       "key": "named_type",
+       "label": "Which of the four you said you would use",
+       "seg": "pick(operant_or_unclear)"
+      },
+      {
+       "key": "cadence_is_daily_counted",
+       "label": "Checked each day rather than against the week",
+       "gate": true
+      },
+      {
+       "key": "matches_chosen_type",
+       "label": "Matches your second chosen type",
+       "pts": "2"
+      },
+      {
+       "key": "states_a_contingency",
+       "label": "A condition on your behavior, a clause granting or withholding something, and the consequence delivered afterwards",
+       "gate": true
+      },
+      {
+       "key": "trigger_expects",
+       "label": "Which way a working plan would run from your condition",
+       "seg": "pick(valence_or_none)"
+      },
+      {
+       "key": "restriction_authored",
+       "label": "Whether the undesirable thing was created by the plan or was already there",
+       "seg": "pick(authorship)"
+      },
+      {
+       "key": "consequence_not_a_setup",
+       "label": "Not a restriction the plan sets up that your success then lifts",
+       "gate": true
+      },
+      {
+       "key": "restricts",
+       "label": "What the plan holds back, if it holds anything back",
+       "seg": "pick(restriction_target)"
+      },
+      {
+       "key": "targets_own_behavior",
+       "label": "Aimed at your own target or goal behavior",
+       "pts": "1"
+      },
+      {
+       "key": "consequence_asserted",
+       "label": "The consequence is asserted to follow from the behavior",
+       "pts": "1"
+      },
+      {
+       "key": "confident",
+       "label": "All judgments confident"
+      }
+     ],
+     "NP": [
+      {
+       "key": "names_behavior",
+       "label": "Names a behavior of yours the plan acts on",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "names_stimulus",
+       "label": "Names what is added or taken away",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "contingent",
+       "label": "The consequence depends on that behavior",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "follows_behavior",
+       "label": "The consequence arrives after the behavior",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "you_arrange_it",
+       "label": "Something you arrange, not an automatic result",
+       "gate": true
+      },
+      {
+       "key": "observed_type",
+       "label": "Which of the four types this example shows",
+       "seg": "pick(operant_or_none)"
+      },
+      {
+       "key": "demonstrates_type",
+       "label": "Your example demonstrates Negative Punishment",
+       "pts": "2"
+      },
+      {
+       "key": "targets_unwanted_behavior",
+       "label": "Aimed at decreasing your unwanted behavior",
+       "pts": "2"
+      },
+      {
+       "key": "phrased_directly",
+       "label": "Phrased directly rather than by what is avoided"
+      },
+      {
+       "key": "confident",
+       "label": "All judgments confident"
+      }
+     ],
+     "NR": [
+      {
+       "key": "names_behavior",
+       "label": "Names a behavior of yours the plan acts on",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "names_stimulus",
+       "label": "Names what is added or taken away",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "contingent",
+       "label": "The consequence depends on that behavior",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "follows_behavior",
+       "label": "The consequence arrives after the behavior",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "you_arrange_it",
+       "label": "Something you arrange, not an automatic result",
+       "gate": true
+      },
+      {
+       "key": "observed_type",
+       "label": "Which of the four types this example shows",
+       "seg": "pick(operant_or_none)"
+      },
+      {
+       "key": "demonstrates_type",
+       "label": "Your example demonstrates Negative Reinforcement",
+       "pts": "2"
+      },
+      {
+       "key": "targets_goal_behavior",
+       "label": "Aimed at increasing your goal behavior",
+       "pts": "2"
+      },
+      {
+       "key": "restriction_authored",
+       "label": "Whether the undesirable thing was created by the plan or was already there",
+       "seg": "pick(authorship)"
+      },
+      {
+       "key": "trigger_expects",
+       "label": "Which way a working plan would run from your condition",
+       "seg": "pick(valence_or_none)"
+      },
+      {
+       "key": "restricts",
+       "label": "What the plan holds back, if it holds anything back",
+       "seg": "pick(restriction_target)"
+      },
+      {
+       "key": "barrier_is_not_this_type",
+       "label": "Not a restriction the plan sets up that your success then lifts",
+       "pts": "2"
+      },
+      {
+       "key": "phrased_directly",
+       "label": "Phrased directly rather than by what is avoided"
+      },
+      {
+       "key": "confident",
+       "label": "All judgments confident"
+      }
+     ],
+     "PP": [
+      {
+       "key": "names_behavior",
+       "label": "Names a behavior of yours the plan acts on",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "names_stimulus",
+       "label": "Names what is added or taken away",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "contingent",
+       "label": "The consequence depends on that behavior",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "follows_behavior",
+       "label": "The consequence arrives after the behavior",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "you_arrange_it",
+       "label": "Something you arrange, not an automatic result",
+       "gate": true
+      },
+      {
+       "key": "observed_type",
+       "label": "Which of the four types this example shows",
+       "seg": "pick(operant_or_none)"
+      },
+      {
+       "key": "demonstrates_type",
+       "label": "Your example demonstrates Positive Punishment",
+       "pts": "2"
+      },
+      {
+       "key": "targets_unwanted_behavior",
+       "label": "Aimed at decreasing your unwanted behavior",
+       "pts": "2"
+      },
+      {
+       "key": "phrased_directly",
+       "label": "Phrased directly rather than by what is avoided"
+      },
+      {
+       "key": "confident",
+       "label": "All judgments confident"
+      }
+     ],
+     "PR": [
+      {
+       "key": "names_behavior",
+       "label": "Names a behavior of yours the plan acts on",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "names_stimulus",
+       "label": "Names what is added or taken away",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "contingent",
+       "label": "The consequence depends on that behavior",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "follows_behavior",
+       "label": "The consequence arrives after the behavior",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "you_arrange_it",
+       "label": "Something you arrange, not an automatic result",
+       "gate": true
+      },
+      {
+       "key": "observed_type",
+       "label": "Which of the four types this example shows",
+       "seg": "pick(operant_or_none)"
+      },
+      {
+       "key": "demonstrates_type",
+       "label": "Your example demonstrates Positive Reinforcement",
+       "pts": "2"
+      },
+      {
+       "key": "targets_goal_behavior",
+       "label": "Aimed at increasing your goal behavior",
+       "pts": "2"
+      },
+      {
+       "key": "stimulus_move",
+       "label": "Whether the thing is given or taken away, and whether it is wanted",
+       "seg": "pick(move)"
+      },
+      {
+       "key": "phrased_directly",
+       "label": "Phrased directly rather than by what is avoided"
+      },
+      {
+       "key": "confident",
+       "label": "All judgments confident"
+      }
+     ],
+     "WK1": [
+      {
+       "key": "names_behavior",
+       "label": "Names a behavior of yours the plan acts on",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "names_stimulus",
+       "label": "Names what is added or taken away",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "contingent",
+       "label": "The consequence depends on that behavior",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "follows_behavior",
+       "label": "The consequence arrives after the behavior",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "you_arrange_it",
+       "label": "Something you arrange, not an automatic result",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "observed_type",
+       "label": "Which of the four types this actually is",
+       "seg": "pick(operant_or_none)"
+      },
+      {
+       "key": "phrased_directly",
+       "label": "Phrased directly rather than by what is avoided"
+      },
+      {
+       "key": "named_type",
+       "label": "Which of the four you said you would use",
+       "seg": "pick(operant_or_unclear)"
+      },
+      {
+       "key": "cadence_is_weekly",
+       "label": "Checked against the week rather than each day",
+       "gate": true
+      },
+      {
+       "key": "matches_chosen_type",
+       "label": "Matches your first chosen type",
+       "pts": "2"
+      },
+      {
+       "key": "agent_delivers_consequence",
+       "label": "A person is named who adds or removes the thing",
+       "gate": true
+      },
+      {
+       "key": "trigger_behavior",
+       "label": "Which behaviour must happen, or fail to happen, for the consequence to arrive",
+       "seg": "pick(trigger_target)"
+      },
+      {
+       "key": "targets_own_behavior",
+       "label": "Aimed at your own target or goal behavior",
+       "pts": "1"
+      },
+      {
+       "key": "consequence_asserted",
+       "label": "The consequence is asserted to follow from the behavior",
+       "pts": "1"
+      },
+      {
+       "key": "confident",
+       "label": "All judgments confident"
+      }
+     ],
+     "WK2": [
+      {
+       "key": "names_behavior",
+       "label": "Names a behavior of yours the plan acts on",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "names_stimulus",
+       "label": "Names what is added or taken away",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "contingent",
+       "label": "The consequence depends on that behavior",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "follows_behavior",
+       "label": "The consequence arrives after the behavior",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "you_arrange_it",
+       "label": "Something you arrange, not an automatic result",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "observed_type",
+       "label": "Which of the four types this actually is",
+       "seg": "pick(operant_or_none)"
+      },
+      {
+       "key": "phrased_directly",
+       "label": "Phrased directly rather than by what is avoided"
+      },
+      {
+       "key": "named_type",
+       "label": "Which of the four you said you would use",
+       "seg": "pick(operant_or_unclear)"
+      },
+      {
+       "key": "cadence_is_weekly",
+       "label": "Checked against the week rather than each day",
+       "gate": true
+      },
+      {
+       "key": "matches_chosen_type",
+       "label": "Matches your second chosen type",
+       "pts": "2"
+      },
+      {
+       "key": "aimed_correctly",
+       "label": "The consequence points the right way for the type chosen",
+       "gate": true,
+       "seg": "unclear"
+      },
+      {
+       "key": "states_a_contingency",
+       "label": "A condition on your behavior, a clause granting or withholding something, and the consequence delivered afterwards",
+       "gate": true
+      },
+      {
+       "key": "trigger_expects",
+       "label": "Which way a working plan would run from your condition",
+       "seg": "pick(valence_or_none)"
+      },
+      {
+       "key": "restriction_authored",
+       "label": "Whether the undesirable thing was created by the plan or was already there",
+       "seg": "pick(authorship)"
+      },
+      {
+       "key": "consequence_not_a_setup",
+       "label": "Not a restriction the plan sets up that your success then lifts",
+       "gate": true
+      },
+      {
+       "key": "restricts",
+       "label": "What the plan holds back, if it holds anything back",
+       "seg": "pick(restriction_target)"
+      },
+      {
+       "key": "targets_own_behavior",
+       "label": "Aimed at your own target or goal behavior",
+       "pts": "1"
+      },
+      {
+       "key": "consequence_asserted",
+       "label": "The consequence is asserted to follow from the behavior",
+       "pts": "1"
+      },
+      {
+       "key": "confident",
+       "label": "All judgments confident"
+      }
+     ]
+    },
+    "TYPE_MATCH_ITEMS": {
+     "__tuple__": [
+      "DAY1",
+      "DAY2",
+      "WK1",
+      "WK2"
+     ]
+    }
+   }
+  },
+  "3": {
+   "authored": {}
+  }
+ },
+ "items": [
+  {
+   "id": "Q1",
+   "handout": 1,
+   "prompt_context": [
+    {
+     "__tuple__": [
+      "Their unwanted target behavior, as they described it",
+      "bmod_h1_utb_observed"
+     ]
+    },
+    {
+     "__tuple__": [
+      "What they wrote about it",
+      "bmod_h1_q1_response"
+     ]
+    }
+   ],
+   "prompt_notes": "## Say this before anything else\nIf `matches_selected` is `differs`, the FIRST sentence of `feedback` says so: name the behavior they ticked, name the one they wrote about, and say that the rest of this feedback is about what they wrote. Then give the normal feedback.\n\nIt is not a fault and nothing is deducted for it \u2014 most often they simply changed their mind \u2014 so say it plainly and without warning them off. If it is `matches`, say nothing about it at all: confirming a match the student never doubted spends their attention on nothing.\n",
+   "prompt_notes_why": "Governs the FIRST SENTENCE of the `feedback` field on a `matches_selected` mismatch. Paper has neither: its schema has no `feedback` property (score.compose_feedback builds feedback in code from the deduction ledger) and `matches_selected` is not one of its Q1 slots.",
+   "prompt_response": [
+    {
+     "__tuple__": [
+      "",
+      "bmod_h1_q1_response"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "Q2",
+   "handout": 1,
+   "prompt_context": [
+    {
+     "__tuple__": [
+      "",
+      "bmod_h1_q2_response"
+     ]
+    }
+   ],
+   "prompt_response": [
+    {
+     "__tuple__": [
+      "",
+      "bmod_h1_q2_response"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "Q3",
+   "handout": 1,
+   "prompt_response": [
+    {
+     "__tuple__": [
+      "Specific",
+      "bmod_h1_q3_specific"
+     ]
+    },
+    {
+     "__tuple__": [
+      "Measurable",
+      "bmod_h1_q3_measurable"
+     ]
+    },
+    {
+     "__tuple__": [
+      "Action-Oriented",
+      "bmod_h1_q3_action"
+     ]
+    },
+    {
+     "__tuple__": [
+      "Realistic",
+      "bmod_h1_q3_realistic"
+     ]
+    },
+    {
+     "__tuple__": [
+      "Time-Bound",
+      "bmod_h1_q3_timebound"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "Q4a",
+   "handout": 1,
+   "prompt_context": [
+    {
+     "__tuple__": [
+      "First antecedent",
+      "bmod_h1_q4a_first"
+     ]
+    },
+    {
+     "__tuple__": [
+      "Second antecedent",
+      "bmod_h1_q4a_second"
+     ]
+    }
+   ],
+   "prompt_response": [
+    {
+     "__tuple__": [
+      "First antecedent",
+      "bmod_h1_q4a_first"
+     ]
+    },
+    {
+     "__tuple__": [
+      "Second antecedent",
+      "bmod_h1_q4a_second"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "Q4b",
+   "handout": 1,
+   "prompt_context": [
+    {
+     "__tuple__": [
+      "First active behavior",
+      "bmod_h1_q4b_first"
+     ]
+    },
+    {
+     "__tuple__": [
+      "Second active behavior",
+      "bmod_h1_q4b_second"
+     ]
+    }
+   ],
+   "prompt_response": [
+    {
+     "__tuple__": [
+      "First active behavior",
+      "bmod_h1_q4b_first"
+     ]
+    },
+    {
+     "__tuple__": [
+      "Second active behavior",
+      "bmod_h1_q4b_second"
+     ]
+    },
+    {
+     "__tuple__": [
+      "Is it a good choice to modify, and why",
+      "bmod_h1_q4b_modify"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "Q4c",
+   "handout": 1,
+   "prompt_context": [
+    {
+     "__tuple__": [
+      "First consequence",
+      "bmod_h1_q4c_first"
+     ]
+    },
+    {
+     "__tuple__": [
+      "Second consequence",
+      "bmod_h1_q4c_second"
+     ]
+    }
+   ],
+   "prompt_response": [
+    {
+     "__tuple__": [
+      "First consequence",
+      "bmod_h1_q4c_first"
+     ]
+    },
+    {
+     "__tuple__": [
+      "Second consequence",
+      "bmod_h1_q4c_second"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "Q5",
+   "handout": 1,
+   "prompt_response": [
+    {
+     "__tuple__": [
+      "First reason",
+      "bmod_h1_q5_first"
+     ]
+    },
+    {
+     "__tuple__": [
+      "Second reason",
+      "bmod_h1_q5_second"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "Q6",
+   "handout": 1,
+   "prompt_notes": "## What the four `state_` checks report\nThese four do NOT report a match. They report an IDENTITY, and they report it in a FIELD OF ITS OWN, separate from the verdict. The two fields take different values and neither accepts the other's.\n`verdict` says whether the box names an antecedent (or a consequence) at all: `met` if it does, `absent` if it does not.\n`refers_to` says WHICH of the two listed items it is: `first`, `second`, or `none`. `none` is the value for \"not either of the two\" -- it is the only one, so do not answer `neither`, and do not put `absent` here. Those are not values this field takes.\n\nSay what you see and nothing more. Whether the pair covers both listed items is worked out from your two answers by the grader, so you do not need to reason about the other box, and a student who addresses 4a's second antecedent first has still addressed it \u2014 report `second` and it will be credited. One distinction matters for the feedback rather than the score: `met` with `refers_to: none` says they named an antecedent but not one of 4a's, while `absent` says they named none at all. The points are the same either way; the difference decides whether the student is told their antecedent does not match 4a or that they did not state one.\n\nONE THING TO CARRY INTO `feedback`. Each of the two listed items can be credited once, so if you report the SAME label for both boxes \u2014 `first` twice, say \u2014 the student has named one antecedent twice and left the other unaddressed, and only one of the two boxes can count. Your verdicts already handle the scoring; what you must not do is congratulate them on both boxes in that case. Say that the second repeats the first and name the item from 4a they have not yet addressed.\n",
+   "prompt_notes_why": "Explains the web's TWO-FIELD encoding -- a `verdict` and a separate `refers_to` that takes `first`/`second`/`none`. Paper has one field and is told so in its own words by score._paper_vocab: 'Answer with ONE value from `first`, `second`, `neither`, `absent` -- there is no separate field on this side.' Mirrored in substance, not copied.",
+   "prompt_match_def": "## Definition of 'matches' below:\nThe two things being compared are semantically equivalent. That includes equivalence established by combinations of negations and antonyms: failing to do a thing early is doing it late, forgetting to do a thing is not doing it, not suffering a bad state is being in the good one.\nANTONYMS, precisely. Two words are antonyms when they name the OPPOSITE ENDS OF ONE SCALE -- more and less of a single property, so that naming one and negating it gives you the other. Early and late are one scale. Poor health and good health are one scale. Words that are merely both unpleasant, or both pleasant, or that name DIFFERENT properties, are not antonyms and do not establish equivalence: being tired and being cheerful are two properties, not two ends of one. Ask what single property is being measured before you call two words opposites.\nA listed 4a or 4c entry often states one thing and then what follows from it -- \"X, so I Y\". Decide which of THREE kinds Y is before you compare, because it decides what the entry can be matched against.\n1. Y RESTATES THE ANTECEDENT in other words. Part of the antecedent; a box equivalent to Y matches that 4a entry.\n2. Y IS AN INTERMEDIATE ANTECEDENT -- a further step that still LEADS TO the unwanted behaviour rather than following from it. Also part of the antecedent, described one link nearer; a box equivalent to Y matches that 4a entry.\n3. Y IS A CONSEQUENCE -- the unwanted behaviour itself, or something that follows from it. Not part of the antecedent: a box equivalent to Y does NOT match that 4a entry. It may still match a 4c entry that lists that same consequence, and should be matched there.\nThe test between 2 and 3 is direction: does Y lead to the unwanted behaviour, or follow from it? The unwanted behaviour is named in the Q1 answer in the context below.\n",
+   "prompt_response": [
+    {
+     "__tuple__": [
+      "state_a1 \u2014 the first antecedent being changed",
+      "bmod_h1_q6_state_a1"
+     ]
+    },
+    {
+     "__tuple__": [
+      "change_a1 \u2014 how it will be changed",
+      "bmod_h1_q6_change_a1"
+     ]
+    },
+    {
+     "__tuple__": [
+      "state_c1 \u2014 the first consequence being affected",
+      "bmod_h1_q6_state_c1"
+     ]
+    },
+    {
+     "__tuple__": [
+      "affect_c1 \u2014 how it will be affected",
+      "bmod_h1_q6_affect_c1"
+     ]
+    },
+    {
+     "__tuple__": [
+      "state_a2 \u2014 the second antecedent being changed",
+      "bmod_h1_q6_state_a2"
+     ]
+    },
+    {
+     "__tuple__": [
+      "change_a2 \u2014 how it will be changed",
+      "bmod_h1_q6_change_a2"
+     ]
+    },
+    {
+     "__tuple__": [
+      "state_c2 \u2014 the second consequence being affected",
+      "bmod_h1_q6_state_c2"
+     ]
+    },
+    {
+     "__tuple__": [
+      "affect_c2 \u2014 how it will be affected",
+      "bmod_h1_q6_affect_c2"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "PR",
+   "handout": 2,
+   "prompt_response": [
+    {
+     "__tuple__": [
+      "",
+      "bmod_h2_pr"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "NR",
+   "handout": 2,
+   "prompt_response": [
+    {
+     "__tuple__": [
+      "",
+      "bmod_h2_nr"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "PP",
+   "handout": 2,
+   "prompt_response": [
+    {
+     "__tuple__": [
+      "",
+      "bmod_h2_pp"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "NP",
+   "handout": 2,
+   "prompt_response": [
+    {
+     "__tuple__": [
+      "",
+      "bmod_h2_np"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "T1",
+   "handout": 2,
+   "prompt_context": [
+    {
+     "__tuple__": [
+      "",
+      "bmod_h2_t1"
+     ]
+    }
+   ],
+   "prompt_sheet_only": "bmod_h2_t1_checks"
+  },
+  {
+   "id": "D1",
+   "handout": 2,
+   "prompt_context": [
+    {
+     "__tuple__": [
+      "",
+      "bmod_h2_d1"
+     ]
+    }
+   ],
+   "prompt_response": [
+    {
+     "__tuple__": [
+      "",
+      "bmod_h2_d1"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "DAY1",
+   "handout": 2,
+   "prompt_match_def": "## Definition of 'the same behaviour' below:\nThe two things being compared are semantically equivalent. That includes equivalence established by combinations of negations and antonyms: failing to do a thing early is doing it late, forgetting to do a thing is not doing it, not suffering a bad state is being in the good one.\nANTONYMS, precisely. Two words are antonyms when they name the OPPOSITE ENDS OF ONE SCALE -- more and less of a single property, so that naming one and negating it gives you the other. Early and late are one scale. Poor health and good health are one scale. Words that are merely both unpleasant, or both pleasant, or that name DIFFERENT properties, are not antonyms and do not establish equivalence: being tired and being cheerful are two properties, not two ends of one. Ask what single property is being measured before you call two words opposites.\n",
+   "prompt_response": [
+    {
+     "__tuple__": [
+      "",
+      "bmod_h2_day1"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "WK1",
+   "handout": 2,
+   "prompt_match_def": "## Definition of 'the same activity' below:\nThe two things being compared are semantically equivalent. That includes equivalence established by combinations of negations and antonyms: failing to do a thing early is doing it late, forgetting to do a thing is not doing it, not suffering a bad state is being in the good one.\nANTONYMS, precisely. Two words are antonyms when they name the OPPOSITE ENDS OF ONE SCALE -- more and less of a single property, so that naming one and negating it gives you the other. Early and late are one scale. Poor health and good health are one scale. Words that are merely both unpleasant, or both pleasant, or that name DIFFERENT properties, are not antonyms and do not establish equivalence: being tired and being cheerful are two properties, not two ends of one. Ask what single property is being measured before you call two words opposites.\nTwo phrases that are NOT equivalent by that test name two activities, however close the connection between them. An activity that another might cause, accompany, amount to, or be evidence of is a SECOND thing, not a point on the same scale.\nDEGREE AND DETAIL ARE NOT DIFFERENCES OF ACTIVITY. The same doing with a different number, frequency, duration or extra particular attached is still that doing. Compare WHAT IS BEING DONE, not how much of it is being done or how precisely it is specified.\nA phrase with NO CONTENT OF ITS OWN -- a pointer, such as \"my goal\" or \"my target this week\" -- is not compared by this test at all. Classify it by what it points at, as the check itself directs.\n",
+   "prompt_response": [
+    {
+     "__tuple__": [
+      "",
+      "bmod_h2_wk1"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "T2",
+   "handout": 2,
+   "prompt_context": [
+    {
+     "__tuple__": [
+      "",
+      "bmod_h2_t2"
+     ]
+    }
+   ],
+   "prompt_sheet_only": "bmod_h2_t2_checks"
+  },
+  {
+   "id": "D2",
+   "handout": 2,
+   "prompt_context": [
+    {
+     "__tuple__": [
+      "",
+      "bmod_h2_d2"
+     ]
+    }
+   ],
+   "prompt_response": [
+    {
+     "__tuple__": [
+      "",
+      "bmod_h2_d2"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "DAY2",
+   "handout": 2,
+   "prompt_match_def": "## Definition of 'the same behaviour' below:\nThe two things being compared are semantically equivalent. That includes equivalence established by combinations of negations and antonyms: failing to do a thing early is doing it late, forgetting to do a thing is not doing it, not suffering a bad state is being in the good one.\nANTONYMS, precisely. Two words are antonyms when they name the OPPOSITE ENDS OF ONE SCALE -- more and less of a single property, so that naming one and negating it gives you the other. Early and late are one scale. Poor health and good health are one scale. Words that are merely both unpleasant, or both pleasant, or that name DIFFERENT properties, are not antonyms and do not establish equivalence: being tired and being cheerful are two properties, not two ends of one. Ask what single property is being measured before you call two words opposites.\n",
+   "prompt_response": [
+    {
+     "__tuple__": [
+      "",
+      "bmod_h2_day2"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "WK2",
+   "handout": 2,
+   "prompt_match_def": "## Definition of 'the same behaviour' below:\nThe two things being compared are semantically equivalent. That includes equivalence established by combinations of negations and antonyms: failing to do a thing early is doing it late, forgetting to do a thing is not doing it, not suffering a bad state is being in the good one.\nANTONYMS, precisely. Two words are antonyms when they name the OPPOSITE ENDS OF ONE SCALE -- more and less of a single property, so that naming one and negating it gives you the other. Early and late are one scale. Poor health and good health are one scale. Words that are merely both unpleasant, or both pleasant, or that name DIFFERENT properties, are not antonyms and do not establish equivalence: being tired and being cheerful are two properties, not two ends of one. Ask what single property is being measured before you call two words opposites.\n",
+   "prompt_response": [
+    {
+     "__tuple__": [
+      "",
+      "bmod_h2_wk2"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "1a",
+   "handout": 3,
+   "prompt_context": [
+    {
+     "__tuple__": [
+      "",
+      "bmod_h3_overview_response"
+     ]
+    }
+   ],
+   "prompt_response": [
+    {
+     "__tuple__": [
+      "",
+      "bmod_h3_overview_response"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "1b",
+   "handout": 3,
+   "prompt_sheet_only": "bmod_h3_data_checks"
+  },
+  {
+   "id": "1c",
+   "handout": 3,
+   "prompt_evidence": {
+    "__tuple__": [
+     "## Graph evidence for this submission\nThe four weeks of data the student entered in 1b. SelfMonitorPlot plots exactly these, so they are what decides whether a graph exists at all.",
+     [
+      {
+       "__tuple__": [
+        "Baseline week",
+        "bmod_h3_baseline"
+       ]
+      },
+      {
+       "__tuple__": [
+        "Week 1",
+        "bmod_h3_wk1"
+       ]
+      },
+      {
+       "__tuple__": [
+        "Week 2",
+        "bmod_h3_wk2"
+       ]
+      },
+      {
+       "__tuple__": [
+        "Week 3",
+        "bmod_h3_wk3"
+       ]
+      }
+     ]
+    ]
+   },
+   "prompt_notes": "## How this item reaches you\nThe student does not upload a figure. SelfMonitorPlot draws their chart live from the four weeks of data they entered in 1b and the three labels they type here. Everything the paper rubric asks of a graph is theirs: the data that produces it, the three labels, and the legend \u2014 they name the four plotted series themselves, and until they do their chart's key reads 'Series 1, Series 2, ...', which is not a legend. Judge `legend` on the series names only.\n\nTHE WORKED EXAMPLE IS ON THIS SCREEN, immediately above their boxes, and reproducing it is the live form of the paper item's template failure. It is a water-drinking chart titled 'Water {{corpus:1c/p5:title:5:32:sha=97ca3baaf650:shape=R27-0-27}}, with axes '{{corpus:1c/p2:x:0:16:sha=f1f5ac605348:shape=R12-1-57,R16-0-27}} and 'Ounces of Water per Day', plotting:\n  Baseline 8, 10, 8, 12, 6, 10, 0\n  Week 1   32, 20, 22, 28, 30, 32, 10\n  Week 2   30, 28, 26, 30, 32, 32, 30\n  Week 3   25, 26, 30, 32, 32, 28, 32\nTwo distinct failures come out of that, and only one of them is yours. If the DATA is those numbers, the GRADER detects it: it compares the fields against the example itself and sets `has_own_graph` to `mismatch`, zeroing the item exactly as on paper. You are not asked about that, and you should not discuss it. What IS yours is when only the WORDING is copied \u2014 a title of 'Water {{corpus:1c/p5:title:5:32:sha=97ca3baaf650:shape=R27-0-27}} from a student who did not track water, or a y-axis of 'Ounces of Water per Day' \u2014 that is `generic` on the label, like an untouched 'Chart Title'. Their own graph names their own behaviour: hours of sleep, minutes of exercise, servings.\n\nThe x-axis is the exception: '{{corpus:1c/p2:x:0:16:sha=f1f5ac605348:shape=R12-1-57,R16-0-27}} is the example's label, the placeholder, AND the correct answer for nearly every student, since all four weeks are plotted Sunday to Saturday. Do not treat it as copied.\n",
+   "prompt_notes_why": "Describes SelfMonitorPlot drawing the chart live from 1b's data, and the worked example sitting on the same screen. The paper student draws their own figure; there is no component and no screen.",
+   "prompt_omit_guidance": {
+    "The bundle marks each piece of evidence": "the CLI evidence bundle's student/template labels do not exist here",
+    "Shape-drawn graphs arrive as run-together text": "shape-drawn graph text is a .docx artifact",
+    "A WRITTEN DESCRIPTION OF A GRAPH IS NOT A GRAPH": "the web asks only for the labels; the plotted data comes from 1b",
+    "FIRST DECIDE WHOSE GRAPH IT IS": "the grader derives `has_own_graph` from the 1b data fields, so this is not a judgement the prompt makes; copied wording is still judged on the label checks"
+   },
+   "prompt_response": [
+    {
+     "__tuple__": [
+      "Title",
+      "bmod_h3_graph_title"
+     ]
+    },
+    {
+     "__tuple__": [
+      "X-axis label",
+      "bmod_h3_graph_x"
+     ]
+    },
+    {
+     "__tuple__": [
+      "Y-axis label",
+      "bmod_h3_graph_y"
+     ]
+    },
+    {
+     "__tuple__": [
+      "Legend \u2014 the series names they typed, comma-separated",
+      "bmod_h3_graph_series"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "2a",
+   "handout": 3,
+   "prompt_context": [
+    {
+     "__tuple__": [
+      "Verdict",
+      "bmod_h3_success_verdict"
+     ]
+    },
+    {
+     "__tuple__": [
+      "How (1)",
+      "bmod_h3_success_how1"
+     ]
+    },
+    {
+     "__tuple__": [
+      "How (2)",
+      "bmod_h3_success_how2"
+     ]
+    }
+   ],
+   "prompt_response": [
+    {
+     "__tuple__": [
+      "Verdict",
+      "bmod_h3_success_verdict"
+     ]
+    },
+    {
+     "__tuple__": [
+      "How (1)",
+      "bmod_h3_success_how1"
+     ]
+    },
+    {
+     "__tuple__": [
+      "How (2)",
+      "bmod_h3_success_how2"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "2b",
+   "handout": 3,
+   "prompt_context": [
+    {
+     "__tuple__": [
+      "",
+      "bmod_h3_assessment_response"
+     ]
+    }
+   ],
+   "prompt_response": [
+    {
+     "__tuple__": [
+      "",
+      "bmod_h3_assessment_response"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "3",
+   "handout": 3,
+   "prompt_response": [
+    {
+     "__tuple__": [
+      "First change",
+      "bmod_h3_improve_first"
+     ]
+    },
+    {
+     "__tuple__": [
+      "Second change",
+      "bmod_h3_improve_second"
+     ]
+    }
+   ]
+  }
+ ],
+ "generator": {
+  "SCORING_DIVERGENCES": [
+   {
+    "what": "the web COMPUTES the nothing-listed gate; the CLI asks the model",
+    "items": [
+     "Q4a",
+     "Q4c"
+    ],
+    "necessary": true,
+    "web_computes": {
+     "Q4a": [
+      "no_antecedents"
+     ],
+     "Q4c": [
+      "no_consequences"
+     ]
+    },
+    "enforcement": "same gate, reached differently: computed on the web, asked on the CLI",
+    "why": "A_NONE and C_NONE -- 'no antecedents/consequences listed' -- take the whole item and could not be charged at all: `absent` on both entry slots maps to two -2 codes, so the item could not reach 0 where gold's dictionary says 0. They are now wired with `forbid`, which fails a check exactly when a COMBINATION holds: both entries `absent`. That is distinct from entries written but of the wrong kind, which the -2 codes charge -- Q4a/p20 is wrong_kind twice, gold 1, and is untouched. THE DIFFERENCE IS WHERE THE ANSWER COMES FROM, not what it does. `forbid` keys are stripped from the web response schema, so the web computes the check; the CLI's ledger is model-authored from the rubric, so it asks for it. Both then gate the item to 0. Same shape as 1b, T1/T2 and 1c, declared the same way. The web gate is real, not modelled: lo-blocks' pickGate requires `slot.gates && !sat[key] && charged[key]`, and chargedMap sets every slot true unless an `onlyif` suppresses it -- neither item has one -- so the third condition is a no-op here and the gate fires. Verified by scoring a synthetic both-absent sheet: 0.0 on both items. MEASURED INERT on the corpus: all 180 recorded sheets rescored through the new rules, 120 of 120 on Q4a and 60 of 60 on Q4c unchanged. No cell has both entries `absent`."
+   },
+   {
+    "items": [
+     "Q1"
+    ],
+    "what": "a no-penalty check compares the prose against the UTB choice",
+    "necessary": false,
+    "why": "the web asks 'Which behavior will you work on?' as a closed ChoiceInput before the box, which the paper version has no equivalent of. But `utb_stated` is still ASKED of the model on BOTH sides \u2014 the prose has to name the target, and UTB_NOT_STATED costs the same 2 points for the same reason \u2014 so the scoring does not diverge. What the web adds is `matches_selected`, an UNSCORED check reporting whether the prose names the same behaviour the student selected, shown first in the feedback. It carries no points precisely so a mismatch prompts a rewording rather than charging twice for one fact. THIS ENTRY USED TO DECLARE THE OPPOSITE: that the web read utb_stated from the choice and derived it, so the prose need not state it. That was never implemented here \u2014 no version of the content back to the initial import carries a `derived` rule for it \u2014 and the design was later settled the other way. The audit had been reporting the declaration as stale ever since; it was describing an intention, not the sheet."
+   },
+   {
+    "items": [
+     "1b"
+    ],
+    "what": "every check is derived from the data fields",
+    "necessary": true,
+    "web_computes": {
+     "1b": [
+      "baseline_data",
+      "week_1_data",
+      "week_2_data",
+      "week_3_data"
+     ]
+    },
+    "why": "1b scores a point per week of data present, which the rubric is explicit is \"a presence check, not a quality judgement\". The CLI reads a .docx and must judge presence from transcribed prose; the web has one field per week, so presence is a property of the fields and is decided with the same parser the chart draws with. There is no prompt and no LLM call. Platform-forced in the same way as 1c's has_own_graph."
+   },
+   {
+    "items": [
+     "T1",
+     "T2"
+    ],
+    "what": "NOT_A_TYPE (-2) is unreachable, and `type_stated` is derived",
+    "necessary": true,
+    "web_computes": {
+     "T1": [
+      "type_stated"
+     ],
+     "T2": [
+      "type_stated"
+     ]
+    },
+    "why": "the web asks for the type as a closed ChoiceInput whose four options ARE the four types, so a student cannot name something that is not one of them \u2014 the same shape as Q1's UTB_NOT_ON_LIST. What remains reachable is BLANK: the item is a `present` check over the choice field, worth the same 2 points, so a student who answers scores 2 and one who does not scores 0, exactly as on paper."
+   },
+   {
+    "items": [
+     "1c"
+    ],
+    "what": "`has_own_graph` is derived from the data fields, not asked of the model",
+    "necessary": true,
+    "web_computes": {
+     "1c": [
+      "has_own_graph"
+     ]
+    },
+    "why": "the CLI reads a .docx \u2014 an embedded chart, an image, or prose describing a graph that is not there \u2014 so whether the student produced one is a judgement over document evidence. On the web the chart is DRAWN from the four 1b fields, so the runtime already knows: no plottable numbers is `absent`, and the worked example's own numbers (it sits on the same screen) are `mismatch`. Both are computed with the chart's own parser, so the grader cannot disagree with what the student sees. Copied WORDING is still judged by the model, on the label checks. Platform-forced: there is no way to ask the CLI's .docx the question the web's fields answer.\n\nThe kind is `complete`, not `plots`: it is satisfied only when EVERY week is present, so a partial month fails the gate and costs the whole item, which is what the paper rubric charges for not supplying a graph. That recovers p15 (two of four weeks, gold 0) and keeps p18 (nothing at all, gold 0). What it cannot recover is a student whose data is COMPLETE and who simply never drew the chart \u2014 p4 and p19, both gold 0 \u2014 because on the web that data draws it for them. Those two are excluded from the web measurement as unreachable (agreement_app.PER_ITEM_EXCLUDE)."
+   },
+   {
+    "items": [
+     "1c"
+    ],
+    "what": "a legend keyed by DAY cannot be reproduced",
+    "necessary": true,
+    "why": "the web's chart has one orientation \u2014 series are the four weeks, the x-axis is the seven days. A paper student who plotted it the other way round has a legend naming days, which the graders accepted (p11) and which the web scores as not naming the four series. One corpus row, structural, not a prompt defect."
+   }
+  ],
+  "PROBE_REACH_LIMITS": [
+   {
+    "items": [
+     "NR"
+    ],
+    "enforcement": [
+     {
+      "__tuple__": [
+       "NR",
+       "CHARGE-ONCE PROBE GAP (cli)"
+      ]
+     }
+    ],
+    "what": "a three-way conjunction is invisible to the pairwise charge-once probe",
+    "why": "`barrier_is_not_this_type` fails only when THREE readings coincide -- `restriction_authored`=created, `trigger_expects`=gain, `restricts`=other_thing -- and `onlyif` keeps it from charging on top of `demonstrates_type`, so both sides charge 2 once. The web reader sees that pair because it reads slot keys; the CLI probe discovers charge-once by flipping answered fields in PAIRS, and no pair of flips can satisfy a three-condition rule while the third field holds its passing value. So the CLI probe never reaches it. The behaviour is identical; what differs is what the instrument can reach. The cadence items carry the same conjunction and raise no such finding only because there it drives a GATE, and gates are discovered by single flips. Widening the probe to triples would multiply its cost by the number of inputs and is not worth it for one rule; this entry is the cheaper honest option, and it will stop applying if the rule ever becomes a gate."
+   },
+   {
+    "items": [
+     "2a"
+    ],
+    "enforcement": [
+     {
+      "__tuple__": [
+       "2a",
+       "CHARGE-ONCE PROBE GAP (cli)"
+      ]
+     }
+    ],
+    "what": "a COMPUTED operand cannot be flipped, so the pair it makes sublinear is unreachable by probing",
+    "why": "`requires` ties how_2 to `mechanism_named`, which carries no points of its own and costs something only by denying how_2. So the two share one 2-point charge: failing either costs 2 and failing both still costs 2, which is what makes the pair sublinear. The web reader takes that straight from the declared `requires` rule. The CLI probe cannot: `mechanism_named` is computed by `forbid` from three answered grounds, so it is not an answered field and no flip can set it, and the state that would reveal the pair is never constructed. Same shape as the NR entry above and the mirror of its cause -- there a conjunction was too wide for a pairwise probe, here an operand is not probeable at all. Teaching the probe to synthesise computed-operand states would mean a second implementation of `forbid` living inside the instrument, which is how an instrument starts disagreeing with the thing it measures."
+   }
+  ],
+  "TABLE_ORDER": {
+   "CONTEXT": [
+    "Q1",
+    "Q2",
+    "Q4a",
+    "Q4b",
+    "Q4c",
+    "_utb",
+    "_wgb",
+    "T1",
+    "D1",
+    "T2",
+    "D2",
+    "1a",
+    "2a",
+    "2b"
+   ],
+   "EVIDENCE": [
+    "1c"
+   ],
+   "ITEM_NOTES": [
+    "Q1",
+    "Q6",
+    "1c"
+   ],
+   "ITEM_NOTES_WHY": [
+    "Q1",
+    "Q6",
+    "1c"
+   ],
+   "MATCH_DEF": [
+    "DAY1",
+    "DAY2",
+    "WK2",
+    "WK1",
+    "Q6"
+   ],
+   "OMIT_GUIDANCE": [
+    "1c"
+   ],
+   "RESPONSE": [
+    "Q1",
+    "Q2",
+    "Q3",
+    "Q4a",
+    "Q4b",
+    "Q4c",
+    "Q5",
+    "Q6",
+    "PR",
+    "NR",
+    "PP",
+    "NP",
+    "D1",
+    "DAY1",
+    "WK1",
+    "D2",
+    "DAY2",
+    "WK2",
+    "1a",
+    "1c",
+    "2a",
+    "2b",
+    "3"
+   ],
+   "SHEET_ONLY": [
+    "1b",
+    "T1",
+    "T2"
+   ]
+  },
+  "CONTEXT_REFS": {
+   "1": {
+    "bmod_h1_utb": "Q1",
+    "bmod_h1_q1_response": "Q1",
+    "bmod_h1_q2_response": "Q2",
+    "bmod_h1_q3_specific": "Q3",
+    "bmod_h1_q3_measurable": "Q3",
+    "bmod_h1_q3_action": "Q3",
+    "bmod_h1_q3_realistic": "Q3",
+    "bmod_h1_q3_timebound": "Q3",
+    "bmod_h1_q4a_first": "Q4a",
+    "bmod_h1_q4a_second": "Q4a",
+    "bmod_h1_q4b_first": "Q4b",
+    "bmod_h1_q4b_second": "Q4b",
+    "bmod_h1_q4b_modify": "Q4b",
+    "bmod_h1_q4c_first": "Q4c",
+    "bmod_h1_q4c_second": "Q4c",
+    "bmod_h1_q5_first": "Q5",
+    "bmod_h1_q5_second": "Q5",
+    "bmod_h1_q6_first": "Q6",
+    "bmod_h1_q6_second": "Q6"
+   },
+   "2": {
+    "bmod_h1_utb": "_utb",
+    "bmod_h1_q2_response": "_wgb",
+    "bmod_h2_t1": "T1",
+    "bmod_h2_d1": "D1",
+    "bmod_h2_t2": "T2",
+    "bmod_h2_d2": "D2",
+    "bmod_h2_pr": "PR",
+    "bmod_h2_nr": "NR",
+    "bmod_h2_pp": "PP",
+    "bmod_h2_np": "NP",
+    "bmod_h2_day1": "DAY1",
+    "bmod_h2_wk1": "WK1",
+    "bmod_h2_day2": "DAY2",
+    "bmod_h2_wk2": "WK2"
+   },
+   "3": {
+    "bmod_h3_baseline": "1b",
+    "bmod_h3_wk1": "1b",
+    "bmod_h3_wk2": "1b",
+    "bmod_h3_wk3": "1b",
+    "bmod_h3_overview_response": "1a",
+    "bmod_h3_success_verdict": "2a",
+    "bmod_h3_success_how1": "2a",
+    "bmod_h3_success_how2": "2a",
+    "bmod_h3_assessment_response": "2b",
+    "bmod_h3_improve_first": "3",
+    "bmod_h3_improve_second": "3",
+    "bmod_h3_graph_title": "1c",
+    "bmod_h3_graph_x": "1c",
+    "bmod_h3_graph_y": "1c",
+    "bmod_h2_t1": "h2:T1",
+    "bmod_h2_t2": "h2:T2",
+    "bmod_h1_q2_response": "h1:Q2"
+   }
+  },
+  "SEGMENT_MARKERS": {
+   "1": [
+    {
+     "__tuple__": [
+      "preamble",
+      "Choose an unwanted target behavior"
+     ]
+    },
+    {
+     "__tuple__": [
+      "Q1",
+      "Define your unwanted target behavior and explain WHY"
+     ]
+    },
+    {
+     "__tuple__": [
+      "Q2",
+      "Next,\\s*define your wanted goal behavior"
+     ]
+    },
+    {
+     "__tuple__": [
+      "Q3",
+      "Use the SMART goal acronym"
+     ]
+    },
+    {
+     "__tuple__": [
+      "_q4_intro",
+      "Perform a functional behaviora?l? analysis"
+     ]
+    },
+    {
+     "__tuple__": [
+      "Q4a",
+      "^\\W*4a[.)]"
+     ]
+    },
+    {
+     "__tuple__": [
+      "Q4b",
+      "^\\W*4b[.)]"
+     ]
+    },
+    {
+     "__tuple__": [
+      "Q4c",
+      "^\\W*4c[.)]"
+     ]
+    },
+    {
+     "__tuple__": [
+      "Q5",
+      "Why do you think that you continue to engage"
+     ]
+    },
+    {
+     "__tuple__": [
+      "Q6",
+      "One way we can try to change our unwanted target behavior"
+     ]
+    }
+   ],
+   "2": [
+    {
+     "__tuple__": [
+      "_utb",
+      "My Unwanted Target Behavior is"
+     ]
+    },
+    {
+     "__tuple__": [
+      "_wgb",
+      "My Wanted Goal Behavior is"
+     ]
+    },
+    {
+     "__tuple__": [
+      "PR",
+      "Example of Positive Reinforcement"
+     ]
+    },
+    {
+     "__tuple__": [
+      "NR",
+      "Example of Negative Reinforcement"
+     ]
+    },
+    {
+     "__tuple__": [
+      "PP",
+      "Example of Positive Punishment"
+     ]
+    },
+    {
+     "__tuple__": [
+      "NP",
+      "Example of Negative Punishment"
+     ]
+    },
+    {
+     "__tuple__": [
+      "T1",
+      "First type of Operant Conditioning"
+     ]
+    },
+    {
+     "__tuple__": [
+      "D1",
+      "^\\W*Definition"
+     ]
+    },
+    {
+     "__tuple__": [
+      "DAY1",
+      "^\\W*Daily Example"
+     ]
+    },
+    {
+     "__tuple__": [
+      "WK1",
+      "^\\W*Weekly Example"
+     ]
+    },
+    {
+     "__tuple__": [
+      "T2",
+      "Second type of Operant Conditioning"
+     ]
+    },
+    {
+     "__tuple__": [
+      "D2",
+      "^\\W*Definition"
+     ]
+    },
+    {
+     "__tuple__": [
+      "DAY2",
+      "^\\W*Daily Example"
+     ]
+    },
+    {
+     "__tuple__": [
+      "WK2",
+      "^\\W*Weekly Example"
+     ]
+    }
+   ],
+   "3": [
+    {
+     "__tuple__": [
+      "1a",
+      "^\\W*1\\W?a\\b"
+     ]
+    },
+    {
+     "__tuple__": [
+      "1b",
+      "^\\W*1\\W?b\\b"
+     ]
+    },
+    {
+     "__tuple__": [
+      "1c",
+      "^\\W*1\\W?c\\b"
+     ]
+    },
+    {
+     "__tuple__": [
+      "2a",
+      "^\\W*2\\W?a\\b"
+     ]
+    },
+    {
+     "__tuple__": [
+      "2b",
+      "^\\W*2\\W?b\\b"
+     ]
+    },
+    {
+     "__tuple__": [
+      "3",
+      "^\\W*3[.)]|What could be done differently"
+     ]
+    },
+    {
+     "__tuple__": [
+      "1b",
+      "EXAMPLE OF 1b"
+     ]
+    },
+    {
+     "__tuple__": [
+      "1b",
+      "EXAMPLE OF 1c"
+     ]
+    },
+    {
+     "__tuple__": [
+      "1b",
+      "YOUR 1b"
+     ]
+    },
+    {
+     "__tuple__": [
+      "1c",
+      "YOUR 1c"
+     ]
+    }
+   ]
+  },
+  "CONTEXT__non_item": {
+   "_utb": [
+    {
+     "__tuple__": [
+      "",
+      "bmod_h1_utb"
+     ]
+    }
+   ],
+   "_wgb": [
+    {
+     "__tuple__": [
+      "",
+      "bmod_h1_q2_response"
+     ]
+    }
+   ]
+  }
+ },
+ "budgets": {
+  "HANDCODED_BUDGET": 1,
+  "ITEM_GATED_BUDGET": 0,
+  "OLX_CORPUS_REF_BUDGET": 0,
+  "ONE_SIDED_SCORED_SLOTS_BUDGET": 0,
+  "PARKED_BUDGET": 1,
+  "PROSE_ONLY_BUDGET": 27,
+  "RUBRIC_CONSUMER_BUDGET": 1,
+  "SLOT_RULE_BACKLOG_BUDGET": 1,
+  "SLOT_STRUCTURE_BUDGET": 0,
+  "UNEXERCISED_PRIMITIVES_BUDGET": 0
+ },
+ "declarations": {
+  "HAND_AUTHORED_SHEET_ATTRS": [
+   [
+    "showChecks",
+    "a DISPLAY decision, not a scoring one -- it says whether the student SEES the checklist, and the three items that set it false get terse feedback guidance instead. Nothing in the rubric's scoring design implies it, so no generator can derive it; `slotSheet.ts` always writes it because a reader cannot otherwise tell a hidden checklist from an absent one."
+   ]
+  ],
+  "OVERLAP_SIBLING_ROLES": [
+   [
+    "state",
+    "affect"
+   ],
+   [
+    "state",
+    "change"
+   ]
+  ],
+  "CORPUS_QUOTE_BACKLOG": [],
+  "SIM_FIELDS": [
+   [
+    "bmod_h3_baseline",
+    "baseline"
+   ],
+   [
+    "bmod_h3_wk1",
+    "week_1"
+   ],
+   [
+    "bmod_h3_wk2",
+    "week_2"
+   ],
+   [
+    "bmod_h3_wk3",
+    "week_3"
+   ],
+   [
+    "bmod_h3_graph_title",
+    "graph_title"
+   ],
+   [
+    "bmod_h3_graph_x",
+    "graph_x_axis"
+   ],
+   [
+    "bmod_h3_graph_y",
+    "graph_y_axis"
+   ]
+  ],
+  "PARKED_UNDECLARED": [
+   [
+    [
+     "-",
+     "MIGRATED MODULE HOLDS COURSE DATA"
+    ],
+    "D2d's exemption was removed 2026-09-19; its 27 embeddings in `equivalence.py::enforcement_selftest` are now counted rather than excused, and D2a (shape-selected fixtures, each reporting its chosen target) is owed and scheduled. The park goes when D2a lands."
+   ]
+  ],
+  "VERDICT_SPACE_DIVERGENCES": [
+   [
+    [
+     {
+      "__frozenset__": [
+       "unclear"
+      ]
+     },
+     {
+      "__frozenset__": []
+     }
+    ],
+    "17 slots. The web offers a third 'cannot tell' verdict and the paper offers only met/absent -- three-valued against two-valued, NOT a renaming: those slots declare no third token under any name. Score impact is NIL, because `unclear` is not satisfied and so deducts exactly as `absent` does; what the paper loses is the DIAGNOSIS, not marks. 2a.how_*, 2b.sentence_*, 3.example_*, Q1.reason_*, Q2.reason_*, and D1/D2's add_or_remove and increase_or_decrease."
+   ],
+   [
+    [
+     {
+      "__frozenset__": []
+     },
+     {
+      "__frozenset__": [
+       "0",
+       "1",
+       "2",
+       "3"
+      ]
+     }
+    ],
+    "The paper encodes a COUNT as its verdict list. Not judgements, so there is nothing for the web to offer against them."
+   ],
+   [
+    [
+     {
+      "__frozenset__": []
+     },
+     {
+      "__frozenset__": [
+       "0",
+       "1",
+       "2"
+      ]
+     }
+    ],
+    "Same count encoding, on a slot whose maximum is two."
+   ],
+   [
+    [
+     {
+      "__frozenset__": []
+     },
+     {
+      "__frozenset__": [
+       "no"
+      ]
+     }
+    ],
+    "A boolean answer written as a token. Same as the counts: an encoding, not a judgement the other side could return."
+   ],
+   [
+    [
+     {
+      "__frozenset__": [
+       "mismatch"
+      ]
+     },
+     {
+      "__frozenset__": [
+       "first",
+       "neither",
+       "second"
+      ]
+     }
+    ],
+    "The paper reports WHICH listed entry is referred to -- a `cover` identity -- where the web reports whether it matched at all. Different questions, the same deduction; the identity is what `cover` exists for."
+   ],
+   [
+    [
+     {
+      "__frozenset__": [
+       "incomplete"
+      ]
+     },
+     {
+      "__frozenset__": [
+       "not_described"
+      ]
+     }
+    ],
+    "Counterparts: the web's `incomplete` is the paper's `not_described`. 5 slots, 1c's chart parts among them."
+   ],
+   [
+    [
+     {
+      "__frozenset__": [
+       "wrong_kind"
+      ]
+     },
+     {
+      "__frozenset__": [
+       "not_antecedent"
+      ]
+     }
+    ],
+    "Counterparts on Q4a's antecedent_1/antecedent_2."
+   ],
+   [
+    [
+     {
+      "__frozenset__": [
+       "wrong_kind"
+      ]
+     },
+     {
+      "__frozenset__": [
+       "not_consequence"
+      ]
+     }
+    ],
+    "Counterparts on Q4c's consequence_1/consequence_2."
+   ],
+   [
+    [
+     {
+      "__frozenset__": [
+       "wrong_kind"
+      ]
+     },
+     {
+      "__frozenset__": [
+       "not_reason"
+      ]
+     }
+    ],
+    "Counterparts on Q5's example_1/example_2. The pair E11 migrated onto `{fail}`, and the one whose web prompt named the paper's token for months -- see BACKLOG.md:94."
+   ],
+   [
+    [
+     {
+      "__frozenset__": [
+       "generic"
+      ]
+     },
+     {
+      "__frozenset__": [
+       "not_described"
+      ]
+     }
+    ],
+    "Counterparts: a generic label is the web's version of not describing it."
+   ],
+   [
+    [
+     {
+      "__frozenset__": [
+       "tick_values"
+      ]
+     },
+     {
+      "__frozenset__": [
+       "not_described"
+      ]
+     }
+    ],
+    "Counterparts: missing tick values is the web's version of the same."
+   ],
+   [
+    [
+     {
+      "__frozenset__": [
+       "generic",
+       "tick_values"
+      ]
+     },
+     {
+      "__frozenset__": [
+       "not_described"
+      ]
+     }
+    ],
+    "Both web refinements collapse to the paper's single `not_described`."
+   ]
+  ],
+  "GOLD_BOX_WORDS": [
+   [
+    "Q6",
+    {
+     "state_a1": {
+      "__tuple__": [
+       "first",
+       "antecedent"
+      ]
+     },
+     "state_a2": {
+      "__tuple__": [
+       "second",
+       "antecedent"
+      ]
+     },
+     "state_c1": {
+      "__tuple__": [
+       "first",
+       "consequence"
+      ]
+     },
+     "state_c2": {
+      "__tuple__": [
+       "second",
+       "consequence"
+      ]
+     }
+    }
+   ],
+   [
+    "1c",
+    {
+     "x": {
+      "__tuple__": [
+       "x-axis"
+      ]
+     },
+     "y": {
+      "__tuple__": [
+       "y-axis"
+      ]
+     },
+     "title": {
+      "__tuple__": [
+       {
+        "__tuple__": [
+         "title"
+        ]
+       },
+       {
+        "__tuple__": [
+         "x-axis",
+         "y-axis",
+         "axis"
+        ]
+       }
+      ]
+     },
+     "series": {
+      "__tuple__": [
+       "series"
+      ]
+     },
+     "baseline": {
+      "__tuple__": [
+       "baseline"
+      ]
+     }
+    }
+   ]
+  ],
+  "VERDICT_PAIRS": [
+   [
+    "1a/baseline_week",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "1a/distinguishes_periods",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "1a/week_1",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "1a/week_2",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "1a/week_3",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "1c/has_own_graph",
+    {
+     "absent": "absent",
+     "mismatch": "mismatch"
+    }
+   ],
+   [
+    "1c/legend",
+    {
+     "absent": "absent",
+     "incomplete": "not_described"
+    }
+   ],
+   [
+    "1c/title",
+    {
+     "absent": "absent",
+     "generic": "not_described"
+    }
+   ],
+   [
+    "1c/x_axis_label",
+    {
+     "absent": "absent",
+     "tick_values": "not_described"
+    }
+   ],
+   [
+    "1c/y_axis_label",
+    {
+     "absent": "absent",
+     "tick_values": "not_described",
+     "generic": "not_described"
+    }
+   ],
+   [
+    "2a/how_1",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "2a/how_2",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "2a/verdict",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "2b/sentence_1",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "2b/sentence_2",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "2b/sentence_3",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "3/example_1",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "3/example_2",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "D1/add_or_remove",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "D1/increase_or_decrease",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "D1/matches_chosen_type",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "D2/add_or_remove",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "D2/increase_or_decrease",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "D2/matches_chosen_type",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "DAY1/consequence_asserted",
+    {
+     "absent": "no"
+    }
+   ],
+   [
+    "DAY2/consequence_asserted",
+    {
+     "absent": "no"
+    }
+   ],
+   [
+    "Q1/reason_1",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "Q1/reason_2",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "Q1/reason_3",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "Q1/utb_stated",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "Q2/reason_1",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "Q2/reason_2",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "Q2/reason_3",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "Q2/wgb_inverts_utb",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "Q2/wgb_is_counterpart",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "Q3/action_oriented",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "Q3/measurable",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "Q3/realistic",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "Q3/specific",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "Q3/time_bound",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "Q4a/antecedent_1",
+    {
+     "absent": "absent",
+     "wrong_kind": "not_antecedent"
+    }
+   ],
+   [
+    "Q4a/antecedent_2",
+    {
+     "absent": "absent",
+     "wrong_kind": "not_antecedent"
+    }
+   ],
+   [
+    "Q4a/keyword",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "Q4a/no_antecedents",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "Q4b/behavior_1",
+    {
+     "absent": "absent",
+     "wrong_kind": "wrong_kind"
+    }
+   ],
+   [
+    "Q4b/behavior_2",
+    {
+     "absent": "absent",
+     "wrong_kind": "wrong_kind"
+    }
+   ],
+   [
+    "Q4b/modify_stated",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "Q4b/modify_why",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "Q4c/consequence_1",
+    {
+     "absent": "absent",
+     "duplicate": "duplicate",
+     "wrong_kind": "not_consequence"
+    }
+   ],
+   [
+    "Q4c/consequence_2",
+    {
+     "absent": "absent",
+     "duplicate": "duplicate",
+     "wrong_kind": "not_consequence"
+    }
+   ],
+   [
+    "Q4c/no_consequences",
+    {
+     "absent": "absent"
+    }
+   ],
+   [
+    "Q5/example_1",
+    {
+     "absent": "absent",
+     "duplicate": "duplicate",
+     "wrong_kind": "not_reason"
+    }
+   ],
+   [
+    "Q5/example_2",
+    {
+     "absent": "absent",
+     "duplicate": "duplicate",
+     "wrong_kind": "not_reason"
+    }
+   ],
+   [
+    "Q6/affect_c1",
+    {
+     "absent": "absent",
+     "incomplete": "not_described"
+    }
+   ],
+   [
+    "Q6/affect_c2",
+    {
+     "absent": "absent",
+     "incomplete": "not_described"
+    }
+   ],
+   [
+    "Q6/change_a1",
+    {
+     "absent": "absent",
+     "incomplete": "not_described"
+    }
+   ],
+   [
+    "Q6/change_a2",
+    {
+     "absent": "absent",
+     "incomplete": "not_described"
+    }
+   ],
+   [
+    "Q6/state_a1",
+    {
+     "absent": "absent",
+     "mismatch": "neither"
+    }
+   ],
+   [
+    "Q6/state_a2",
+    {
+     "absent": "absent",
+     "mismatch": "neither"
+    }
+   ],
+   [
+    "Q6/state_c1",
+    {
+     "absent": "absent",
+     "mismatch": "neither"
+    }
+   ],
+   [
+    "Q6/state_c2",
+    {
+     "absent": "absent",
+     "mismatch": "neither"
+    }
+   ],
+   [
+    "WK1/consequence_asserted",
+    {
+     "absent": "no"
+    }
+   ],
+   [
+    "WK2/consequence_asserted",
+    {
+     "absent": "no"
+    }
+   ]
+  ],
+  "SLOT_STRUCTURE_DIVERGENCES": [],
+  "SLOT_RULE_BACKLOG": [
+   "Q1:matches_selected"
+  ],
+  "HANDCODED_ITEM_RULES": [
+   [
+    [
+     "build_prompt",
+     "PAPER_ITEM_NOTES"
+    ],
+    "the paper-only per-item note; kept in score.py so it CANNOT reach the web, after moving it to the rubric was tried and reverted on 2026-09-12"
+   ]
+  ],
+  "GOLD_COMMENT_PHRASES": [
+   [
+    "NO_GRAPH",
+    {
+     "__tuple__": [
+      "did not include"
+     ]
+    }
+   ],
+   [
+    "TEMPLATE_GRAPH_ONLY",
+    {
+     "__tuple__": [
+      "did not provide a graph"
+     ]
+    }
+   ],
+   [
+    "NO_TITLE",
+    {
+     "__tuple__": [
+      "missing (?:the )?graph title"
+     ]
+    }
+   ],
+   [
+    "NO_X_AXIS",
+    {
+     "__tuple__": [
+      "missing (?:the )?x-axis"
+     ]
+    }
+   ],
+   [
+    "NO_Y_AXIS",
+    {
+     "__tuple__": [
+      "missing (?:the )?y-axis"
+     ]
+    }
+   ],
+   [
+    "NO_LEGEND",
+    {
+     "__tuple__": [
+      "missing (?:the )?legend"
+     ]
+    }
+   ]
+  ],
+  "ASK_EQUIVALENT_PROMPTS": [
+   [
+    [
+     "1a",
+     "olx",
+     "89137e99f2de",
+     "819f5dfd948e"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "1c",
+     "olx",
+     "b04e7f8c59e0",
+     "19cf15f49b1e"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "2a",
+     "olx",
+     "2e02173a40de",
+     "451962488c08"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "2b",
+     "olx",
+     "ff12408f6d76",
+     "db52c04f721c"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "3",
+     "olx",
+     "5ab233254952",
+     "9e733b0f5181"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "D1",
+     "olx",
+     "385c91cae672",
+     "a950b916b79e"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "D2",
+     "olx",
+     "d157ef618d52",
+     "b3ef10d9f675"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "DAY1",
+     "olx",
+     "d92726a40ca3",
+     "7e17b983c3f7"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "DAY2",
+     "olx",
+     "7a9a9909f863",
+     "daff6d8e7174"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "NP",
+     "olx",
+     "d69e03991431",
+     "238a243c8f8c"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "NR",
+     "olx",
+     "fc5a95b9524e",
+     "744fdd2b0489"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "PP",
+     "olx",
+     "16620edaa2f2",
+     "dec987801464"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "PR",
+     "olx",
+     "f7fdcdb77979",
+     "f1469aa0fdef"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "Q1",
+     "olx",
+     "7bc511629036",
+     "42d78f494b00"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "Q2",
+     "olx",
+     "fb9c948040ae",
+     "7faa63c647ee"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "Q3",
+     "olx",
+     "200e1305205e",
+     "9e1ff510476c"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "Q4a",
+     "olx",
+     "02c2b528ea6d",
+     "1a4321b4689a"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "Q4b",
+     "olx",
+     "ebd92b544df4",
+     "7572458d27a1"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "Q4c",
+     "olx",
+     "fb1e21a2dd16",
+     "f71b5b09d9a2"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "Q5",
+     "olx",
+     "f933e0876c3b",
+     "06385281d64c"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "Q6",
+     "olx",
+     "3b72b21974a0",
+     "8a4a124a57b4"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "WK1",
+     "olx",
+     "80ab1897c42f",
+     "68b26853cfac"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "WK2",
+     "olx",
+     "308fdab3343e",
+     "7a7fc009456c"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "DAY1",
+     "olx",
+     "1e570f0a600e",
+     "7e17b983c3f7"
+    ],
+    "charge=/because= added 2026-09-24; the tag moved, the question did not -- neither is asked, both are read after the model has answered"
+   ],
+   [
+    [
+     "DAY2",
+     "olx",
+     "12c9ce3c9fdb",
+     "daff6d8e7174"
+    ],
+    "charge=/because= added 2026-09-24; the tag moved, the question did not -- neither is asked, both are read after the model has answered"
+   ],
+   [
+    [
+     "NP",
+     "olx",
+     "a7dc63e40cb9",
+     "238a243c8f8c"
+    ],
+    "charge=/because= added 2026-09-24; the tag moved, the question did not -- neither is asked, both are read after the model has answered"
+   ],
+   [
+    [
+     "NR",
+     "olx",
+     "8e247e1f7a46",
+     "744fdd2b0489"
+    ],
+    "charge=/because= added 2026-09-24; the tag moved, the question did not -- neither is asked, both are read after the model has answered"
+   ],
+   [
+    [
+     "PP",
+     "olx",
+     "cbda6b00b070",
+     "dec987801464"
+    ],
+    "charge=/because= added 2026-09-24; the tag moved, the question did not -- neither is asked, both are read after the model has answered"
+   ],
+   [
+    [
+     "PR",
+     "olx",
+     "3ce2ffc9257e",
+     "f1469aa0fdef"
+    ],
+    "charge=/because= added 2026-09-24; the tag moved, the question did not -- neither is asked, both are read after the model has answered"
+   ],
+   [
+    [
+     "WK1",
+     "olx",
+     "20852f7c36e6",
+     "68b26853cfac"
+    ],
+    "charge=/because= added 2026-09-24; the tag moved, the question did not -- neither is asked, both are read after the model has answered"
+   ],
+   [
+    [
+     "WK2",
+     "olx",
+     "71c290065df9",
+     "7a7fc009456c"
+    ],
+    "charge=/because= added 2026-09-24; the tag moved, the question did not -- neither is asked, both are read after the model has answered"
+   ]
+  ],
+  "PROSE_ONLY_SLOTS": [
+   [
+    [
+     "1c",
+     "series_box_holds"
+    ],
+    "A CLASSIFICATION OF WHAT THE STUDENT WROTE, which no page datum can supply. Its rule says `ONE ANSWER, naming what is in the box. Do not judge whether it makes a good legend -- say what it holds and the arithmetic follows`, and the four values it picks between -- period_names, other_real_names, software_placeholders, nothing -- are distinctions about the WORDS in the box, not about the data behind the chart. The arithmetic that does follow is already a primitive: `legend` is a `maps` target computed from this pick, so the computable half is expressed and this is the irreducible half. It is `reported: True` and carries no points, so nothing is charged on it directly."
+   ],
+   [
+    [
+     "DAY2",
+     "targets_own_behavior"
+    ],
+    "A TWO-CASE READING OF THE STUDENT'S CONDITION, stated in prose because the cases are about what the condition NAMES: `met` when the condition names the unwanted behaviour itself, OR when it names the goal behaviour and that goal is the unwanted one's counterpart. The second case needs the two behaviours compared for opposition, which is a judgement about meaning and not a comparison any field supports. WK1 expresses the same question as an `expect` over `trigger_behavior` because THERE the sheet asks for a parse of which behaviour the trigger names; DAY2's sheet has no such pick, so on this item there is nothing for a primitive to read. Worth 1 point."
+   ],
+   [
+    [
+     "Q3",
+     "realistic"
+    ],
+    "NOT CONVERTIBLE, and a FIRST DEFINITION rather than a conversion. `realistic` shipped THIRTY-ONE characters with no rule at all, while its scored siblings carried specific 35, time_bound 329, measurable 731 and action_oriented 1404. A 351-character rule added 2026-09-09 took Q3 from 19/20 to 20/20 on BOTH sides, Q3/p13 crossing 5 of 12 to 12 of 12 PERFECT. WHAT IT TESTS IS WHETHER A GROUND FOR REALISM WAS OFFERED AT ALL, at a deliberately low bar -- a thin or circular one still counts -- which is a judgement about the presence and shape of prose, not a relation between slots. No primitive expresses \"a reason was given, however weak\": `expect` compares answers, `equals` compares two picks, `counts` counts members, `maps` translates one pick. Declared because the check is right that it is prose-only."
+   ],
+   [
+    [
+     "Q4b",
+     "b2_names_besides"
+    ],
+    "NOT CONVERTIBLE. Asking what a box names BESIDES the goal behaviour's absence -- an act, a result, or nothing -- is a reading of what the sentence contains. There is no operand: the question is whether anything beyond the absence is present at all."
+   ],
+   [
+    [
+     "Q4b",
+     "b1_basis"
+    ],
+    "NOT CONVERTIBLE, and it is the operand rather than the rule: `maps` turns this classification into behavior_1's verdict arithmetically, so the COMBINING is declared and only the classification is read. What an entry IS -- an activity, a consequence, the goal behaviour displaced, a not-doing -- has no operands to compare, so it stays a judgement."
+   ],
+   [
+    [
+     "Q4b",
+     "b2_basis"
+    ],
+    "NOT CONVERTIBLE, same as b1_basis for the second example."
+   ],
+   [
+    [
+     "Q4c",
+     "consequence_1"
+    ],
+    "NOT CONVERTIBLE. The test has three heads -- a STATE the student ends up in, another ACTIVITY rescued by being taken up in the behaviour's place or by a stated endpoint, and a restatement of the behaviour -- and each is a reading of what a sentence NAMES. There is no operand to compare against: the endpoint head turns on whether a clause carries the reader on to a state, which no primitive expresses."
+   ],
+   [
+    [
+     "Q4c",
+     "consequence_2"
+    ],
+    "NOT CONVERTIBLE, same as consequence_1 for the second box."
+   ],
+   [
+    [
+     "Q4a",
+     "antecedent_kind_1"
+    ],
+    "NOT CONVERTIBLE. Naming WHICH KIND of thing a box states -- something before the behaviour, something whose link to it cannot be seen, an aftermath, the goal behaviour not happening, a consequence already listed, or nothing -- is a reading of the sentence. The `unlinked` option in particular asks whether a reader can see how the entry leads to THIS behaviour, which has no operand anywhere. The verdict it feeds IS now computable, which is the point of the split."
+   ],
+   [
+    [
+     "Q4a",
+     "antecedent_kind_2"
+    ],
+    "NOT CONVERTIBLE, same as antecedent_kind_1 for the second box."
+   ],
+   [
+    [
+     "Q3",
+     "measurable"
+    ],
+    "NOT CONVERTIBLE. The question is whether the box NAMES something that holds the record, as against merely saying a count will be kept. That is a reading of what a sentence names and there is nothing to compare it against: no list of acceptable holders can be authored without quoting the cohort, which the leakage gate forbids and which would make the rule a lookup of this year's answers."
+   ],
+   [
+    [
+     "Q6",
+     "affect_c1"
+    ],
+    "NOT CONVERTIBLE. `cover` already constrains WHICH listed entry is referred to; what is left is whether the answer states HOW the consequence is affected, which is a reading of a sentence's claim and has no operands to compare. Seven measured rule attempts are recorded in Q6_MATCHING_CEILING.md; none of them was arithmetic."
+   ],
+   [
+    [
+     "Q6",
+     "affect_c2"
+    ],
+    "NOT CONVERTIBLE, same as affect_c1 for the second consequence."
+   ],
+   [
+    [
+     "1a",
+     "distinguishes_periods"
+    ],
+    "NOT CONVERTIBLE as it stands. The test is whether the answer reports more than one point in time SEPARATELY -- a property of the whole response, not a relation between two answers. `counts` was considered and is exempted in COUNTABLE_EXEMPT: the weeks are named, not interchangeable, so `3 of 4` cannot say which is missing."
+   ],
+   [
+    [
+     "1a",
+     "baseline_week"
+    ],
+    "NOT CONVERTIBLE, same COUNTABLE_EXEMPT reason. Migrated out of SLOT_NOTES on 2026-08-28, where it reached the web and not the paper scorer and cost 1a/p6 the whole item in 3 of 3 runs."
+   ],
+   [
+    [
+     "1a",
+     "week_1"
+    ],
+    "NOT CONVERTIBLE, same reason: arc-not-label coverage is judged over the narrative, and no operand pair expresses it."
+   ],
+   [
+    [
+     "1a",
+     "week_2"
+    ],
+    "NOT CONVERTIBLE, same as week_1 for the middle stretch."
+   ],
+   [
+    [
+     "Q2",
+     "wgb_is_counterpart"
+    ],
+    "NOT CONVERTIBLE. The WGB_UNRELATED test asks whether the goal behaviour is about a DIFFERENT behaviour from the unwanted one -- a judgement about what two pieces of prose are ABOUT, with no operand pair that expresses it. `cover` cannot help: there is no list to pair against."
+   ],
+   [
+    [
+     "Q2",
+     "wgb_names"
+    ],
+    "NOT CONVERTIBLE. Naming WHICH KIND of thing a goal states -- a doing, the condition that doing it produces, a general condition, a countable target, a different activity, or nothing -- is a reading of what the sentence names, and there is no operand to compare it against. The verdict it feeds IS now computable, which is the point of the split."
+   ],
+   [
+    [
+     "Q2",
+     "reasons_failing"
+    ],
+    "NOT CONVERTIBLE as it stands, and it is a COUNT of judgements rather than a judgement: how many listed statements are not a benefit of the goal behaviour. `counts` already expands the members; what it cannot express is the test each member is counted against."
+   ],
+   [
+    [
+     "Q1",
+     "benefits_failing"
+    ],
+    "NOT CONVERTIBLE as it stands, for exactly the reason Q2.reasons_failing is not: it is a COUNT of judgements rather than a judgement -- how many of the statements counted as benefits name the GOAL instead of a good it brings. `counts` expands the members; what no primitive expresses is the test each member is counted against."
+   ],
+   [
+    [
+     "D1",
+     "defines_type"
+    ],
+    "NOT CONVERTIBLE. The slot classifies a DEFINITION into PR/NR/PP/NP by reading what it says -- something added or removed, behaviour increased or decreased. That is a reading of prose, with no operands to compare. What IS computed is the next step: `equals` pairs this verdict against `named_type` to derive `matches_chosen_type`, so the COMBINING is already a primitive and only the classification is judged. The rule's operative half -- do not look at what they chose -- exists to keep the two inputs independent, which no primitive can enforce about a model's attention."
+   ],
+   [
+    [
+     "D2",
+     "defines_type"
+    ],
+    "NOT CONVERTIBLE, same as D1: one factory builds both."
+   ],
+   [
+    [
+     "1a",
+     "week_3"
+    ],
+    "NOT CONVERTIBLE, same as week_1 for the final stretch."
+   ],
+   [
+    [
+     "Q5",
+     "example_2"
+    ],
+    "NOT CONVERTIBLE, and on two counts. Whether a second entry is genuinely DIFFERENT from the first is a semantic relation between two free-text spans -- the same shape as Q2:wgb_inverts_utb and the `refers_to` channel that Q6_MATCHING_CEILING.md records seven failed wordings against. Whether an entry is a payoff for CONTINUING or an EFFECT of the behaviour is a second reading, of one span against no operand at all. `cover` cannot pair them: both spans are free text, and neither is a list."
+   ],
+   [
+    [
+     "Q5",
+     "reasons_substantial"
+    ],
+    "NOT CONVERTIBLE, and it is a judgement of DEGREE, which is the one shape no primitive here expresses: whether a reason that is present, distinct and a real payoff is nonetheless thin. There is nothing to compare it against -- not a list, not a sibling verdict, not a count. It is also `reported`, never scored, so no arithmetic depends on it; what it feeds is the feedback sentence."
+   ],
+   [
+    [
+     "Q6",
+     "link_c2"
+    ],
+    "NOT CONVERTIBLE, and it is the OPERAND rather than the rule -- the same shape as Q4b's b1_basis. `requires` turns this answer into a denial of state_c2 and affect_c2 arithmetically, so the COMBINING is declared and only the reading is judged. What is judged is whether two effect boxes are about the same consequence: a semantic relation between two free-text spans, with no operands to compare. `cover` cannot stand in for it -- it says which 4c entry each STATE box names and cannot speak for the effect boxes. Until 2026-08-30 this test lived as prose on affect_c1 and affect_c2, reaching every scorer as a request none could act on."
+   ]
+  ],
+  "PROSE_ONLY_JUDGED_AGAINST": [
+   [
+    [
+     "1c",
+     "series_box_holds"
+    ],
+    "counts,cover,derived,equals,expect,forbid,maps,onlyif,requires"
+   ],
+   [
+    [
+     "DAY2",
+     "targets_own_behavior"
+    ],
+    "counts,cover,derived,equals,expect,forbid,maps,onlyif,requires"
+   ],
+   [
+    [
+     "Q3",
+     "realistic"
+    ],
+    "counts,cover,derived,equals,expect,forbid,maps,onlyif,requires"
+   ],
+   [
+    [
+     "Q4b",
+     "b2_names_besides"
+    ],
+    "counts,cover,derived,equals,expect,forbid,maps,onlyif,requires"
+   ],
+   [
+    [
+     "Q4b",
+     "b1_basis"
+    ],
+    "counts,cover,derived,equals,expect,forbid,maps,onlyif,requires"
+   ],
+   [
+    [
+     "Q4b",
+     "b2_basis"
+    ],
+    "counts,cover,derived,equals,expect,forbid,maps,onlyif,requires"
+   ],
+   [
+    [
+     "Q4c",
+     "consequence_1"
+    ],
+    "counts,cover,derived,equals,expect,forbid,maps,onlyif,requires"
+   ],
+   [
+    [
+     "Q4c",
+     "consequence_2"
+    ],
+    "counts,cover,derived,equals,expect,forbid,maps,onlyif,requires"
+   ],
+   [
+    [
+     "Q4a",
+     "antecedent_kind_1"
+    ],
+    "counts,cover,derived,equals,expect,forbid,maps,onlyif,requires"
+   ],
+   [
+    [
+     "Q4a",
+     "antecedent_kind_2"
+    ],
+    "counts,cover,derived,equals,expect,forbid,maps,onlyif,requires"
+   ],
+   [
+    [
+     "Q3",
+     "measurable"
+    ],
+    "counts,cover,derived,equals,expect,forbid,maps,onlyif,requires"
+   ],
+   [
+    [
+     "Q6",
+     "affect_c1"
+    ],
+    "counts,cover,derived,equals,expect,forbid,maps,onlyif,requires"
+   ],
+   [
+    [
+     "Q6",
+     "affect_c2"
+    ],
+    "counts,cover,derived,equals,expect,forbid,maps,onlyif,requires"
+   ],
+   [
+    [
+     "1a",
+     "distinguishes_periods"
+    ],
+    "counts,cover,derived,equals,expect,forbid,maps,onlyif,requires"
+   ],
+   [
+    [
+     "1a",
+     "baseline_week"
+    ],
+    "counts,cover,derived,equals,expect,forbid,maps,onlyif,requires"
+   ],
+   [
+    [
+     "1a",
+     "week_1"
+    ],
+    "counts,cover,derived,equals,expect,forbid,maps,onlyif,requires"
+   ],
+   [
+    [
+     "1a",
+     "week_2"
+    ],
+    "counts,cover,derived,equals,expect,forbid,maps,onlyif,requires"
+   ],
+   [
+    [
+     "1a",
+     "week_3"
+    ],
+    "counts,cover,derived,equals,expect,forbid,maps,onlyif,requires"
+   ],
+   [
+    [
+     "D1",
+     "defines_type"
+    ],
+    "counts,cover,derived,equals,expect,forbid,maps,onlyif,requires"
+   ],
+   [
+    [
+     "D2",
+     "defines_type"
+    ],
+    "counts,cover,derived,equals,expect,forbid,maps,onlyif,requires"
+   ],
+   [
+    [
+     "Q2",
+     "wgb_is_counterpart"
+    ],
+    "counts,cover,derived,equals,expect,forbid,maps,onlyif,requires"
+   ],
+   [
+    [
+     "Q2",
+     "wgb_names"
+    ],
+    "counts,cover,derived,equals,expect,forbid,maps,onlyif,requires"
+   ],
+   [
+    [
+     "Q2",
+     "reasons_failing"
+    ],
+    "counts,cover,derived,equals,expect,forbid,maps,onlyif,requires"
+   ],
+   [
+    [
+     "Q1",
+     "benefits_failing"
+    ],
+    "counts,cover,derived,equals,expect,forbid,maps,onlyif,requires"
+   ],
+   [
+    [
+     "Q5",
+     "example_2"
+    ],
+    "counts,cover,derived,equals,expect,forbid,maps,onlyif,requires"
+   ],
+   [
+    [
+     "Q5",
+     "reasons_substantial"
+    ],
+    "counts,cover,derived,equals,expect,forbid,maps,onlyif,requires"
+   ],
+   [
+    [
+     "Q6",
+     "link_c2"
+    ],
+    "counts,cover,derived,equals,expect,forbid,maps,onlyif,requires"
+   ]
+  ],
+  "MULTI_BLOCK_DECLARED": [
+   [
+    "Q6",
+    "eight boxes: two antecedents, each with its change, consequence and effect. Every cell read out and corrected; all fixture checks clean. p18's two antecedent boxes are DECLARED as sentence fragments and are correct that way: `state_a1` ends on its comma ([[corpus Q6/p18 state_a1 0:50 sha=c9250d345b28]]) and `state_a2` opens lowercase ([[corpus Q6/p18 state_a2 0:60 sha=c6293ae612e6]]), because p18 names each antecedent in a subordinate clause and puts the change in the main one. A clause-level split has to cut there; both boxes name their antecedent, which is what `state_a*` is scored on; and gold's 7.5 charges only the second consequence's fate. Both halves of one sentence being fragments is fine \u2014 do not re-cut them. Not in FIXTURE_STRUCTURE_OVERRIDES because no check fires on it, and an entry there that stops firing is reported stale"
+   ],
+   [
+    "Q3",
+    "five boxes, one per SMART aspect, and the students label them themselves. Anchored on the aspect's own name where the scorer gave no quote; 9 cells with an empty box reduced to 1, and that one is correct \u2014 p9 never mentions realistic. NOT read box by box when it was declared, and p19 is what that cost: `measurable` held the printed instruction \"You must discuss and label each aspect of the SMART goal for full credit.\" and `specific` held the printed question plus two aspects, with the student's own measurable sentence inside it. Repaired; the two lines of template scaffolding now belong to no box. p6 still opens all four of its boxes with the student's \"- \" bullet, which is the corpus-wide residue and enumerator work in scoring/BACKLOG.md"
+   ],
+   [
+    "Q4b",
+    "three boxes: the modify statement and two examples. p7 read out and assigned; the rest carry no findings"
+   ],
+   [
+    "1c",
+    "eight boxes and not one of them a quotation, which is why the box-by-box readout is BLIND here: 18 of 20 cells have no prose at all, so `--fixture 1c` prints \"empty response\" and shows nothing. Audited by reading the eight boxes against the chart instead. Four come from `sim` (the four weeks of data) plus `series`, all parsed values; three \u2014 title/x/y \u2014 are read off the GRAPH by the paper scorer. Those three were the defect: in 10 of 20 cells they held the scorer's own sentence about the label (\"Weeks\" appears as a bolded axis title centred beneath the day tick values.) or its extracted text RUNS (['Time', ' {{corpus:1c/p6:title:5:33:sha=90d22ddc95fc}}']) instead of the label. Fixed in `_quoted_span`, not per cell, and verified against the served fixtures of all 26 items: exactly 20 boxes move, all of them 1c's. p15 and p18 are empty by right (gold \"did not include\"), and p11's day-name `series` is the student's own legend"
+   ],
+   [
+    "3",
+    "two boxes, one proposed change each, and the count is judged over the whole response, so an empty `second` costs nothing by itself. All 20 read out; five repaired (p4, p6, p9, p16, p19), all one defect \u2014 `second` opened with a sentence elaborating the FIRST change, so box 2 began before change 2 did. Boundaries moved to the sentence that opens change 2; the union of each pair is unchanged. Four cells hold everything in `first` with `second` empty: p5, p8 and p15 propose one change or none, which is what gold charges, but p3 is a real gap \u2014 its two changes sit in ONE sentence and no anchor separates them, so a 6.0 is being earned from box 1 alone. 15 of 20 `first` boxes still open with the printed question's own \") \", which is template residue and NOT the student's word; it is corpus-wide and fixed upstream, not here (see scoring/BACKLOG.md)"
+   ],
+   [
+    "Q5",
+    "two boxes, one reason each. All 20 read out; three boxes repaired, the same enumerator defect as Q4c \u2014 p1 kept \"1) \"/\"2) \" and p16 the \"2. \" it alone writes. Two cells are BLANK (p13, p17), so both boxes are empty and gold's \"did not answer\" is what the split reproduces. Three cells are run-ons split where the student's own sentence boundary is missing (p9, p15, and p3, whose orphaned full stop is left where the scorer's quote ended). p5 and p6 keep each reason's parenthetical function label (\"(Gaining something.)\", [[corpus Q5/p6 first 118:142 sha=9a07ac713b57]]) with the reason it labels, which is what the question asks the student to supply. p4's first box reads \"{{corpus:Q5/p4:first:0:1:sha=a83dd0ccbffe:shape=R1-0-20}}{{corpus:Q5/p4:first:2:23:sha=400cd580a803}}\" \u2014 checked against the submission, that is the student's own missing negation, not a transcription loss"
+   ],
+   [
+    "Q4c",
+    "two boxes, one consequence each, and like Q4a the student usually does the splitting. All 20 read out; three boxes repaired, all one defect \u2014 p13's `first` and both of p16's kept the enumerator inside them while the item's other eight enumerated cells strip theirs. Three cells are split with no marker at all, and each is a run-on where the student's sentence boundary is simply missing (p5, p6, p15); p9's is the one genuine judgement \u2014 one comma, and \"while not exercising\" is left with the clause the comma attaches it to. p13's `second` is empty and faithful: gold charges the missing second consequence. p11's boxes follow DOCUMENT order, not the student's own labels, which run \"Another\" then \"One\""
+   ],
+   [
+    "Q4a",
+    "two boxes, one antecedent each, and in 12 of 20 cells the STUDENT does the splitting \u2014 \"1)\"/\"2)\", \"1.\"/\"2.\", or \"My first antecedent\"/\"My second trigger\". All 20 read out; no repairs. The only text belonging to no box anywhere in the item is enumerators and OCR debris (\"1)_\", \"2 )_\", \"-\", a bare \"o\", a leading \"_\"), and every box is whole sentences in document order. p15 is the one cell split with no marker at all \u2014 one run-on line, cut before its second antecedent \u2014 and both halves are phrases the item's own guidance quotes as accepts. p18 is a DECLARED DIVERGENCE from verbatim reproduction, not an oversight: it wrote one antecedent and repeated it word for word as its second, and the fixture deliberately leaves `second` EMPTY rather than serving the duplicate. Gold charges the missing one, so `_gold_corroborates_absence` licenses the gap on every run and no check fires; the divergence is from faithfulness, not from gold, which is why it is not in GOLD_DIVERGENCES. Filling the box would invite the grader to credit two antecedents on one, against a cell that agrees with gold at 3.0 in 6 of 6 passes. The keyword point survives every split, including the three cells that misspell it in one box and spell \"trigger\" in the other"
+   ],
+   [
+    "2a",
+    "three boxes: the verdict and two explanations, which the screen asks for as three separate fields. All 20 cells read out against the response. Two repaired here \u2014 p16's how2 still carried the \"Sentence 3:\" label the other two boxes had stripped, and p20's how1 was a comma-initial adjunct sliced out of the verdict's own sentence (now the whole sentence, overlap declared). Everything else confirmed, including the boxes that hold text gold says is not an explanation: p13's how2 holds its \"{{corpus:2a/p13:how2:0:28:sha=2fa2e12271d7:shape=R28-0-20}}{{corpus:2a/p13:how2:29:46:sha=aaccc09e897f}}\" because the student wrote it, and gold charges that sentence rather than a missing one. The item's remaining error is almost all one shape and none of it is the fixture: 14-16 of 18 counted over six passes, and every miss but one is +2.0 for a second how gold withheld. The exception is p18, which flipped to 4.0 in one pass of six once its exclusion was removed"
+   ],
+   [
+    "1a",
+    "five boxes, but only ONE is this item's own response \u2014 a single field. The other four are the shared data table, `sim`-parsed values carried as context. Nothing here was split"
+   ],
+   [
+    "1b",
+    "four boxes, all four `sim`-parsed values: the student's weekly data read out of a table, not spans cut from prose. p15 shows the shape \u2014 `wk1` is `8, {{corpus:1a/p15:wk1:3:19:sha=7b2512f124b3}} 9` for a table reading \"Sunday - 8 hours Monday - 11 hours ...\", and its empty `baseline`/`wk3` are the student's own \"none\" and \"Week Three Data: Lost\", which gold's 2.0 agrees with"
+   ]
+  ],
+  "DESIGNED_TEXT": [
+   [
+    [
+     "Q4a",
+     "antecedent_kind_1",
+     "rule_addition"
+    ],
+    "`aftermath` COVERS THE GOAL BEHAVIOUR TOO, not only the unwanted one. An entry naming what follows from DOING the goal behaviour -- its payoff not yet showing, or a cost incurred by having done it -- names something a behaviour left behind, so answer `aftermath` rather than `before`, even though the next episode of the unwanted behaviour comes after it. THIS IS NARROW BY DESIGN: it turns on the entry naming a result OF THE GOAL BEHAVIOUR. A state the student is simply in, however it arose, is a `before` in the ordinary way."
+   ],
+   [
+    [
+     "Q4a",
+     "antecedent_kind_2",
+     "rule_addition"
+    ],
+    "`aftermath` COVERS THE GOAL BEHAVIOUR TOO, not only the unwanted one. An entry naming what follows from DOING the goal behaviour -- its payoff not yet showing, or a cost incurred by having done it -- names something a behaviour left behind, so answer `aftermath` rather than `before`, even though the next episode of the unwanted behaviour comes after it. THIS IS NARROW BY DESIGN: it turns on the entry naming a result OF THE GOAL BEHAVIOUR. A state the student is simply in, however it arose, is a `before` in the ordinary way."
+   ],
+   [
+    [
+     "Q2",
+     "reasons_given",
+     "desc"
+    ],
+    "HOW MANY of the listed statements are a real benefit of the GOAL behaviour: `reasons_listed` minus `reasons_failing`. A statement that restates the harm of the unwanted behaviour is not a benefit of the goal \u2014 \"not exercising makes me feel lazy\" is a reason to drop the UTB, not a benefit of exercising. What decides this is what the statement NAMES: one whose subject is the unwanted behaviour, or going without the goal behaviour, and whose predicate is a cost of that, names no benefit. One that NAMES a good the goal behaviour brings and then supports it by the cost avoided has named its benefit and COUNTS. Two goods in one area of life are still two. Whether one sentence holds one benefit or two is STRUCTURAL: a second half that is a knock-on effect of the first is ONE (a benefit, then \"WHICH WILL\" and what follows from it), while two independent benefits merely joined by \"and\" are TWO -- BUT ONLY WHERE EACH HALF NAMES A GOOD OF ITS OWN, its own subject with its own predicate, as the counting rule below requires. A second half that names no thing of its own, and only says matters will generally improve, extends the first half, and the pair is ONE. A restatement of the PROBLEM the goal solves is not a benefit of it either: a remark attributing their present condition to not having done the goal behaviour names the harm again and earns nothing. Two things resemble that and are NOT it. A good does not become a restatement by being described as LASTING: saying a benefit will continue, or that the behaviour will become settled practice, says how long the good holds, and a benefit that lasts is still a benefit. Nor does a good become a restatement by being a CHANGE IN THE STUDENT rather than in their circumstances: a capacity or a disposition the behaviour builds in the one who does it is a benefit the graders credited. Statements about why the UTB is bad belong to Q1 and earn nothing here either \u2014 a response whose reasons are all of that kind scores 0. Answer 3 for three or more"
+   ],
+   [
+    [
+     "Q3",
+     "realistic",
+     "rule"
+    ],
+    "THE BAR IS LOW, AND THE TWO ARMS ARE ALTERNATIVES: `met` where the goal is plainly workable as stated, OR where any reason for thinking so is given. DO NOT WEIGH THE REASON -- a thin or circular one counts, since this asks whether a reason was given and not whether it persuades. `absent` only where none is given and the goal is not plainly workable."
+   ],
+   [
+    [
+     "WK2",
+     "named_type",
+     "desc"
+    ],
+    "WHICH of the four types the student CLAIMS -- not whether the claim is right, which another check decides.\nREAD BOTH THE TYPE THEY NAMED AND THE DEFINITION THEY WROTE. The type may be named outright, or it may be named only by the DEFINITION: a definition that describes adding an unpleasant thing after a behaviour, or taking a wanted thing away, names a type as surely as writing its name does. Where the two disagree, report what the NAMED TYPE says.\nAnswer `unclear` ONLY when NEITHER names a type -- both empty, or a bare label with nothing after it. A blank type is not by itself an absent type."
+   ],
+   [
+    [
+     "WK2",
+     "aimed_correctly",
+     "desc"
+    ],
+    "Does the consequence point the RIGHT WAY for the arrangement this answer actually describes -- something added or taken away AFTER the behaviour, in the direction that would change it? Answer `absent` when it is pointed the wrong way: an aversive for MEETING the goal, or a reward for MISSING it.\nJUDGE THE ARRANGEMENT DESCRIBED, NOT THE TYPE THE STUDENT NAMED. An answer that describes a sound arrangement but labels it with the wrong type is `met` here. The mismatch between the two is a different check's charge, and taking the whole item for it here would charge one fault twice.\nAnswer `unclear` only when the answer names no consequence to judge at all."
+   ]
+  ],
+  "DECOMPOSITION_DIVERGENCES": [
+   [
+    [
+     "2b",
+     "sentence_1"
+    ],
+    "The mirror enumerates the three sentences as `sentence_1/2/3`; the app answers the COUNT `sentences_given` and charges from it. Measured: 2b is 20/20 on both sides with identical medians on all twenty cells."
+   ],
+   [
+    [
+     "2b",
+     "sentence_2"
+    ],
+    "The mirror enumerates the three sentences as `sentence_1/2/3`; the app answers the COUNT `sentences_given` and charges from it. Measured: 2b is 20/20 on both sides with identical medians on all twenty cells."
+   ],
+   [
+    [
+     "2b",
+     "sentence_3"
+    ],
+    "The mirror enumerates the three sentences as `sentence_1/2/3`; the app answers the COUNT `sentences_given` and charges from it. Measured: 2b is 20/20 on both sides with identical medians on all twenty cells."
+   ],
+   [
+    [
+     "3",
+     "example_1"
+    ],
+    "The mirror enumerates the examples as `example_1/2`; the app answers the COUNT `changes_given`. Measured: python 19/20, olx 20/20, and the single cell whose medians differ (p15) is one the APP gets right and the mirror does not -- so the decomposition is not costing the app anything."
+   ],
+   [
+    [
+     "3",
+     "example_2"
+    ],
+    "The mirror enumerates the examples as `example_1/2`; the app answers the COUNT `changes_given`. Measured: python 19/20, olx 20/20, and the single cell whose medians differ (p15) is one the APP gets right and the mirror does not -- so the decomposition is not costing the app anything."
+   ],
+   [
+    [
+     "Q1",
+     "reason_1"
+    ],
+    "The mirror enumerates the reasons as `reason_1/2/3`; the app scores the reasons scaffold in aggregate. Measured: Q1 18/20 and Q2 19/20 on BOTH sides, with Q2 identical on every cell and Q1 differing on two (p6, p17) for reasons subgoals Q16 and Q44 own, not this one."
+   ],
+   [
+    [
+     "Q1",
+     "reason_2"
+    ],
+    "The mirror enumerates the reasons as `reason_1/2/3`; the app scores the reasons scaffold in aggregate. Measured: Q1 18/20 and Q2 19/20 on BOTH sides, with Q2 identical on every cell and Q1 differing on two (p6, p17) for reasons subgoals Q16 and Q44 own, not this one."
+   ],
+   [
+    [
+     "Q1",
+     "reason_3"
+    ],
+    "The mirror enumerates the reasons as `reason_1/2/3`; the app scores the reasons scaffold in aggregate. Measured: Q1 18/20 and Q2 19/20 on BOTH sides, with Q2 identical on every cell and Q1 differing on two (p6, p17) for reasons subgoals Q16 and Q44 own, not this one."
+   ],
+   [
+    [
+     "Q2",
+     "reason_1"
+    ],
+    "The mirror enumerates the reasons as `reason_1/2/3`; the app scores the reasons scaffold in aggregate. Measured: Q1 18/20 and Q2 19/20 on BOTH sides, with Q2 identical on every cell and Q1 differing on two (p6, p17) for reasons subgoals Q16 and Q44 own, not this one."
+   ],
+   [
+    [
+     "Q2",
+     "reason_2"
+    ],
+    "The mirror enumerates the reasons as `reason_1/2/3`; the app scores the reasons scaffold in aggregate. Measured: Q1 18/20 and Q2 19/20 on BOTH sides, with Q2 identical on every cell and Q1 differing on two (p6, p17) for reasons subgoals Q16 and Q44 own, not this one."
+   ],
+   [
+    [
+     "Q2",
+     "reason_3"
+    ],
+    "The mirror enumerates the reasons as `reason_1/2/3`; the app scores the reasons scaffold in aggregate. Measured: Q1 18/20 and Q2 19/20 on BOTH sides, with Q2 identical on every cell and Q1 differing on two (p6, p17) for reasons subgoals Q16 and Q44 own, not this one."
+   ],
+   [
+    [
+     "NR",
+     "barrier_is_not_this_type"
+    ],
+    "NR-only slot the mirror answers and the app never does. Measured: NR is 18/18 python and 17/18 olx with the per-cell medians IDENTICAL on all twenty cells, so the app reaches the same judgement through the type criterion it does answer. Kept declared rather than aliased because there is no app-side name to alias it to."
+   ]
+  ],
+  "UNCHARGED_VERDICTS": [
+   [
+    [
+     "Q1",
+     "utb_stated",
+     "unclear"
+    ],
+    "GOLD BACKS THE PAPER SIDE, so aligning the engines here would make the scorer wrong. `unclear` fires on exactly one cell in the corpus -- p17 -- and gold gives p17 full marks (5.00), which is what the paper scorer returns and the web does not: the web charges the full 2 points for \"could not tell\". p20, the cell this check exists to catch, answers `absent` in 11 of 11 runs, so nothing it should catch escapes. Charging `unclear` was measured and reverted; see rubric_h1.py's note on the `codes` entry."
+   ]
+  ],
+  "APP_ONLY_SLOTS": [
+   [
+    [
+     "Q1",
+     "matches_selected"
+    ],
+    "UNSCORED, and it drives FEEDBACK rather than a score. The sheet spells it `Same behavior you selected above:matches/differs` with no @pts, and olx_prompts instructs the grader that when it answers `differs` the FIRST sentence of `feedback` must address the mismatch. The python mirror produces no feedback, so there is nothing for it to define. Wiring it into the rubric would add a slot that can never change a number, which is the opposite of what the rubric is for."
+   ]
+  ],
+  "COUNTABLE_EXEMPT": [
+   [
+    [
+     "1a",
+     "week"
+    ],
+    "the weeks are NAMED, not interchangeable. The guidance deducts only when a period is 'clearly and specifically absent' and names the observed case \u2014 an answer that opens at the intervention and never mentions baseline. `3 of 4` cannot say which is missing."
+   ],
+   [
+    [
+     "2a",
+     "how"
+    ],
+    "MEASURED, not preferred. The count WAS the design and it cost the item 5 of 20 cells: subgoal Q2 recorded one error profile -- `said 2, scored 6 against gold 4`, 29 of 29 -- while the DEDUCT guidance already described both shapes the graders charge. An aggregate answer never has to confront a particular box, so correct prose had nothing to bind to. The graders themselves judge per box and name it ('your third sentece'), against three labelled fields on screen that all 20 cells fill, so nothing relies on content spanning them. The FIXTURE no longer depends on the group either -- the dealing groups live in agreement_app.JOBS `dealt` -- which is what made this conversion testable at all."
+   ]
+  ],
+  "PROBE_UNREACHABLE_PAIRS": [
+   [
+    [
+     "2a",
+     {
+      "__frozenset__": [
+       "how_2",
+       "mechanism_named"
+      ]
+     }
+    ],
+    "The web charges the pair once. In the CLI ledger `mechanism_named` is already carried by the deduction that `how_2` triggers, so failing both loses exactly what failing one loses and the arithmetic shows no sublinearity for the probe to find. Declared 2026-09-16."
+   ],
+   [
+    [
+     "NR",
+     {
+      "__frozenset__": [
+       "barrier_is_not_this_type",
+       "demonstrates_type"
+      ]
+     }
+    ],
+    "The web charges the pair once. `demonstrates_type` is DERIVED on NR -- the sheet declares `expect=\"demonstrates_type:observed_type=NR\"` -- so the CLI probe never fails it independently and the pair cannot appear in its arithmetic. Named in equivalence.py's selftest as a legitimate declared divergence since before this table existed; moved here so it is a decision with a reason rather than a remark. Declared 2026-09-16."
+   ]
+  ],
+  "HAND_AUTHORED_ATTRS": [],
+  "SELFTEST_NAMED_FIXTURES": [
+   [
+    [
+     "the paper scorer's per-cell stub",
+     "Q6"
+    ],
+    "a FILTER inside a stub, not a target: the stub answers differently for one item so the case can tell the two paths apart. The id is a discriminator in fake code, and deriving it would only move the constant."
+   ],
+   [
+    [
+     "a box holds text gold says is absent",
+     "Q6"
+    ],
+    "GOLD-BOUND, not rubric-bound: p9 is a cell where gold reports the box empty, which is a fact about the marked-up workbook. Deriving it means reading gold to find such a cell -- possible, and considerably more expensive than the fixture it would replace."
+   ],
+   [
+    [
+     "a box holds a different student's words",
+     "Q6"
+    ],
+    "gold-bound in the same way: p1's `state_a1` is the cell this shape was found on. See the entry above."
+   ],
+   [
+    [
+     "a family with two codes is counted anyway",
+     "Q4a"
+    ],
+    "the CONTENT of the test is that `antecedent_1` and `antecedent_2` carry DIFFERENT codes. That is a property of Q4a's slots, not an incidental choice of item, and an item without it tests nothing."
+   ],
+   [
+    [
+     "an item leaves JOBS",
+     "1b"
+    ],
+    "NOT ARBITRARY, and measured: removing the first job instead raises KeyError inside `check_ref_targets_resolve`, which indexes JOBS for that item unconditionally. The safe targets are the ones nothing else indexes, which is not a property this fixture can state."
+   ],
+   [
+    [
+     "the OLX-side stub",
+     "1a"
+    ],
+    "a FILTER inside a stub, like the paper-scorer entry: the stub answers differently for one item and side so the case can tell the paths apart."
+   ],
+   [
+    [
+     "the evenness exemption is stale",
+     "2b"
+    ],
+    "the exemption injected is `(2b, sentence)`, and 2b is the item whose sentences are the countable family the exemption would be about. A stale exemption for an item with no such family would be rejected for the wrong reason."
+   ]
+  ],
+  "PAPER_ITEM_NOTES": [
+   [
+    "Q3",
+    "Where the student has labelled parts of their answer to match the names above, judge each answer on the part they labelled for it, and never on what they wrote for another -- a sentence that opens by naming a different one of these answers belongs to that one. Where they label nothing, read the whole response for each.\n\nThe evidence you quote for an answer must come from that answer's own part of the response."
+   ]
+  ],
+  "PAPER_ITEM_NOTES_WHY": [
+   [
+    "Q3",
+    "Tells the grader to judge each answer on the part the student labelled for it. The WEB CANNOT NEED THIS: there each answer has its own input box, so the partition is structural and no instruction can improve it. Paper receives one continuous block and must infer the partition, which is the divergence this note exists for -- and the defect it treats was measured only here (16.5 -> 17.8 over six runs)."
+   ]
+  ],
+  "CONTEXT_SOURCE": [
+   [
+    "bmod_h1_q1_response",
+    {
+     "__tuple__": [
+      "section",
+      "Q1"
+     ]
+    }
+   ],
+   [
+    "bmod_h1_q2_response",
+    {
+     "__tuple__": [
+      "section",
+      "Q2"
+     ]
+    }
+   ],
+   [
+    "bmod_h1_q4a_first",
+    {
+     "__tuple__": [
+      "scorer",
+      "Q4a",
+      "antecedent_1"
+     ]
+    }
+   ],
+   [
+    "bmod_h1_q4a_second",
+    {
+     "__tuple__": [
+      "scorer",
+      "Q4a",
+      "antecedent_2"
+     ]
+    }
+   ],
+   [
+    "bmod_h1_q4b_first",
+    {
+     "__tuple__": [
+      "scorer",
+      "Q4b",
+      "behavior_1"
+     ]
+    }
+   ],
+   [
+    "bmod_h1_q4b_second",
+    {
+     "__tuple__": [
+      "scorer",
+      "Q4b",
+      "behavior_2"
+     ]
+    }
+   ],
+   [
+    "bmod_h1_q4c_first",
+    {
+     "__tuple__": [
+      "scorer",
+      "Q4c",
+      "consequence_1"
+     ]
+    }
+   ],
+   [
+    "bmod_h1_q4c_second",
+    {
+     "__tuple__": [
+      "scorer",
+      "Q4c",
+      "consequence_2"
+     ]
+    }
+   ],
+   [
+    "bmod_h2_t1",
+    {
+     "__tuple__": [
+      "section",
+      "T1"
+     ]
+    }
+   ],
+   [
+    "bmod_h2_d1",
+    {
+     "__tuple__": [
+      "section",
+      "D1"
+     ]
+    }
+   ],
+   [
+    "bmod_h2_t2",
+    {
+     "__tuple__": [
+      "section",
+      "T2"
+     ]
+    }
+   ],
+   [
+    "bmod_h2_d2",
+    {
+     "__tuple__": [
+      "section",
+      "D2"
+     ]
+    }
+   ],
+   [
+    "bmod_h3_overview_response",
+    {
+     "__tuple__": [
+      "section",
+      "1a"
+     ]
+    }
+   ],
+   [
+    "bmod_h3_success_verdict",
+    {
+     "__tuple__": [
+      "scorer",
+      "2a",
+      "verdict"
+     ]
+    }
+   ],
+   [
+    "bmod_h3_success_how1",
+    {
+     "__tuple__": [
+      "scorer",
+      "2a",
+      "how_1"
+     ]
+    }
+   ],
+   [
+    "bmod_h3_success_how2",
+    {
+     "__tuple__": [
+      "scorer",
+      "2a",
+      "how_2"
+     ]
+    }
+   ],
+   [
+    "bmod_h3_assessment_response",
+    {
+     "__tuple__": [
+      "section",
+      "2b"
+     ]
+    }
+   ]
+  ],
+  "JOBS": [
+   [
+    "Q1",
+    {
+     "handout": 1,
+     "screen": "bmod_h1_q1",
+     "button": "Check my answer",
+     "feedback": "bmod_h1_q1_feedback",
+     "grader": "bmod_h1_q1_grader",
+     "fields": {
+      "bmod_h1_utb": "_utb_choice",
+      "bmod_h1_q1_response": "Q1"
+     },
+     "split": {}
+    }
+   ],
+   [
+    "Q2",
+    {
+     "handout": 1,
+     "screen": "bmod_h1_q2",
+     "button": "Check my answer",
+     "feedback": "bmod_h1_q2_feedback",
+     "grader": "bmod_h1_q2_grader",
+     "fields": {
+      "bmod_h1_utb": "_utb_choice",
+      "bmod_h1_q2_response": "Q2"
+     },
+     "split": {}
+    }
+   ],
+   [
+    "Q4a",
+    {
+     "handout": 1,
+     "screen": "bmod_h1_q4a",
+     "button": "Check my antecedents",
+     "feedback": "bmod_h1_q4a_feedback",
+     "grader": "bmod_h1_q4a_grader",
+     "fields": {
+      "bmod_h1_utb": "_utb_choice"
+     },
+     "from_scorer": {
+      "bmod_h1_q4a_first": "antecedent_1",
+      "bmod_h1_q4a_second": "antecedent_2"
+     }
+    }
+   ],
+   [
+    "Q4c",
+    {
+     "handout": 1,
+     "screen": "bmod_h1_q4c",
+     "button": "Check my consequences",
+     "feedback": "bmod_h1_q4c_feedback",
+     "grader": "bmod_h1_q4c_grader",
+     "fields": {
+      "bmod_h1_utb": "_utb_choice"
+     },
+     "from_scorer": {
+      "bmod_h1_q4c_first": "consequence_1",
+      "bmod_h1_q4c_second": "consequence_2"
+     }
+    }
+   ],
+   [
+    "Q5",
+    {
+     "handout": 1,
+     "screen": "bmod_h1_q5",
+     "button": "Check my answer",
+     "feedback": "bmod_h1_q5_feedback",
+     "grader": "bmod_h1_q5_grader",
+     "fields": {
+      "bmod_h1_utb": "_utb_choice"
+     },
+     "from_scorer": {
+      "bmod_h1_q5_first": "example_1",
+      "bmod_h1_q5_second": "example_2",
+      "bmod_h1_q4c_first": "consequence_1",
+      "bmod_h1_q4c_second": "consequence_2"
+     }
+    }
+   ],
+   [
+    "Q6",
+    {
+     "handout": 1,
+     "screen": "bmod_h1_q6",
+     "button": "Check my answer",
+     "feedback": "bmod_h1_q6_feedback",
+     "grader": "bmod_h1_q6_grader",
+     "fields": {
+      "bmod_h1_utb": "_utb_choice"
+     },
+     "consensus": "{instrument}/source/consensus/q6_consensus.json",
+     "from_scorer": {
+      "bmod_h1_q6_state_a1": "state_a1",
+      "bmod_h1_q6_change_a1": "change_a1",
+      "bmod_h1_q6_state_c1": "state_c1",
+      "bmod_h1_q6_affect_c1": "affect_c1",
+      "bmod_h1_q6_state_a2": "state_a2",
+      "bmod_h1_q6_change_a2": "change_a2",
+      "bmod_h1_q6_state_c2": "state_c2",
+      "bmod_h1_q6_affect_c2": "affect_c2"
+     }
+    }
+   ],
+   [
+    "PR",
+    {
+     "handout": 2,
+     "screen": "bmod_h2_pr_screen",
+     "button": "Check my Positive Reinforcement example",
+     "feedback": "bmod_h2_pr_feedback",
+     "grader": "bmod_h2_pr_grader",
+     "fields": {
+      "bmod_h1_utb": "_utb",
+      "bmod_h1_q2_response": "_wgb",
+      "bmod_h2_pr": "PR"
+     },
+     "fallback": {
+      "_utb": {
+       "__tuple__": [
+        1,
+        "Q1"
+       ]
+      },
+      "_wgb": {
+       "__tuple__": [
+        1,
+        "Q2"
+       ]
+      }
+     }
+    }
+   ],
+   [
+    "NR",
+    {
+     "handout": 2,
+     "screen": "bmod_h2_nr_screen",
+     "button": "Check my Negative Reinforcement example",
+     "feedback": "bmod_h2_nr_feedback",
+     "grader": "bmod_h2_nr_grader",
+     "fields": {
+      "bmod_h1_utb": "_utb",
+      "bmod_h1_q2_response": "_wgb",
+      "bmod_h2_nr": "NR"
+     },
+     "fallback": {
+      "_utb": {
+       "__tuple__": [
+        1,
+        "Q1"
+       ]
+      },
+      "_wgb": {
+       "__tuple__": [
+        1,
+        "Q2"
+       ]
+      }
+     }
+    }
+   ],
+   [
+    "PP",
+    {
+     "handout": 2,
+     "screen": "bmod_h2_pp_screen",
+     "button": "Check my Positive Punishment example",
+     "feedback": "bmod_h2_pp_feedback",
+     "grader": "bmod_h2_pp_grader",
+     "fields": {
+      "bmod_h1_utb": "_utb",
+      "bmod_h1_q2_response": "_wgb",
+      "bmod_h2_pp": "PP"
+     },
+     "fallback": {
+      "_utb": {
+       "__tuple__": [
+        1,
+        "Q1"
+       ]
+      },
+      "_wgb": {
+       "__tuple__": [
+        1,
+        "Q2"
+       ]
+      }
+     }
+    }
+   ],
+   [
+    "NP",
+    {
+     "handout": 2,
+     "screen": "bmod_h2_np_screen",
+     "button": "Check my Negative Punishment example",
+     "feedback": "bmod_h2_np_feedback",
+     "grader": "bmod_h2_np_grader",
+     "fields": {
+      "bmod_h1_utb": "_utb",
+      "bmod_h1_q2_response": "_wgb",
+      "bmod_h2_np": "NP"
+     },
+     "fallback": {
+      "_utb": {
+       "__tuple__": [
+        1,
+        "Q1"
+       ]
+      },
+      "_wgb": {
+       "__tuple__": [
+        1,
+        "Q2"
+       ]
+      }
+     }
+    }
+   ],
+   [
+    "D1",
+    {
+     "handout": 2,
+     "screen": "bmod_h2_d1_screen",
+     "button": "Check my definition",
+     "feedback": "bmod_h2_d1_feedback",
+     "grader": "bmod_h2_d1_grader",
+     "fields": {
+      "bmod_h1_utb": "_utb",
+      "bmod_h1_q2_response": "_wgb",
+      "bmod_h2_t1": "T1",
+      "bmod_h2_d1": "D1"
+     },
+     "fallback": {
+      "_utb": {
+       "__tuple__": [
+        1,
+        "Q1"
+       ]
+      },
+      "_wgb": {
+       "__tuple__": [
+        1,
+        "Q2"
+       ]
+      }
+     }
+    }
+   ],
+   [
+    "DAY1",
+    {
+     "handout": 2,
+     "screen": "bmod_h2_day1_screen",
+     "button": "Check my daily example",
+     "feedback": "bmod_h2_day1_feedback",
+     "grader": "bmod_h2_day1_grader",
+     "fields": {
+      "bmod_h1_utb": "_utb",
+      "bmod_h1_q2_response": "_wgb",
+      "bmod_h2_t1": "T1",
+      "bmod_h2_d1": "D1",
+      "bmod_h2_day1": "DAY1"
+     },
+     "fallback": {
+      "_utb": {
+       "__tuple__": [
+        1,
+        "Q1"
+       ]
+      },
+      "_wgb": {
+       "__tuple__": [
+        1,
+        "Q2"
+       ]
+      }
+     }
+    }
+   ],
+   [
+    "WK1",
+    {
+     "handout": 2,
+     "screen": "bmod_h2_wk1_screen",
+     "button": "Check my weekly example",
+     "feedback": "bmod_h2_wk1_feedback",
+     "grader": "bmod_h2_wk1_grader",
+     "fields": {
+      "bmod_h1_utb": "_utb",
+      "bmod_h1_q2_response": "_wgb",
+      "bmod_h2_t1": "T1",
+      "bmod_h2_d1": "D1",
+      "bmod_h2_wk1": "WK1"
+     },
+     "fallback": {
+      "_utb": {
+       "__tuple__": [
+        1,
+        "Q1"
+       ]
+      },
+      "_wgb": {
+       "__tuple__": [
+        1,
+        "Q2"
+       ]
+      }
+     }
+    }
+   ],
+   [
+    "D2",
+    {
+     "handout": 2,
+     "screen": "bmod_h2_d2_screen",
+     "button": "Check my definition",
+     "feedback": "bmod_h2_d2_feedback",
+     "grader": "bmod_h2_d2_grader",
+     "fields": {
+      "bmod_h1_utb": "_utb",
+      "bmod_h1_q2_response": "_wgb",
+      "bmod_h2_t2": "T2",
+      "bmod_h2_d2": "D2"
+     },
+     "fallback": {
+      "_utb": {
+       "__tuple__": [
+        1,
+        "Q1"
+       ]
+      },
+      "_wgb": {
+       "__tuple__": [
+        1,
+        "Q2"
+       ]
+      }
+     }
+    }
+   ],
+   [
+    "DAY2",
+    {
+     "handout": 2,
+     "screen": "bmod_h2_day2_screen",
+     "button": "Check my daily example",
+     "feedback": "bmod_h2_day2_feedback",
+     "grader": "bmod_h2_day2_grader",
+     "fields": {
+      "bmod_h1_utb": "_utb",
+      "bmod_h1_q2_response": "_wgb",
+      "bmod_h2_t2": "T2",
+      "bmod_h2_d2": "D2",
+      "bmod_h2_day2": "DAY2"
+     },
+     "fallback": {
+      "_utb": {
+       "__tuple__": [
+        1,
+        "Q1"
+       ]
+      },
+      "_wgb": {
+       "__tuple__": [
+        1,
+        "Q2"
+       ]
+      }
+     }
+    }
+   ],
+   [
+    "WK2",
+    {
+     "handout": 2,
+     "screen": "bmod_h2_wk2_screen",
+     "button": "Check my weekly example",
+     "feedback": "bmod_h2_wk2_feedback",
+     "grader": "bmod_h2_wk2_grader",
+     "fields": {
+      "bmod_h1_utb": "_utb",
+      "bmod_h1_q2_response": "_wgb",
+      "bmod_h2_t2": "T2",
+      "bmod_h2_d2": "D2",
+      "bmod_h2_wk2": "WK2"
+     },
+     "fallback": {
+      "_utb": {
+       "__tuple__": [
+        1,
+        "Q1"
+       ]
+      },
+      "_wgb": {
+       "__tuple__": [
+        1,
+        "Q2"
+       ]
+      }
+     }
+    }
+   ],
+   [
+    "Q3",
+    {
+     "handout": 1,
+     "screen": "bmod_h1_q3",
+     "button": "Check my SMART goal",
+     "feedback": "bmod_h1_q3_feedback",
+     "grader": "bmod_h1_q3_grader",
+     "fields": {
+      "bmod_h1_utb": "_utb_choice",
+      "bmod_h1_q2_response": "Q2"
+     },
+     "from_scorer": {
+      "bmod_h1_q3_specific": "specific",
+      "bmod_h1_q3_measurable": "measurable",
+      "bmod_h1_q3_action": "action_oriented",
+      "bmod_h1_q3_realistic": "realistic",
+      "bmod_h1_q3_timebound": "time_bound"
+     },
+     "anchored": true
+    }
+   ],
+   [
+    "Q4b",
+    {
+     "handout": 1,
+     "screen": "bmod_h1_q4b",
+     "button": "Check my answer",
+     "feedback": "bmod_h1_q4b_feedback",
+     "grader": "bmod_h1_q4b_grader",
+     "fields": {
+      "bmod_h1_utb": "_utb_choice",
+      "bmod_h1_q2_response": "Q2"
+     },
+     "split": {
+      "Q4a": {
+       "__tuple__": [
+        "bmod_h1_q4a_first",
+        "bmod_h1_q4a_second"
+       ]
+      }
+     },
+     "handsplit": "{instrument}/source/handsplit/Q4b.json"
+    }
+   ],
+   [
+    "1a",
+    {
+     "handout": 3,
+     "screen": "bmod_h3_overview",
+     "button": "Check my overview",
+     "feedback": "bmod_h3_overview_feedback",
+     "grader": "bmod_h3_overview_grader",
+     "fields": {
+      "bmod_h3_overview_response": "1a"
+     },
+     "sim": {
+      "bmod_h3_baseline": "baseline",
+      "bmod_h3_wk1": "week_1",
+      "bmod_h3_wk2": "week_2",
+      "bmod_h3_wk3": "week_3"
+     }
+    }
+   ],
+   [
+    "1c",
+    {
+     "handout": 3,
+     "screen": "bmod_h3_graph",
+     "button": "Check my labelling",
+     "feedback": "bmod_h3_graph_feedback",
+     "grader": "bmod_h3_graph_grader",
+     "fields": {},
+     "fallback": {
+      "_wgb": {
+       "__tuple__": [
+        1,
+        "Q2"
+       ]
+      }
+     },
+     "sim": {
+      "bmod_h3_baseline": "baseline",
+      "bmod_h3_wk1": "week_1",
+      "bmod_h3_wk2": "week_2",
+      "bmod_h3_wk3": "week_3",
+      "bmod_h3_graph_series": "graph_series"
+     },
+     "from_scorer": {
+      "bmod_h3_graph_title": "title",
+      "bmod_h3_graph_x": "x_axis_label",
+      "bmod_h3_graph_y": "y_axis_label"
+     },
+     "value_derived": {
+      "__tuple__": [
+       "title",
+       "x",
+       "y"
+      ]
+     }
+    }
+   ],
+   [
+    "2a",
+    {
+     "handout": 3,
+     "screen": "bmod_h3_success",
+     "button": "Check my answer",
+     "feedback": "bmod_h3_success_feedback",
+     "grader": "bmod_h3_success_grader",
+     "fields": {
+      "bmod_h3_overview_response": "1a"
+     },
+     "from_scorer": {
+      "bmod_h3_success_verdict": "verdict",
+      "bmod_h3_success_how1": "how_1",
+      "bmod_h3_success_how2": "how_2"
+     },
+     "dealt": [
+      {
+       "count": "hows_given",
+       "members": [
+        "how_1",
+        "how_2"
+       ]
+      }
+     ]
+    }
+   ],
+   [
+    "2b",
+    {
+     "handout": 3,
+     "screen": "bmod_h3_assessment",
+     "button": "Check my assessment",
+     "feedback": "bmod_h3_assessment_feedback",
+     "grader": "bmod_h3_assessment_grader",
+     "fields": {
+      "bmod_h3_assessment_response": "2b",
+      "bmod_h2_t1": "_t1",
+      "bmod_h2_t2": "_t2"
+     },
+     "fallback": {
+      "_t1": {
+       "__tuple__": [
+        2,
+        "T1"
+       ]
+      },
+      "_t2": {
+       "__tuple__": [
+        2,
+        "T2"
+       ]
+      }
+     }
+    }
+   ],
+   [
+    "T1",
+    {
+     "handout": 2,
+     "screen": "bmod_h2_first",
+     "feedback": "bmod_h2_t1_checks",
+     "grader": "bmod_h2_t1_sheet_grader",
+     "fields": {
+      "bmod_h2_t1": "_type_choice:T1"
+     }
+    }
+   ],
+   [
+    "T2",
+    {
+     "handout": 2,
+     "screen": "bmod_h2_second",
+     "feedback": "bmod_h2_t2_checks",
+     "grader": "bmod_h2_t2_sheet_grader",
+     "fields": {
+      "bmod_h2_t2": "_type_choice:T2"
+     }
+    }
+   ],
+   [
+    "1b",
+    {
+     "handout": 3,
+     "screen": "bmod_h3_data",
+     "feedback": "bmod_h3_data_checks",
+     "grader": "bmod_h3_data_grader",
+     "fields": {},
+     "sim": {
+      "bmod_h3_baseline": "baseline",
+      "bmod_h3_wk1": "week_1",
+      "bmod_h3_wk2": "week_2",
+      "bmod_h3_wk3": "week_3"
+     }
+    }
+   ],
+   [
+    "3",
+    {
+     "handout": 3,
+     "screen": "bmod_h3_improve",
+     "button": "Check my answer",
+     "feedback": "bmod_h3_improve_feedback",
+     "grader": "bmod_h3_improve_grader",
+     "fields": {},
+     "from_scorer": {
+      "bmod_h3_improve_first": "example_1",
+      "bmod_h3_improve_second": "example_2"
+     },
+     "dealt": [
+      {
+       "count": "changes_given",
+       "members": [
+        "example_1",
+        "example_2"
+       ]
+      }
+     ]
+    }
+   ]
+  ],
+  "HANDOUT_FIELDS": [
+   [
+    "1",
+    {
+     "blurb": "Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.",
+     "capture_tail": false,
+     "cited_participants": {
+      "Q5": []
+     },
+     "exemplar_items": [],
+     "exemplar_participants": [
+      10,
+      8,
+      6
+     ],
+     "outdir_name": "h1",
+     "submissions_dir": "Handout 1 Submissions with Scoring and Feedback",
+     "template_file": "BMod Handout #1 - Defining Behaviors, ABCs, and SMART Goals.docx"
+    }
+   ],
+   [
+    "2",
+    {
+     "blurb": "Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.",
+     "capture_tail": true,
+     "exemplar_participants": [],
+     "outdir_name": "h2",
+     "repair_orphans": true,
+     "submissions_dir": "Handout 2 Submissions with Scoring and Feedback",
+     "suspect_participants": [
+      2,
+      3
+     ],
+     "template_file": "BMod Handout #2 - Learning Operant Conditioning and Applying It to Behavior Change.docx"
+    }
+   ],
+   [
+    "3",
+    {
+     "blurb": "Handout 3 of the Behavior Modification Assignment: presenting and graphing the data collected during the intervention, and analysing the result.",
+     "capture_tail": true,
+     "cited_participants": {},
+     "exemplar_participants": [],
+     "join_aware": true,
+     "outdir_name": "h3",
+     "submissions_dir": "Handout 3 Submissions with Scoring and Feedback",
+     "template_file": "BMod Handout #3 - Presenting Data, Graphing Data, &amp_ Analyzing Your Intervention.docx"
+    }
+   ]
+  ],
+  "SIDE_ALIAS": [
+   [
+    "avoidance_frame",
+    {
+     "__tuple__": [
+      "phrased_directly_gate",
+      "phrased_directly"
+     ]
+    }
+   ],
+   [
+    "baseline",
+    {
+     "__tuple__": [
+      "baseline",
+      "baseline_data"
+     ]
+    }
+   ],
+   [
+    "behavior",
+    "names_behavior"
+   ],
+   [
+    "cadence_ok",
+    {
+     "__tuple__": [
+      "cadence_is_daily",
+      "cadence_is_daily_counted",
+      "cadence_is_weekly"
+     ]
+    }
+   ],
+   [
+    "contingent_on_behavior",
+    "contingent"
+   ],
+   [
+    "is_np",
+    "demonstrates_type"
+   ],
+   [
+    "is_nr",
+    "demonstrates_type"
+   ],
+   [
+    "is_pp",
+    "demonstrates_type"
+   ],
+   [
+    "is_pr",
+    "demonstrates_type"
+   ],
+   [
+    "observed_type",
+    {
+     "__tuple__": [
+      "demonstrates_type",
+      "observed_type"
+     ]
+    }
+   ],
+   [
+    "operant_behavior",
+    "names_behavior"
+   ],
+   [
+    "stimulus",
+    "names_stimulus"
+   ],
+   [
+    "stimulus_is_arranged",
+    "you_arrange_it"
+   ],
+   [
+    "stimulus_move",
+    {
+     "__tuple__": [
+      "demonstrates_type",
+      "stimulus_move"
+     ]
+    }
+   ],
+   [
+    "targets_intended_behavior",
+    {
+     "__tuple__": [
+      "targets_goal_behavior",
+      "targets_unwanted_behavior"
+     ]
+    }
+   ],
+   [
+    "week_1",
+    {
+     "__tuple__": [
+      "week_1",
+      "week_1_data"
+     ]
+    }
+   ],
+   [
+    "week_2",
+    {
+     "__tuple__": [
+      "week_2",
+      "week_2_data"
+     ]
+    }
+   ],
+   [
+    "week_3",
+    {
+     "__tuple__": [
+      "week_3",
+      "week_3_data"
+     ]
+    }
+   ]
+  ],
+  "SIDE_INVERTED": [
+   "avoidance_frame"
+  ],
+  "PROBE_PASS": [
+   [
+    "agent_delivers_consequence",
+    true
+   ],
+   [
+    "aimed_correctly",
+    true
+   ],
+   [
+    "avoidance_frame",
+    false
+   ],
+   [
+    "behavior",
+    "walking to class"
+   ],
+   [
+    "cadence_ok",
+    true
+   ],
+   [
+    "consequence_asserted",
+    true
+   ],
+   [
+    "contingent",
+    true
+   ],
+   [
+    "follows_behavior",
+    true
+   ],
+   [
+    "restriction_authored",
+    "relieved"
+   ],
+   [
+    "restricts",
+    "target_behavior"
+   ],
+   [
+    "states_a_contingency",
+    true
+   ],
+   [
+    "stimulus",
+    "a coffee"
+   ],
+   [
+    "stimulus_is_arranged",
+    true
+   ],
+   [
+    "stimulus_move",
+    {
+     "NP": "taken_desirable",
+     "NR": "taken_undesirable",
+     "PP": "given_undesirable",
+     "PR": "given_desirable"
+    }
+   ],
+   [
+    "targets_intended_behavior",
+    true
+   ],
+   [
+    "targets_own_behavior",
+    true
+   ],
+   [
+    "trigger_expects",
+    "gain"
+   ]
+  ],
+  "PROBE_FAIL": [
+   [
+    "agent_delivers_consequence",
+    false
+   ],
+   [
+    "aimed_correctly",
+    false
+   ],
+   [
+    "avoidance_frame",
+    true
+   ],
+   [
+    "behavior",
+    ""
+   ],
+   [
+    "cadence_ok",
+    false
+   ],
+   [
+    "consequence_asserted",
+    false
+   ],
+   [
+    "contingent",
+    false
+   ],
+   [
+    "follows_behavior",
+    false
+   ],
+   [
+    "restriction_authored",
+    "created"
+   ],
+   [
+    "restricts",
+    "target_behavior"
+   ],
+   [
+    "states_a_contingency",
+    false
+   ],
+   [
+    "stimulus",
+    ""
+   ],
+   [
+    "stimulus_is_arranged",
+    false
+   ],
+   [
+    "stimulus_move",
+    {
+     "NP": "taken_undesirable",
+     "NR": "taken_desirable",
+     "PP": "given_desirable",
+     "PR": "given_undesirable"
+    }
+   ],
+   [
+    "targets_intended_behavior",
+    false
+   ],
+   [
+    "targets_own_behavior",
+    false
+   ],
+   [
+    "trigger_expects",
+    "loss"
+   ]
+  ],
+  "PROBE_TYPE_FIELDS": [
+   "observed_type",
+   "named_type",
+   "trigger_behavior"
+  ]
+ }
+}

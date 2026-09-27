@@ -38,8 +38,13 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
+# `paths` FIRST: it puts this course's `scoring/<course>/` and the general
+# `scorers/` on `sys.path`, and the imports just below are modules that live
+# there. Importing them before `paths` raises ModuleNotFoundError -- measured
+# on 13 modules the day those directories were split out.
+import paths  # noqa: F401  (import order is load-bearing; see above)
 import gold
-import handouts as H
+import forms as H
 
 _LOADERS = {1: gold.load_h1, 2: gold.load_h2, 3: gold.load_h3}
 
@@ -70,6 +75,13 @@ def record_probe(item: str, after_sha: str, cells: list[int], artifact: str,
     already been probed and no sequence of probes could ever satisfy it.
     Re-filing the SAME artifact still replaces rather than duplicates.
     """
+    # NORMALISED TO A ROOT TOKEN. `artifact` is an IDENTITY here, compared by
+    # equality to replace an earlier probe of the same run -- so an absolute
+    # path and its token form are two different artifacts, and a re-probe would
+    # append rather than replace. The ledger's fifteen existing entries were
+    # converted on 2026-09-26, after every one of them was found broken by the
+    # data-root move that morning with nothing reporting it.
+    artifact = _paths_probed.as_record_path(artifact)
     led = _probe_ledger()
     led = [e for e in led if not (e["item"] == item and e["after_sha"] == after_sha
                                   and e.get("artifact") == artifact)]
@@ -125,17 +137,17 @@ def _verdict(item: str, movers: list[int]) -> int:
     return 0
 
 
-def gold_for(handout: int, item: str) -> dict:
-    g = H.apply_corrected_gold(_LOADERS[handout](), handout)
-    if item == "1c":
+def gold_for(form: int, item: str) -> dict:
+    g = H.apply_corrected_gold(_LOADERS[form](), form)
+    if H.rebuilds_gold(item):
         import agreement_app as APP
         g, _ = APP.rebuild_declared_gold({p: dict(v) for p, v in g.items()})
     return g
 
 
-def tally(path: str, handout: int, item: str, g: dict) -> dict[int, list[bool]]:
+def tally(path: str, form: int, item: str, g: dict) -> dict[int, list[bool]]:
     """Per participant, was the cell right in each run? Excluded cells omitted."""
-    ex = set(H.cell_exclusions(handout, item))
+    ex = set(H.cell_exclusions(form, item))
     out: dict[int, list[bool]] = {}
     for run in json.load(open(path))["runs"]:
         for c in run["results"]:
@@ -148,7 +160,7 @@ def tally(path: str, handout: int, item: str, g: dict) -> dict[int, list[bool]]:
     return out
 
 
-def _regressions_against_recorded(handout, item, after, na, g) -> None:
+def _regressions_against_recorded(form, item, after, na, g) -> None:
     """Cells that are right in the RECORDED state and wrong now.
 
     A comparison against an old baseline cannot see a gain being undone. DAY2/p8
@@ -170,7 +182,7 @@ def _regressions_against_recorded(handout, item, after, na, g) -> None:
         path = MEAS._runs_path(item)
         if rec.get("pending") or not path:
             return
-        recorded = tally(path, handout, item, g)
+        recorded = tally(path, form, item, g)
     except Exception as e:                       # never block a comparison
         print(f"\n  (recorded-state check unavailable: {e})")
         return
@@ -199,10 +211,10 @@ def _regressions_against_recorded(handout, item, after, na, g) -> None:
               "size cancel.")
 
 
-def compare(handout: int, item: str, before_path: str, after_path: str) -> int:
-    g = gold_for(handout, item)
-    before = tally(before_path, handout, item, g)
-    after = tally(after_path, handout, item, g)
+def compare(form: int, item: str, before_path: str, after_path: str) -> int:
+    g = gold_for(form, item)
+    before = tally(before_path, form, item, g)
+    after = tally(after_path, form, item, g)
     shared = sorted(set(before) & set(after))
     if not shared:
         print("no cells in common — different denominators?")
@@ -264,7 +276,7 @@ def compare(handout: int, item: str, before_path: str, after_path: str) -> int:
         for p, b, a in probe:
             print(f"    p{p:<3} gold {g[p][item]['score']:<4g} {b}/{nb} -> {a}/{na}")
         pids = " ".join(str(p) for p, _, _ in probe)
-        print(f"\n    python3 agreement.py --handout {handout} --items {item} \\\n"
+        print(f"\n    python3 agreement.py --handout {form} --items {item} \\\n"
               f"        --participants {pids} {controls} --runs 6 --workers 4 \\\n"
               f"        --out OUT/{item}.json")
         print(f"    (the trailing {controls or 'control'} are CONTROLS: cells "
@@ -276,7 +288,7 @@ def compare(handout: int, item: str, before_path: str, after_path: str) -> int:
 
     verdict = _verdict(item, [p for p, _, _ in probe])
 
-    _regressions_against_recorded(handout, item, after, na, g)
+    _regressions_against_recorded(form, item, after, na, g)
 
     # A sweep is also the moment to ask whether this item's DECLARATIONS still
     # describe it. The enforcement suite asks the same question, but the review
@@ -311,8 +323,8 @@ def main() -> int:
     if len(sys.argv) != 5:
         print(__doc__.strip().splitlines()[2].strip(), file=sys.stderr)
         return 1
-    handout, item, before_path, after_path = sys.argv[1:]
-    return compare(int(handout), item, before_path, after_path)
+    form, item, before_path, after_path = sys.argv[1:]
+    return compare(int(form), item, before_path, after_path)
 
 
 if __name__ == "__main__":

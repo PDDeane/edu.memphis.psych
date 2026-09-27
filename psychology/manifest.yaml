@@ -5,13 +5,30 @@
 title: Psychology Study Group
 namespace: edu.memphis.psych
 
-# THE PRE-NAMESPACING DATA LAYOUT (J-4d, 2026-09-24). This course's submissions
-# and outputs live at the SHARED roots -- $COURSE_DATA/"Handout Submissions with
-# Scoring and Feedback" and $COURSE_DATA/out -- rather than under
-# $COURSE_DATA/courses/<namespace>/. It is declared here, and read only when this
-# manifest's own `namespace` matches the course being run, so that a second
-# course cannot inherit the layout by accident. A new course should NOT set this.
-shared_data_layout: true
+# THE DATA LAYOUT IS THE STANDARD ONE (2026-09-26). `shared_data_layout: true`
+# stood here until the user authorised the move: this course's submissions,
+# hand-split fixtures and run outputs sat at the SHARED roots --
+# $COURSE_DATA/"Handout Submissions with Scoring and Feedback",
+# $COURSE_DATA/handsplit and $COURSE_DATA/out -- where a second course would
+# have collided with them. They are now under $COURSE_DATA/courses/<namespace>/
+# like every other course's, so the declaration has nothing left to declare and
+# the absent flag means what a new course's absent flag means.
+#
+# THE LEGACY DIRECTORIES STILL EXIST and are no longer read. Nothing detects
+# them -- the layout is declared, never sniffed -- so they are inert rather than
+# dangerous, and they are the recovery path until the move is trusted.
+
+# THIS COLLECTION'S OWN FILENAMES. `paths.py` defaulted to them -- `COURSE_OLX =
+# _manifest("course_olx", "bmod_course.olx")` -- so this course's filenames sat
+# in the engine as fallbacks, the same embedding the directory names carried
+# until subgoal E58 moved those out. Declared here, the engine needs no default
+# and lo-blocks can read them without one either.
+#
+# `%d` IS THE FORM NUMBER, which is why the handout pattern is a template and
+# not a list: a course with four handouts changes nothing here.
+course_olx: bmod_course.olx
+rubric_component: bmod_rubric.olx
+handout_olx: bmod_handout%d.olx
 classes:
   - no-translanguaging
 content_notice: >

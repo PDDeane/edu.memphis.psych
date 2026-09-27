@@ -313,7 +313,7 @@ def export_olx_data(out_path: str, olx_dir: str | None = None) -> int:
         # an empty corpus rather than failing. `paths.OLX_DIR` is the content
         # directory the parameter names, resolved one way for everyone.
         import paths
-        root = paths.OLX_DIR
+        root = paths.roots().olx_dir
     idx = _index()
     data, seen = {}, 0
     # BOTH FORMS, AND THE WHOLE TREE. The export feeds `corpus_resolve.py`, which
@@ -321,10 +321,30 @@ def export_olx_data(out_path: str, olx_dir: str | None = None) -> int:
     # references in rubric guidance, notes and write-ups, not only `{{corpus:}}`
     # in the .olx. Exporting the .olx form alone would leave every prose
     # reference unresolvable exactly where nothing else can help.
-    targets = []
-    for d in (root, HERE):
-        for pat in ("*.olx", "*.py", "*.md", "*.json"):
-            targets.extend(sorted(d.glob(pat)))
+    # THE CONTENT ROOT IS SEARCHED AT ANY DEPTH. This globbed one level, so
+    # when a course's material moved into a folder of its own inside the
+    # collection on 2026-09-26 every one of its `.olx` files left the export
+    # silently -- a glob that matches nothing produces an empty corpus, not an
+    # error, and an empty corpus reads as "this course cites nothing". The
+    # user's rule is that no layout code may assume how deeply a course is
+    # embedded, and this is that rule applied to a scan rather than a lookup.
+    #
+    # `HERE` IS NOT WIDENED, deliberately. It is this package's own directory,
+    # where depth was never the question; recursing it would pull in tools,
+    # drafts and caches and change what the export contains for a reason that
+    # has nothing to do with the move.
+    _PRUNE = {".git", "node_modules", "__pycache__", ".stage", ".venv"}
+
+    def _walk(d):
+        for dirpath, dirnames, filenames in _os.walk(d, onerror=lambda e: None):
+            dirnames[:] = [x for x in dirnames if x not in _PRUNE]
+            for fn in filenames:
+                if fn.endswith((".olx", ".py", ".md", ".json")):
+                    yield pathlib.Path(dirpath) / fn
+
+    targets = sorted(_walk(root))
+    for pat in ("*.olx", "*.py", "*.md", "*.json"):
+        targets.extend(sorted(HERE.glob(pat)))
     for f in targets:
         if f.name == "corpus_refs.json":
             continue

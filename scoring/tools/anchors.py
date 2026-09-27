@@ -127,7 +127,7 @@ def _citer_root() -> str:
     """
     import paths
 
-    return str(paths.COURSE_LOCATION)
+    return str(paths.roots().location)
 
 
 def _prose_path(name: str, root: str | None) -> str:

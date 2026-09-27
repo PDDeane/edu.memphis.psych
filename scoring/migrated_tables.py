@@ -29,6 +29,7 @@ from __future__ import annotations
 import argparse
 import ast
 import importlib
+import re
 import os
 import sys
 
@@ -185,6 +186,25 @@ def same_shape(a, b, path="") -> list[str]:
     return out
 
 
+# AUTHORED UNDER A NAME THE RECORDS DO NOT CARRY, deliberately. Subgoal E61.
+#
+# The unpaired-table scan below asks whether anything still reads each authored
+# table BY NAME. A table can legitimately fail that: goal N moved the three
+# marker tables off the `H1/H2/H3_MARKERS` aliases and onto a per-handout
+# `markers` FIELD, which `forms.py` assembles through `_markers(h)`. The data
+# migrated; the name did not survive the trip, and that was the point.
+#
+# Declared rather than exempted silently, so the decision stays visible -- and
+# so that the day one of these is genuinely orphaned, the entry is the thing
+# somebody has to delete.
+AUTHORED_WITHOUT_READER: dict[str, str] = {
+    "H1_MARKERS": "goal N: read as the per-handout `markers` field via "
+                  "`forms._markers(h)`, not by this name",
+    "H2_MARKERS": "as H1_MARKERS",
+    "H3_MARKERS": "as H1_MARKERS",
+}
+
+
 def verify() -> list[str]:
     out = []
     builders = {}
@@ -213,6 +233,57 @@ def verify() -> list[str]:
             out.append(f"{module_name}.{table} does NOT match its authored copy: "
                        f"{problems[0]}"
                        + (f" (+{len(problems) - 1} more)" if len(problems) > 1 else ""))
+
+    # THE OTHER DIRECTION, AND IT IS THE ONE THAT WENT QUIET. Subgoal E61.
+    #
+    # Everything above walks the READERS and asks whether each has an authored
+    # twin. An authored table that NO reader reads never enters that loop at
+    # all, so it is not reported as mismatched -- it simply drops out, and
+    # silence reads as agreement.
+    #
+    # MEASURED, 2026-09-25: the E58 identifier pass renamed `HANDOUT_FIELDS` to
+    # `FORM_FIELDS` in `course_metadata_source`. The record still said
+    # `HANDOUT_FIELDS`, `forms.py` still read that key, and the export still
+    # named it -- the authored table and its record were completely unpaired,
+    # and this function returned ZERO findings throughout.
+    #
+    # A builder table with no reader is not always a fault: a table may be
+    # authored before anything consumes it. So it is reported as UNPAIRED
+    # rather than as a mismatch, and it names both possibilities.
+    # WHAT COUNTS AS READ, and the first draft of this got it wrong. `pairs()`
+    # recognises a table only when a module BINDS it -- `NAME = _declaration(...)`
+    # -- and several are read by NAMING them at the call site instead:
+    # `forms.py` does `coursedata.declaration("HANDOUT_FIELDS")`. Counting only
+    # the bound ones reported twelve healthy tables as unpaired.
+    #
+    # So a table is read if its NAME appears as a quoted string anywhere outside
+    # the builders. That is deliberately loose: the question here is whether
+    # ANYTHING still refers to it, and a rename -- the fault this exists for --
+    # leaves the new name unmentioned everywhere, which this still catches.
+    read = {table for _, table in pairs()}
+    for fn in sorted(os.listdir(HERE)):
+        if not fn.endswith(".py") or fn[:-3] in BUILDERS:
+            continue
+        try:
+            text = open(os.path.join(HERE, fn), errors="ignore").read()
+        except OSError:                           # pragma: no cover
+            continue
+        for quoted in re.findall(r'["\']([A-Z][A-Z0-9_]{2,})["\']', text):
+            read.add(quoted)
+    for name, mod in builders.items():
+        for attr in sorted(vars(mod)):
+            if attr.startswith("_") or not attr.isupper() or attr in read:
+                continue
+            if attr in AUTHORED_WITHOUT_READER:
+                continue
+            value = getattr(mod, attr)
+            if not isinstance(value, (dict, list, tuple, set, frozenset)):
+                continue
+            out.append(
+                f"{name}.{attr} is AUTHORED and nothing reads it back from the "
+                f"course file. Either the migration has not happened yet, or the "
+                f"reader names it differently -- which is how a renamed table "
+                f"stops being compared to its record without anything saying so")
     return out
 
 

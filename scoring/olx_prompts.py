@@ -38,9 +38,9 @@ import sys
 
 sys.path.insert(0, __file__.rsplit("/", 1)[0])
 
-from handouts import config
+from forms import config
 import paths
-import handouts as _handouts   # forms are declared by the course, not counted here
+import forms as _forms   # forms are declared by the course, not counted here
 
 # The `{fail}` placeholder in a shared `rule`, bare or slot-qualified. ONE
 # definition, imported by score.py rather than restated: the two generators must
@@ -188,16 +188,16 @@ SHEET_ONLY = _generator_table("prompt_sheet_only")
 # CLASSIFIED HANDOUT 3: a wrong answer, not an error, which is the quiet
 # direction. Every item already declares `handout` in the course file (26 of 26
 # here), so the fact is read rather than parsed out of a name.
-def _item_handouts() -> dict:
+def _item_forms() -> dict:
     """{item id: handout}, as the COURSE FILE declares it."""
     import coursedata
     return {str(it["id"]): int(it["handout"])
             for it in coursedata.items() if it.get("handout") is not None}
 
 
-_ITEM_HANDOUT = _item_handouts()
-HANDOUT = {i: _ITEM_HANDOUT[i]
-           for i in {**ACTION, **SHEET_ONLY} if i in _ITEM_HANDOUT}
+_ITEM_FORM = _item_forms()
+FORM = {i: _ITEM_FORM[i]
+           for i in {**ACTION, **SHEET_ONLY} if i in _ITEM_FORM}
 
 
 def sheet_id(item: str) -> str:
@@ -1032,7 +1032,7 @@ MATCH_DEF = _generator_table("prompt_match_def")
 
 def build_web_prompt(item_id: str, minted: dict | None = None) -> str:
     minted = {} if minted is None else minted
-    h = HANDOUT[item_id]
+    h = FORM[item_id]
     cfg = config(h)
     item = cfg["rubric"].BY_ID[item_id]
     action = ACTION[item_id]
@@ -1625,30 +1625,30 @@ _ACTION_RE = r'(<LLMAction\b[^>]*?\bid="%s"[^>]*>)(.*?)(</LLMAction>)'
 _SHEET_RE = r'<(?:LLMAction|DerivedChecks)\b[^>]*?\bid="%s"[^>]*?/?>'
 
 
-def _src(handout: int) -> str:
-    with open(OLX % handout) as fh:
+def _src(form: int) -> str:
+    with open(OLX % form) as fh:
         return fh.read()
 
 
-def _sheet_tag(handout: int, element: str) -> str:
+def _sheet_tag(form: int, element: str) -> str:
     """The opening tag of whichever element carries `element`'s slot sheet."""
-    m = re.search(_SHEET_RE % re.escape(element), _src(handout), re.S)
+    m = re.search(_SHEET_RE % re.escape(element), _src(form), re.S)
     if not m:
-        raise SystemExit(f"no slot-sheet element id={element} in handout {handout}")
+        raise SystemExit(f"no slot-sheet element id={element} in handout {form}")
     return m.group(0)
 
 
-def _slots_attr(handout: int, action: str) -> tuple[str, list[str]]:
-    m = re.search(_ACTION_RE % re.escape(action), _src(handout), re.S)
+def _slots_attr(form: int, action: str) -> tuple[str, list[str]]:
+    m = re.search(_ACTION_RE % re.escape(action), _src(form), re.S)
     if m is None:
-        tag = _sheet_tag(handout, action)
+        tag = _sheet_tag(form, action)
         spec = re.search(r'\bslots="([^"]*)"', tag)
         verd = re.search(r'\bverdicts="([^"]*)"', tag)
         return ((spec.group(1) if spec else ""),
                 ([v.strip() for v in verd.group(1).split(",") if v.strip()]
                  if verd else default_verdicts()))
     if not m:
-        raise SystemExit(f"no <LLMAction id={action}> in handout {handout}")
+        raise SystemExit(f"no <LLMAction id={action}> in handout {form}")
     tag = m.group(1)
     spec = re.search(r'\bslots="([^"]*)"', tag)
     verd = re.search(r'\bverdicts="([^"]*)"', tag)
@@ -1781,9 +1781,9 @@ def contains_hit(text: str, words) -> tuple:
     return None, None
 
 
-def _counts_attr(handout: int, action: str) -> list[dict]:
+def _counts_attr(form: int, action: str) -> list[dict]:
     """`counts="key:member,member"` — one count standing in for its member checks."""
-    m = re.search(r'\bcounts="([^"]*)"', _sheet_tag(handout, action))
+    m = re.search(r'\bcounts="([^"]*)"', _sheet_tag(form, action))
     out = []
     for entry in (m.group(1) if m else "").split("|"):
         key, _, members = entry.strip().partition(":")
@@ -1793,11 +1793,11 @@ def _counts_attr(handout: int, action: str) -> list[dict]:
     return out
 
 
-def _derived_attr(handout: int, action: str) -> list[dict]:
+def _derived_attr(form: int, action: str) -> list[dict]:
     """`derived="key:ref,ref"` — checks read off the page, not asked of the model."""
     # `_sheet_tag`, not `_ACTION_RE`: a DerivedChecks element carries these rules
     # too, and matching only <LLMAction> returned silently empty for those.
-    d = re.search(r'\bderived="([^"]*)"', _sheet_tag(handout, action))
+    d = re.search(r'\bderived="([^"]*)"', _sheet_tag(form, action))
     out = []
     for entry in (d.group(1) if d else "").split("|"):
         parts = [p.strip() for p in _split_keeping_refs(entry.strip())]
@@ -1846,7 +1846,7 @@ def check_scorer_voice_in_labels() -> list[str]:
     scorer_facing = ("confident", "uncertain")
     second_person = re.compile(r"\b(you|your|yours|yourself)\b", re.I)
     out = []
-    for h in _handouts.declared():
+    for h in _forms.declared():
         src = _src(h)
         for m in re.finditer(r'slots="([^"]*)"', src, re.S):
             for entry in m.group(1).split("|"):
@@ -1862,7 +1862,7 @@ def check_scorer_voice_in_labels() -> list[str]:
     return out
 
 
-def check_template_matches_example(handout: int = 3) -> list[str]:
+def check_template_matches_example(form: int = 3) -> list[str]:
     """The `derived` template must be the worked example's own numbers.
 
     Those numbers live twice — in `bmod_h3_example_plot`'s data and in the
@@ -1871,7 +1871,7 @@ def check_template_matches_example(handout: int = 3) -> list[str]:
     so this fails `--check`/`--write` the moment they disagree; otherwise the
     grader would quietly stop recognising the example it is meant to catch.
     """
-    src = _src(handout)
+    src = _src(form)
     m = re.search(r'<ObservablePlot\b[^>]*\bid="bmod_h3_example_plot".*?</ObservablePlot>',
                   src, re.S)
     if not m:
@@ -1880,34 +1880,34 @@ def check_template_matches_example(handout: int = 3) -> list[str]:
     for wk, oz in re.findall(r'week:\s*"([^"]+)",\s*oz:\s*(-?[\d.]+)', m.group(0)):
         by_week.setdefault(wk, []).append(float(oz))
     plot = [by_week[k] for k in ("Baseline", "Week 1", "Week 2", "Week 3") if k in by_week]
-    for r in _derived_attr(handout, ACTION["1c"]):
+    for r in _derived_attr(form, ACTION["1c"]):
         if r["template"] and r["template"] != plot:
             return [f"derived template {r['template']} != example plot {plot}"]
     return []
 
 
-def _maps_attr(handout: int, action: str) -> list[dict]:
-    mp = re.search(r'\bmaps="([^"]*)"', _sheet_tag(handout, action))
+def _maps_attr(form: int, action: str) -> list[dict]:
+    mp = re.search(r'\bmaps="([^"]*)"', _sheet_tag(form, action))
     return parse_maps(mp.group(1) if mp else "")
 
 
-def _forbid_attr(handout: int, action: str) -> list[dict]:
-    fb = re.search(r'\bforbid="([^"]*)"', _sheet_tag(handout, action))
+def _forbid_attr(form: int, action: str) -> list[dict]:
+    fb = re.search(r'\bforbid="([^"]*)"', _sheet_tag(form, action))
     return parse_forbid(fb.group(1) if fb else "")
 
 
-def _equals_attr(handout: int, action: str) -> list[dict]:
-    eq = re.search(r'\bequals="([^"]*)"', _sheet_tag(handout, action))
+def _equals_attr(form: int, action: str) -> list[dict]:
+    eq = re.search(r'\bequals="([^"]*)"', _sheet_tag(form, action))
     return parse_equals(eq.group(1) if eq else "")
 
 
-def _choices_attr(handout: int, action: str) -> dict[str, list[str]]:
-    ch = re.search(r'\bchoices="([^"]*)"', _sheet_tag(handout, action))
+def _choices_attr(form: int, action: str) -> dict[str, list[str]]:
+    ch = re.search(r'\bchoices="([^"]*)"', _sheet_tag(form, action))
     return parse_choices(ch.group(1) if ch else "")
 
 
-def _expect_attr(handout: int, action: str) -> list[dict]:
-    ex = re.search(r'\bexpect="([^"]*)"', _sheet_tag(handout, action))
+def _expect_attr(form: int, action: str) -> list[dict]:
+    ex = re.search(r'\bexpect="([^"]*)"', _sheet_tag(form, action))
     return parse_expect(ex.group(1) if ex else "")
 
 
@@ -1933,7 +1933,7 @@ def forbid_attr_for(item_id: str) -> str | None:
     generates the attribute. Format is parse_forbid's: `key:slot=value,...`,
     rules joined by `|`.
     """
-    item = config(HANDOUT[item_id])["rubric"].BY_ID[item_id]
+    item = config(FORM[item_id])["rubric"].BY_ID[item_id]
     rules = item.get("forbid") or []
     if not rules:
         return None
@@ -1971,7 +1971,7 @@ def expect_attr_for(item_id: str) -> str | None:
     the rubric backs an attribute, so all five are correctly backed. The stale
     prose misled a reader, not a check.
     """
-    item = config(HANDOUT[item_id])["rubric"].BY_ID[item_id]
+    item = config(FORM[item_id])["rubric"].BY_ID[item_id]
     rules = item.get("expect") or []
     if not rules:
         return None
@@ -1994,7 +1994,7 @@ def maps_attr_for(item_id: str) -> str | None:
     Format is parse_maps's: `key:pick:value~verdict,...`, `*` last as the fallback,
     rules joined by `|`.
     """
-    item = config(HANDOUT[item_id])["rubric"].BY_ID[item_id]
+    item = config(FORM[item_id])["rubric"].BY_ID[item_id]
     rules = item.get("maps") or []
     if not rules:
         return None
@@ -2023,7 +2023,7 @@ def _pick_verdicts(item_id: str, slot: str) -> list[str] | None:
     The same None/[] conflation produced Q6's phantom STALE CELLS and a false
     refusal in `probe.control_gate` on the same day.
     """
-    rub = config(HANDOUT[item_id])["rubric"]
+    rub = config(FORM[item_id])["rubric"]
     for c in (rub.BY_ID.get(item_id) or {}).get("credit") or []:
         if c["what"] == slot and c.get("verdicts"):
             return list(c["verdicts"])
@@ -2052,7 +2052,7 @@ def choices_attr_for(item_id: str) -> str | None:
     the .olx's for preserved sets and the rubric's for generated ones, so a
     switch-on rewrites only the sets that actually differ.
     """
-    h = HANDOUT[item_id]
+    h = FORM[item_id]
     # ACTION is the map the other generators use; _sheet_tag raises SystemExit
     # (NOT an Exception) for an unknown id, so the guard has to be BaseException.
     action = ACTION.get(item_id)
@@ -2164,7 +2164,7 @@ def derived_attr_for(item_id: str) -> str | None:
     is no box list to tell the web about, and inventing one would put a field id
     into a prompt on a guess.
     """
-    rules = config(HANDOUT[item_id])["rubric"].BY_ID[item_id].get("derived") or []
+    rules = config(FORM[item_id])["rubric"].BY_ID[item_id].get("derived") or []
     out = []
     for r in rules:
         fields = r.get("fields")
@@ -2195,7 +2195,7 @@ def slots_attr_for(item_id: str) -> str | None:
     before a line was written, which is why switching this on moved no
     prompt_sha.
     """
-    spec = getattr(config(HANDOUT[item_id])["rubric"], "SLOT_SPEC", {}) or {}
+    spec = getattr(config(FORM[item_id])["rubric"], "SLOT_SPEC", {}) or {}
     rules = spec.get(item_id)
     if not rules:
         return None
@@ -2219,7 +2219,7 @@ def _slot_pairs_attr(item_id: str, field: str) -> str | None:
     parses both with `parseCharge` -- first colon splits, so a value may contain
     colons of its own, which every `because` sentence does.
     """
-    spec = getattr(config(HANDOUT[item_id])["rubric"], "SLOT_SPEC", {}) or {}
+    spec = getattr(config(FORM[item_id])["rubric"], "SLOT_SPEC", {}) or {}
     out = [f"{f['key']}:{f[field]}" for f in (spec.get(item_id) or [])
            if f.get(field)]
     return "|".join(out) or None
@@ -2253,7 +2253,7 @@ def because_attr_for(item_id: str) -> str | None:
 
 def equals_attr_for(item_id: str) -> str | None:
     """`equals="key:left,right:lenient,..."`, '|'-separated, from the RUBRIC."""
-    rules = config(HANDOUT[item_id])["rubric"].BY_ID[item_id].get("equals") or []
+    rules = config(FORM[item_id])["rubric"].BY_ID[item_id].get("equals") or []
     if not rules:
         return None
     out = []
@@ -2267,7 +2267,7 @@ def equals_attr_for(item_id: str) -> str | None:
 
 def onlyif_attr_for(item_id: str) -> str | None:
     """`onlyif="key:cond"`, '|'-separated, from the RUBRIC."""
-    rules = config(HANDOUT[item_id])["rubric"].BY_ID[item_id].get("onlyif") or []
+    rules = config(FORM[item_id])["rubric"].BY_ID[item_id].get("onlyif") or []
     if not rules:
         return None
     return "|".join(f"{r['key']}:{r['cond']}" for r in rules)
@@ -2290,12 +2290,12 @@ def max_attr_for(item_id: str) -> str | None:
     if not action:
         return None
     try:
-        tag = _sheet_tag(HANDOUT[item_id], action)
+        tag = _sheet_tag(FORM[item_id], action)
     except BaseException:
         return None
     if not _re.search(r'\bmax="', tag):
         return None                    # absent by authoring: leave it absent
-    m = config(HANDOUT[item_id])["rubric"].BY_ID[item_id].get("max")
+    m = config(FORM[item_id])["rubric"].BY_ID[item_id].get("max")
     if m is None:
         return None
     return str(int(m)) if float(m) == int(m) else str(m)
@@ -2311,7 +2311,7 @@ def counts_attr_for(item_id: str) -> str | None:
     whose rubric declaration and .olx attribute cover EXACTLY the same items, so
     they convert with no reconciliation and no prompt change.
     """
-    rules = config(HANDOUT[item_id])["rubric"].BY_ID[item_id].get("counts") or []
+    rules = config(FORM[item_id])["rubric"].BY_ID[item_id].get("counts") or []
     if not rules:
         return None
     return "|".join(f"{r['key']}:{','.join(r['slots'])}" for r in rules)
@@ -2319,7 +2319,7 @@ def counts_attr_for(item_id: str) -> str | None:
 
 def requires_attr_for(item_id: str) -> str | None:
     """`requires="key:cond:lenient,..."`, '|'-separated, from the RUBRIC."""
-    rules = config(HANDOUT[item_id])["rubric"].BY_ID[item_id].get("requires") or []
+    rules = config(FORM[item_id])["rubric"].BY_ID[item_id].get("requires") or []
     if not rules:
         return None
     out = []
@@ -2340,7 +2340,7 @@ def cover_attr_for(item_id: str) -> str | None:
     not read, so they are deliberately dropped here and NOT lost: `parse_cover`
     reads only keys and labels.
     """
-    rules = config(HANDOUT[item_id])["rubric"].BY_ID[item_id].get("cover") or []
+    rules = config(FORM[item_id])["rubric"].BY_ID[item_id].get("cover") or []
     if not rules:
         return None
     return "|".join(f"{','.join(r['keys'])}:{','.join(r['labels'])}" for r in rules)
@@ -2365,7 +2365,7 @@ def free_attr_for(item_id: str) -> str | None:
     forgive a real 2-point failure on every antecedent slot. So the rubric says
     `free` beside `codes` and this only transcribes it.
     """
-    item = config(HANDOUT[item_id])["rubric"].BY_ID[item_id]
+    item = config(FORM[item_id])["rubric"].BY_ID[item_id]
     out = []
     for c in item.get("credit") or []:
         free = [v for v in (c.get("free") or []) if v]
@@ -2445,7 +2445,7 @@ GENERATED_ATTRS = (("rubricDef", rubric_def_for),
                    ("derived", derived_attr_for))
 
 
-def render(handout: int) -> tuple[str, dict, list[str]]:
+def render(form: int) -> tuple[str, dict, list[str]]:
     """The .olx source with every generated prompt body substituted in.
 
     Returns (src, minted, cleared). `cleared` names the generated attributes
@@ -2453,18 +2453,18 @@ def render(handout: int) -> tuple[str, dict, list[str]]:
     return value rather than a print because `--check` and `--diff` call this
     too, and a clear is a real difference they should report as one.
     """
-    src = _src(handout)
+    src = _src(form)
     minted: dict = {}
     # Attributes emptied because their declaration has gone -- reported by
     # the caller so a silent clear cannot look like a no-op. See E44.
     cleared: list[str] = []
     for item_id, action in ACTION.items():
-        if HANDOUT[item_id] != handout:
+        if FORM[item_id] != form:
             continue
         body = _to_xml(build_web_prompt(item_id, minted))
         pat = re.compile(_ACTION_RE % re.escape(action), re.S)
         if not pat.search(src):
-            raise SystemExit(f"no <LLMAction id={action}> in handout {handout}")
+            raise SystemExit(f"no <LLMAction id={action}> in handout {form}")
         # The open tag is group(1) and carries the sheet's attributes. Only
         # `forbid` is generated from the rubric; the rest stay as authored, and
         # the VALUE alone is swapped so the tag's own line breaks and indentation
@@ -2527,14 +2527,14 @@ def render(handout: int) -> tuple[str, dict, list[str]]:
 _REF_TAG = re.compile(r'<Ref\b[^>]*?id="([^"]+)"[^>]*?target="([^"]+)"[^>]*?/>')
 
 
-def ref_delta(handout: int) -> tuple[list[str], list[str], list[str]]:
+def ref_delta(form: int) -> tuple[list[str], list[str], list[str]]:
     """(dropped, added, duplicated) <Ref> ids between the file and the generation.
 
     A dropped ref is context the hand-written prompt passed and the rubric does
     not ask for; every one belongs in EQUIVALENCE.md's deviation list.
     """
-    old = dict(_REF_TAG.findall(_src(handout)))
-    new_src, _, _ = render(handout)
+    old = dict(_REF_TAG.findall(_src(form)))
+    new_src, _, _ = render(form)
     new_pairs = _REF_TAG.findall(new_src)
     new = dict(new_pairs)
     dupes = [rid for rid in new if [r for r, _ in new_pairs].count(rid) > 1]
@@ -2606,7 +2606,7 @@ def _measurements_in_flight() -> list[str]:
         # agreement_app.py the singular, so demanding the plural made every WEB
         # sweep invisible to this guard. score.py takes neither -- it sweeps a
         # whole handout -- so a --handout run counts as well.
-        if idx is None or not ({"--items", "--item", "--handout"} & set(parts)):
+        if idx is None or not ({"--items", "--item", "--form", "--handout"} & set(parts)):
             continue
         if not any(os.path.basename(t).startswith("python") for t in parts[:idx]):
             continue
@@ -2755,11 +2755,11 @@ def refuse_if_selftest_running(what: str) -> None:
 _SECTION_RE = re.compile(r'<Vertical id="[^"]*" title="([^"]*)"')
 
 
-def _items_whose_prompt_changed(handout: int, old: str, new: str) -> list[str]:
+def _items_whose_prompt_changed(form: int, old: str, new: str) -> list[str]:
     """Which ITEMS' <LLMAction> bodies differ between two renderings."""
     out = []
     for item, aid in sorted(ACTION.items()):
-        if HANDOUT.get(item) != handout:
+        if FORM.get(item) != form:
             continue
         pat = re.compile(r'<LLMAction\b[^>]*?\bid="%s".*?</LLMAction>' % re.escape(aid), re.S)
         a = pat.search(old)
@@ -2800,7 +2800,7 @@ def prior_record(item: str) -> str:
     import subprocess
     import os.path
 
-    h = HANDOUT.get(item)
+    h = FORM.get(item)
     lines = [f"  ---- what is already recorded about {item} (QUALITY_CONTROL.md §2e) ----"]
 
     # 1. Substantial comment blocks about this item in its rubric.
@@ -2858,9 +2858,22 @@ def prior_record(item: str) -> str:
         # degraded this section to "no recorded comments found" for every H2
         # item -- the empty output that reads as "nothing recorded", which is
         # the precise failure the note above exists to prevent.
-        _src_file = next((f for f in (paths.SCORING / f"rubric_h{h}.py",
-                                      paths.SCORING / f"rubric_h{h}_source.py")
-                          if f.exists()), None)
+        # WHEREVER THE MODULE LIVES, not wherever the package is. Both spellings
+        # were joined onto `paths.SCORING`; a course's authored rubric source
+        # moved to `scoring/<course>/` on 2026-09-27 and neither path existed,
+        # so this raised LookupError and the hook printed "no recorded comments
+        # found" for every item on that handout -- the empty output that reads
+        # as "nothing recorded", which the note above exists to prevent, arriving
+        # by a different route than the one it was written about.
+        _src_file = None
+        for _cand in (f"rubric_h{h}.py", f"rubric_h{h}_source.py"):
+            try:
+                _p = paths.module_path(_cand)
+            except Exception:
+                continue
+            if _p.exists():
+                _src_file = _p
+                break
         if _src_file is None:
             raise LookupError(f"no authored rubric_h{h} file to scan")
         src = _src_file.read_text().splitlines()
@@ -3038,7 +3051,7 @@ def _changed_sections(old: str, new: str) -> list[str]:
     return hit
 
 
-def _choices_inputs(item_id: str, handout: int, action: str) -> dict:
+def _choices_inputs(item_id: str, form: int, action: str) -> dict:
     """What `choicesAttr` must be given: declared, users, sourced.
 
     Mirrors `choices_attr_for`'s own reads -- the element's current `choices=`,
@@ -3047,10 +3060,10 @@ def _choices_inputs(item_id: str, handout: int, action: str) -> dict:
     function's behaviour is untouched by being measured.
     """
     try:
-        tag = _sheet_tag(handout, action)
+        tag = _sheet_tag(form, action)
     except BaseException:
         return {"choicesDeclared": {}, "choicesUsers": {}, "choicesSourced": {}}
-    declared = _choices_attr(handout, action) or {}
+    declared = _choices_attr(form, action) or {}
     users: dict = {}
     m = re.search(r'\bslots="([^"]*)"', tag)
     for part in (m.group(1).split("|") if m else []):
@@ -3121,7 +3134,7 @@ def assembler_inputs() -> dict:
     for item_id, action in sorted(ACTION.items()):
         if not action:
             continue
-        h = HANDOUT[item_id]
+        h = FORM[item_id]
         cfg = config(h)
         item = cfg["rubric"].BY_ID[item_id]
         slots = parse_slots(*_slots_attr(h, action))
@@ -3339,7 +3352,7 @@ def main() -> int:
         return 0
 
     if a.refs:
-        for h in _handouts.declared():
+        for h in _forms.declared():
             dropped, added, dupes = ref_delta(h)
             print(f"--- H{h}")
             for r in dropped:
@@ -3354,7 +3367,7 @@ def main() -> int:
         ap.error("one of --print, --check, --write, --diff, --refs is required")
 
     rc = 0
-    for h in _handouts.declared():
+    for h in _forms.declared():
         new, minted, cleared = render(h)
         old = _src(h)
         if minted:

@@ -46,7 +46,7 @@ import glob
 import json
 import os
 
-from handouts import HANDOUTS, config
+from forms import FORMS, config
 # THROUGH THE REGISTRY. Goal E step 5: `score.oc_check_names` was an alias for
 # the plugin's `check_names`, and the aliases are gone now that nothing needs
 # them. A course with no `oc` scorer has no criteria checks to expect, which is
@@ -74,7 +74,7 @@ def weight(credit: dict) -> str:
     return "none" if credit.get("pts") is None else f"{credit['pts']:g}"
 
 
-def audit(handout: int, outdir: str | None = None
+def audit(form: int, outdir: str | None = None
           ) -> tuple[list[str], int, str]:
     """Return (findings, files seen, outdir) for one handout.
 
@@ -82,7 +82,7 @@ def audit(handout: int, outdir: str | None = None
     a `--outdir` run checks the directory it is actually reading rather than the
     default one.
     """
-    cfg = config(handout)
+    cfg = config(form)
     by_id = cfg["rubric"].BY_ID
     order = [i["id"] for i in cfg["rubric"].ITEMS]
     outdir = outdir or cfg["outdir"]
@@ -218,20 +218,20 @@ def audit(handout: int, outdir: str | None = None
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--handout", type=int, default=None,
-                    choices=sorted(HANDOUTS),
+    ap.add_argument("--form", "--handout", type=int, default=None,
+                    choices=sorted(FORMS),
                     help="default: check all three")
     ap.add_argument("--outdir", default=None,
                     help="audit this directory instead of the "
                          "handout default; implies --handout")
     args = ap.parse_args()
 
-    if args.outdir and not args.handout:
+    if args.outdir and not args.form:
         ap.error("--outdir needs --handout: the rubric to audit against "
                  "cannot be inferred from a directory")
-    handouts = [args.handout] if args.handout else sorted(HANDOUTS)
+    selected = [args.form] if args.form else sorted(FORMS)
     rc = 0
-    for h in handouts:
+    for h in selected:
         lines, n, outdir = audit(h, args.outdir)
         print(f"\nhandout {h} — {n} stored prediction file(s) in {outdir}")
         if not lines:

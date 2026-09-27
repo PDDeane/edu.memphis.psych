@@ -351,7 +351,8 @@ def main(argv=None) -> int:
     import paths
 
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--inventory", default=os.path.join(HERE, "SHAPE_INVENTORY.json"))
+    ap.add_argument("--inventory",
+                    default=os.path.join(paths.SCORING_METADATA, "SHAPE_INVENTORY.json"))
     ap.add_argument("--corpus", action="append", default=None)
     ap.add_argument("--json", metavar="PATH")
     args = ap.parse_args(argv)

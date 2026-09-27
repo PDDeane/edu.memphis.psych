@@ -58,7 +58,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 # machinery, and not content either.
 # THE DATA MOVED TO $COURSE_DATA (goal N): it is keyed `item/participant` and
 # is a record about individual students, which does not belong in a repo.
-SPANS = paths.COURSE_FIXTURE_DATA / "CONSENSUS_SPANS.json"
+SPANS = paths.roots().fixture_data / "CONSENSUS_SPANS.json"
 
 
 def sha12(s: str) -> str:

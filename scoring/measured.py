@@ -82,7 +82,7 @@ def _jobs() -> dict:
     return APP.JOBS
 
 
-def _olx(handout: int) -> str:
+def _olx(form: int) -> str:
     """The handout's OLX, with corpus references RESOLVED.
 
     The file on disk may carry `{{corpus:...}}` where a student's words used to
@@ -93,7 +93,7 @@ def _olx(handout: int) -> str:
     about the served prompt had changed.
     """
     import paths
-    text = (paths.OLX_DIR / _p7.handout_olx(handout)).read_text()
+    text = _p7.handout_olx_path(form).read_text()
     if "{{corpus:" in text:
         from tools import corpus_ref
         text = corpus_ref.expand(text)
@@ -136,7 +136,12 @@ def _python_read_attrs() -> frozenset:
     edited `slots=` and `derived=` and was flagged only because the prompt body
     moved in the same commit.
     """
-    src = (Path(__file__).resolve().parent / "agreement.py").read_text()
+    # BY IMPORT, NOT BY A SIBLING'S DIRECTORY: the general scorers live in
+    # `scorers/` since 2026-09-27, and a path built from this file's own folder
+    # stopped finding them -- as a FileNotFoundError that aborted the whole audit,
+    # not as a finding.
+    import agreement as _ag_mod
+    src = Path(_ag_mod.__file__).read_text()
     out = set(re.findall(r'_attr\(open_tag,\s*"([^"]+)"\)', src))
     # the bespoke parsers: `re.search(r'X="([^"]*)"', open_tag ...)`
     out |= set(re.findall(r"""re\.search\(r?['"]\\?b?(\w+)=\\?["']""", src))
@@ -230,7 +235,7 @@ def prompt_sha(item: str, side: str | None = None,
 
 
 def exclusions(item: str) -> list[int]:
-    import handouts as H
+    import forms as H
     return sorted(H.cell_exclusions(_jobs()[item]["handout"], item))
 
 
@@ -421,7 +426,7 @@ def _cells_from_artifact(item: str, side: str, out: str | None):
     # NO LITERAL FALLBACK. `OUT_DIR` absent means the module was loaded without
     # its configuration, and reading the developer's own artifacts then is the
     # least safe answer available -- it succeeds, quietly, on the wrong tree.
-    _root = _pl.Path(OUT_DIR) if "OUT_DIR" in globals() else _paths.OUT
+    _root = _pl.Path(OUT_DIR) if "OUT_DIR" in globals() else _paths.roots().out
     path = _root / out / f"{item}.runs.json"
     if not path.exists():
         return None
@@ -460,7 +465,7 @@ def accept_design_change(item: str, slot: str, field: str) -> int:
     import re
     import textwrap
 
-    import handouts as H
+    import forms as H
     import enforcement as E
     spec = None
     for h in H.declared():
@@ -719,7 +724,7 @@ _BY_PRIMITIVE = {
 PAPER_SIDES = ("paper", "paper_opus")
 _PAPER_BY_BRANCH = {
     # THE PLUGIN'S DERIVER, not `score`'s. Goal E moved the criteria scorer to
-    # `COURSE_METADATA/scorers/oc.py`; this pair is (module, function) and is
+    # the course's own `scorers/oc.py`; this pair is (module, function) and is
     # resolved dynamically, which is why a grep for the call site does not find
     # it -- the module name is DATA here.
     "derive_from_criteria": (("scorers:oc", "derive_ledger"),
@@ -811,7 +816,7 @@ def _paper_parts(item: str | None) -> tuple:
     if item is None:
         return every
     try:
-        import handouts as H
+        import forms as H
         cfg = H.config(_jobs()[item]["handout"])["rubric"].BY_ID[item]
     except Exception:
         return every                      # unknown shape: assume all of it
@@ -943,14 +948,14 @@ def _parts_for(item: str | None) -> tuple:
                   if j["item"] == item), None)
     if found is None:
         return SCORER_PARTS               # unknown shape: assume all of it
-    handout, job = found
+    form, job = found
     if job["kind"] in _BY_KIND:
         parts.append(_BY_KIND[job["kind"]])
     aid = O.ACTION.get(item)
     tag = ""
     if aid and job.get("olx"):
         try:
-            text = Path(O.OLX % handout).read_text()
+            text = Path(O.OLX % form).read_text()
         except Exception as e:            # a sheet that cannot be read stales all
             return SCORER_PARTS
         m = re.search(rf'<LLMAction id="{re.escape(aid)}"[^>]*>', text, re.S)
@@ -963,7 +968,7 @@ def _parts_for(item: str | None) -> tuple:
         # not cover `parse_forbid` while their numbers depended on it: exactly the
         # miss this subgoal is about, one level further out.
         try:
-            tag += " " + O._sheet_tag(handout, aid)
+            tag += " " + O._sheet_tag(form, aid)
         except SystemExit:                # no separate sheet element; the tag stands
             pass
     for attr, extra in _BY_PRIMITIVE.items():
@@ -1228,7 +1233,7 @@ def web_code_sha(kind: str = "ask", item: str | None = None) -> str:
 def archive_dir() -> Path:
     """Where the verbatim texts behind the fingerprints are kept."""
     import paths
-    return Path(paths.OUT) / "prompt_archive"
+    return Path(paths.roots().out) / "prompt_archive"
 
 
 def _web_part_text(kind: str, name: str, item: str | None = None) -> str:
@@ -1590,6 +1595,34 @@ SIDE_CONTRACT = {
 }
 
 
+# WHICH SIDES ARE THE WEB, AND WHICH THE PAPER -- DERIVED, never listed.
+#
+# `SIDE_CONTRACT` already says which PROGRAM may write each column, and that is
+# exactly the distinction: a web column is written by the app, a paper column by
+# the rubric scorer. Writing the split out as two tuples would be a second
+# statement of one fact, and the kind that agrees until somebody adds a column.
+#
+# WHY THE SPLIT EXISTS AT ALL. The user's point, 2026-09-26: a ledger check is
+# not unportable merely for being a ledger check -- it is unportable if it
+# touches the PAPER side, which has no counterpart in the engine. One that looks
+# only at the web side can move, and *"something that touches both should
+# probably be split"* into a web half and a paper half, with a generic caller
+# invoking one or both. These two functions are what make that expressible.
+WEB_PROGRAMS = ("olx_app", "olx_python")
+
+
+def web_sides() -> tuple:
+    """The columns an ENGINE-side reader can account for."""
+    return tuple(s for s, (prog, _m) in SIDE_CONTRACT.items()
+                 if set(prog if isinstance(prog, tuple) else (prog,))
+                 <= set(WEB_PROGRAMS))
+
+
+def paper_sides() -> tuple:
+    """The columns only the paper scorer writes."""
+    return tuple(s for s in SIDE_CONTRACT if s not in web_sides())
+
+
 def _artifact_program(doc: dict) -> str:
     """Which program wrote this artifact: the three are told apart by shape.
 
@@ -1819,9 +1852,9 @@ def _refuse_unreachable(item: str, runs_path: str, side: str) -> None:
     raise SystemExit(
         f"REFUSED: {item} [{side}] would record `out` = {ptr!r}, which resolves "
         f"to {resolved} and does not exist. The artifact is at {runs_path}, "
-        f"OUTSIDE paths.OUT ({_p.OUT}), so the column would read back as nothing "
+        f"OUTSIDE paths.roots().out ({_p.OUT}), so the column would read back as nothing "
         f"and every check over it would silently find nothing wrong. Fold or copy "
-        f"the artifact under paths.OUT and record from there."
+        f"the artifact under paths.roots().out and record from there."
     )
 
 
@@ -1861,7 +1894,7 @@ def staleness_is_answered(item: str, side: str, why: str) -> tuple:
                       f"({ask_sha(item, side)}); the runs answer the same question")
     rec = entry(item, side) or {}
     try:
-        whole = json.loads((Path(paths.OUT) / "rescore_evidence.json").read_text())
+        whole = json.loads((Path(paths.roots().out) / "rescore_evidence.json").read_text())
         # PER SIDE. Evidence measured on the web says nothing about the paper
         # scorer, and one shared map would let it excuse a stale paper column.
         doc = (whole.get("sides") or {}).get(side) or {}
@@ -1994,7 +2027,7 @@ def append_runs(item: str, new_runs_path: str, side: str = DEFAULT_SIDE) -> None
 
     merged = dict(new)                      # newer era: git, dirty, timestamp
     merged["runs"] = (old.get("runs") or []) + (new.get("runs") or [])
-    dest = Path(paths.OUT) / f"pooled_{side}" / f"{item}.runs.json"
+    dest = Path(paths.roots().out) / f"pooled_{side}" / f"{item}.runs.json"
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(merged))
     print(f"  pooled {len(old.get('runs') or [])} + {len(new.get('runs') or [])} "
@@ -2015,7 +2048,7 @@ def record(item: str, runs_path: str, side: str = DEFAULT_SIDE) -> None:
             "eliminated (goal O). Its recorded runs are kept and pooled into "
             "`olx`; record web sweeps as `olx`.")
     _refuse_unreachable(item, runs_path, side)
-    import handouts as H
+    import forms as H
     import gold
     import agreement_app as APP
     import cross_path as X
@@ -2044,7 +2077,7 @@ def record(item: str, runs_path: str, side: str = DEFAULT_SIDE) -> None:
     h = _jobs()[item]["handout"]
     g = H.apply_corrected_gold(
         {1: gold.load_h1, 2: gold.load_h2, 3: gold.load_h3}[h](), h)
-    if item == "1c":
+    if H.rebuilds_gold(item):
         g, _ = APP.rebuild_declared_gold({p: dict(v) for p, v in g.items()})
     ex = set(exclusions(item))
     per: dict[int, list[bool]] = {}
@@ -2188,7 +2221,7 @@ def sweep_summary(item: str) -> str:
     import statistics
 
     import agreement as A
-    import handouts as H
+    import forms as H
     import olx_prompts as O
 
     h = _jobs()[item]["handout"]
@@ -2291,7 +2324,7 @@ def sweep_summary(item: str) -> str:
 def declaration_conflicts() -> list[str]:
     """Declarations the recorded measurements no longer support.
 
-    Every declaration in handouts.py is a PREDICTION about a cell or an item: a
+    Every declaration in forms.py is a PREDICTION about a cell or an item: a
     divergence predicts we miss this cell and mean to; a ceiling predicts the
     item cannot be perfect because gold is incoherent; an exclusion predicts the
     cell should not be counted. Predictions can expire — the model improves, a
@@ -2311,7 +2344,7 @@ def declaration_conflicts() -> list[str]:
     rate, because a declaration about a cell the model gets right half the time
     is doing exactly the job it was written for.
     """
-    import handouts as H
+    import forms as H
 
     # EVERY recorded side, not just the CLI. This read `records()` -- which
     # defaults to `cli` -- so a declaration the WEB had already refuted was
@@ -2487,7 +2520,7 @@ def declaration_conflicts() -> list[str]:
             _gold_rows = H.apply_corrected_gold(
                 {1: _g.load_h1, 2: _g.load_h2, 3: _g.load_h3}[job["handout"]](),
                 job["handout"])
-            if item == "1c":
+            if H.rebuilds_gold(item):
                 import agreement_app as _APP
                 _gold_rows, _ = _APP.rebuild_declared_gold(
                     {p_: dict(v) for p_, v in _gold_rows.items()})
@@ -2706,14 +2739,14 @@ def _inverted_sense() -> frozenset:
 _INVERTED_SENSE = _inverted_sense()
 
 
-def _web_slot_names(item_id: str, handout: int) -> set:
+def _web_slot_names(item_id: str, form: int) -> set:
     """Every slot key the WEB sheet offers for an item, LLMAction or sheet-only."""
     import agreement as A
     import olx_prompts as O
 
     if item_id in O.SHEET_ONLY:
-        return {s["key"] for s in O.parse_slots(*O._slots_attr(handout, O.SHEET_ONLY[item_id]))}
-    spec = A.load_action(_p7.handout_olx(handout), O.ACTION[item_id])
+        return {s["key"] for s in O.parse_slots(*O._slots_attr(form, O.SHEET_ONLY[item_id]))}
+    spec = A.load_action(_p7.handout_olx(form), O.ACTION[item_id])
     return {s["key"] for s in spec["slots"]}
 
 
@@ -2848,18 +2881,18 @@ def web_judgments_through_paper() -> dict:
     `check_mapped_slots_agree_with_their_map` states.
     """
     import cross_path as X
-    import handouts as H
+    import forms as H
     import score as SC
 
     out = {"agree": 0, "differing": [], "errors": [], "items": []}
     for item_id in sorted(_jobs()):
-        handout = _jobs()[item_id]["handout"]
-        item = H.config(handout)["rubric"].BY_ID.get(item_id)
+        form = _jobs()[item_id]["handout"]
+        item = H.config(form)["rubric"].BY_ID.get(item_id)
         doc = _runs_doc(item_id, "olx")
         if not item or not doc:
             continue
         try:
-            web_keys = _web_slot_names(item_id, handout)
+            web_keys = _web_slot_names(item_id, form)
         except Exception:
             continue
         out["items"].append(item_id)
@@ -3209,13 +3242,13 @@ def error_profile(item: str, runs_path: str) -> str:
     import collections
     import agreement as A
     import gold as _gold
-    import handouts as _H
+    import forms as _H
     import cross_path as _X
 
     h = _jobs()[item]["handout"]
     g = _H.apply_corrected_gold(
         {1: _gold.load_h1, 2: _gold.load_h2, 3: _gold.load_h3}[h](), h)
-    if item == "1c":
+    if _H.rebuilds_gold(item):
         # The SAME rebuild `record` applies. Without it this read 1c as 18
         # over-credits and 78% correct, when the item has ZERO over-credits: the
         # 18 were three cells scored against gold the rebuild removes. A profile
@@ -3605,7 +3638,7 @@ def declarations_for(item: str, pid: int) -> list:
     """
     import ast
 
-    import handouts as H
+    import forms as H
 
     out = []
     cell = (item, pid)
@@ -3626,7 +3659,7 @@ def declarations_for(item: str, pid: int) -> list:
         out.append(("DECLARED_CEILING_CELLS", (item, pid),
                     DECLARED_CEILING_CELLS[(item, pid)]))
     try:
-        import handouts as _H
+        import forms as _H
 
         for pid_ in (getattr(_H, "PER_ITEM_EXCLUDE", {}) or {}).get(item, {}) or {}:
             if pid_ == pid:
@@ -3640,7 +3673,7 @@ def prose_claims(paths: list[str] | None = None) -> list[str]:
     """Numbers written into the repo that disagree with the recorded measurement.
 
     A figure in prose is the form a measurement actually travels in — a guide,
-    a backlog entry, a note in handouts.py — and it goes stale silently. This
+    a backlog entry, a note in forms.py — and it goes stale silently. This
     project has done it: Q4c and Q5 were described in writing as perfect items
     and were 12/14 and 14/15, because the sentences outlived the denominators
     they were computed over.
@@ -3668,7 +3701,7 @@ def prose_claims(paths: list[str] | None = None) -> list[str]:
     # in it is the POINT of the record, not a staleness to report.
     files = paths or [str(p) for p in (
         [p for p in (_paths.SCORING).glob("*.md") if p.name != "OVERRIDES.md"]
-        + [_paths.SCORING / "handouts.py"])]
+        + [_paths.SCORING / "forms.py"])]
     led = records()
     jobs = set(_jobs())
     out: list[str] = []
@@ -3815,7 +3848,7 @@ def gold_rows_that_do_not_reconcile() -> list[str]:
     part that was left to memory: noticing that the row is worth reading.
     """
     import gold as _gold
-    import handouts as H
+    import forms as H
 
     out: list[str] = []
     loaders = {1: _gold.load_h1, 2: _gold.load_h2, 3: _gold.load_h3}
@@ -3846,7 +3879,7 @@ def gold_rows_that_do_not_reconcile() -> list[str]:
                 # already been settled upstream: the rebuild puts it at 6.00,
                 # and a CORRECTED_GOLD entry written against the raw 7.00 is
                 # inert, because the rebuild overrides it.
-                if item == "1c":
+                if H.rebuilds_gold(item):
                     continue
                 implied = maxes[item] - sum(named)
                 if abs(implied - score) < 1e-9:
@@ -3883,7 +3916,7 @@ def fixture_suspects() -> list[str]:
     has already been examined.
     """
     import gold as _gold
-    import handouts as H
+    import forms as H
 
     # EVERY recorded side. This read the cli ledger alone, so a cell the WEB
     # missed in every run was never examined -- and a fixture defect is a fact
@@ -3916,7 +3949,7 @@ def fixture_suspects() -> list[str]:
             g = H.apply_corrected_gold(loaders[h](), h)
         except Exception:
             continue
-        if item == "1c":
+        if H.rebuilds_gold(item):
             import agreement_app as APP
             g, _ = APP.rebuild_declared_gold({p: dict(v) for p, v in g.items()})
         top = max(((g.get(p) or {}).get(item) or {}).get("score") or 0 for p in g)
@@ -3972,7 +4005,7 @@ def _runs_path(item: str, side: str = DEFAULT_SIDE) -> str | None:
     out = rec.get("out")
     if not out:
         return None
-    p = paths.OUT / out / f"{item}.runs.json"
+    p = paths.roots().out / out / f"{item}.runs.json"
     return str(p) if p.exists() else None
 
 
@@ -3986,11 +4019,11 @@ def _ever_right(item: str, pid: int, gold_score: float) -> bool:
     import glob
 
     import cross_path as _X
-    import handouts as H
+    import forms as H
     import paths
 
-    for path in (glob.glob(str(paths.OUT / "*" / f"{item}.runs.json"))
-                 + glob.glob(str(paths.OUT / "*" / "runs" / f"{item}.runs.json"))):
+    for path in (glob.glob(str(paths.roots().out / "*" / f"{item}.runs.json"))
+                 + glob.glob(str(paths.roots().out / "*" / "runs" / f"{item}.runs.json"))):
         try:
             data = json.loads(Path(path).read_text())
         except (OSError, ValueError):
@@ -4396,8 +4429,8 @@ def unrecorded_artifacts() -> list[str]:
         ledger_at = LEDGER.stat().st_mtime
     except Exception:
         return []
-    for path in sorted(set(_paths.OUT.glob("*/*.runs.json"))
-                       | set(_paths.OUT.glob("*/runs/*.runs.json"))):
+    for path in sorted(set(_paths.roots().out.glob("*/*.runs.json"))
+                       | set(_paths.roots().out.glob("*/runs/*.runs.json"))):
         item = path.name[: -len(".runs.json")]
         if item not in _jobs():
             continue
@@ -4591,7 +4624,7 @@ def criterion_rows(item: str, check: str) -> str:
     import re
     import agreement as A
     import gold as _gold
-    import handouts as H
+    import forms as H
 
     h = _jobs()[item]["handout"]
     g = H.apply_corrected_gold(
@@ -4937,7 +4970,7 @@ def _slots_are_not_comparable(item: str) -> bool:
     gold speaks about the operant TYPE, which is a derived conclusion and not a
     slot on the sheet at all.
     """
-    import handouts as H
+    import forms as H
 
     try:
         rub = H.config(_jobs()[item]["handout"])["rubric"].BY_ID[item]
@@ -4984,7 +5017,7 @@ def gold_charged_code(item: str, pid: int):
     """
     import re
     import gold as _gold
-    import handouts as H
+    import forms as H
 
     if not _slots_are_not_comparable(item):
         return None
@@ -5038,7 +5071,7 @@ def gold_charge_bounds(item: str, pid: int):
     """
     import re
     import gold as _gold
-    import handouts as H
+    import forms as H
     import olx_prompts as O
 
     # A TABLE IS NOT REQUIRED. Bounds come from the AMOUNTS and the slot points,
@@ -5127,7 +5160,7 @@ def gold_charged_slots(item: str, pid: int):
     """
     import re
     import gold as _gold
-    import handouts as H
+    import forms as H
 
     table = GOLD_SLOT_CHARGES.get(item)
     if not table:
@@ -5215,7 +5248,7 @@ def gold_box_status(item: str) -> dict:
                              nothing" -- the same distinction `gold_charged_slots`
                              keeps by returning None.
     """
-    import handouts as H
+    import forms as H
 
     h = _jobs()[item]["handout"]
     rub = H.config(h)["rubric"].BY_ID[item]
@@ -5287,15 +5320,15 @@ def probe_unusable(item: str) -> dict:
 
 
 @functools.lru_cache(maxsize=None)
-def _handout_gold_items(handout: int) -> frozenset:
+def _form_gold_items(form: int) -> frozenset:
     """Which item ids handout `handout`'s gold sheet actually grades."""
     keys: set = set()
-    for row in _corrected_gold(handout).values():
+    for row in _corrected_gold(form).values():
         keys |= set(row)
     return frozenset(keys)
 
 
-def gold_cell(item: str, pid: int, *, rebuild_1c: bool = False) -> dict:
+def gold_cell(item: str, pid: int, *, rebuild: bool = False) -> dict:
     """One cell's corrected gold, keyed by ITEM so the handout cannot be picked wrong.
 
     THE HANDOUT IS DERIVED, NEVER PASSED. Reading gold for an item requires
@@ -5324,18 +5357,18 @@ def gold_cell(item: str, pid: int, *, rebuild_1c: bool = False) -> dict:
         raise KeyError(f"{item!r} is not an item in agreement_app.JOBS; "
                        f"gold cannot be read for it")
     h = jobs[item]["handout"]
-    if item not in _handout_gold_items(h):
+    if item not in _form_gold_items(h):
         raise KeyError(
             f"handout {h}'s gold sheet grades no item {item!r} "
-            f"(it grades {sorted(_handout_gold_items(h))}). JOBS says {item} is "
+            f"(it grades {sorted(_form_gold_items(h))}). JOBS says {item} is "
             f"a handout-{h} item, so one of the two is wrong -- this is a bug, "
             f"not a missing cell")
-    rows = _corrected_gold(h, rebuild_1c)
+    rows = _corrected_gold(h, rebuild)
     return dict((rows.get(pid) or {}).get(item) or {})
 
 
 @functools.lru_cache(maxsize=None)
-def _corrected_gold(handout: int, rebuild_1c: bool = False):
+def _corrected_gold(form: int, rebuild: bool = False):
     """Corrected gold for one handout, loaded ONCE.
 
     gold_charged_slots, gold_charge_bounds and gold_charged_code each called
@@ -5345,11 +5378,11 @@ def _corrected_gold(handout: int, rebuild_1c: bool = False):
     which is how the real cause was found rather than assumed.
     """
     import gold as _gold
-    import handouts as H
+    import forms as H
 
     g = H.apply_corrected_gold(
-        {1: _gold.load_h1, 2: _gold.load_h2, 3: _gold.load_h3}[handout](), handout)
-    if rebuild_1c:
+        {1: _gold.load_h1, 2: _gold.load_h2, 3: _gold.load_h3}[form](), form)
+    if rebuild:
         import agreement_app as _APP
         g, _ = _APP.rebuild_declared_gold({p_: dict(v) for p_, v in g.items()})
     return g
@@ -5842,7 +5875,21 @@ def _our_typical_failing_slots(item: str, pid: int) -> tuple[set, dict, int]:
     # of the same sheet, so their runs were the same kind of evidence and
     # pooling them widened the sample honestly. The python column went with its
     # engine (goal O); pooling it in would now read a missing side as agreement.
-    runs = _our_failing_slots(item, pid, "olx")
+    #
+    # AND IT IS WEB-ONLY BY CONSTRUCTION, which is a fact worth asserting rather
+    # than leaving to a literal. `gold_slot_disagreements` asks which slots WE
+    # fail against which gold charges, and "we" here is the app -- the paper
+    # scorer answers a different question about a different input. Reading the
+    # side from `web_sides()` says so, and refuses if the contract ever declares
+    # two web columns again without this being revisited.
+    _web = web_sides()
+    if len(_web) != 1:
+        raise SystemExit(
+            f"measured: {len(_web)} web column(s) {_web} -- this comparison "
+            f"pools one. Decide whether they are the same evidence before "
+            f"widening it, the way `olx`/`python` were measured equivalent "
+            f"before they were pooled.")
+    runs = _our_failing_slots(item, pid, _web[0])
     if not runs:
         return set(), {}, 0
     counts = collections.Counter(s for r in runs for s in set(r))
@@ -5865,7 +5912,7 @@ def gold_slot_disagreements() -> list[str]:
     """
     import re
     import gold as _gold
-    import handouts as H
+    import forms as H
     import olx_prompts as O
 
     out: list[str] = []
@@ -6375,7 +6422,7 @@ def silent_full_marks_we_refuse(side: str = "olx") -> str:
     this very correction's first draft argued from two of them.
     """
     import statistics
-    import handouts as H
+    import forms as H
 
     out = [f"SILENT FULL MARKS WE REFUSE  [{side}]",
            "gold awarded the maximum with no comment and we charge something.",
@@ -6457,13 +6504,13 @@ def _wrong_cells() -> list:
     cell we get wrong -- and reading one side is the mistake the whole
     both-sides sweep of 2026-08-31 was about.
     """
-    import handouts as H
+    import forms as H
 
     out = []
     for item in sorted(_jobs()):
         h = _jobs()[item]["handout"]
         try:
-            g = _corrected_gold(h, rebuild_1c=(item == "1c"))
+            g = _corrected_gold(h, rebuild=H.rebuilds_gold(item))
         except Exception:
             continue
         excluded = set(exclusions(item))
@@ -6515,16 +6562,22 @@ def sides_recorded_but_unreadable() -> list[str]:
     return []
 
 
-def wrong_cells_without_an_owner(excluding: str = '') -> list[str]:
+def wrong_cells_without_an_owner(excluding: str = '', sides=None) -> list[str]:
     """Cells we get wrong that no live subgoal and no declaration accounts for."""
-    import handouts as H
+    import forms as H
 
     owned = _live_subgoal_owners(excluding)
     owners, subjects = owned["any"], owned["title"]
     wrong = _wrong_cells()
+    # SCOPED BY SIDE, defaulting to EVERY side so the unfiltered call is exactly
+    # what it was. The split is what lets the WEB half of this question be asked
+    # by a reader that has no paper scorer -- see `web_sides`.
+    keep = set(sides) if sides is not None else set(SIDES)
     seen: set = set()
     out: list[str] = []
     for item, pid, side, target, ours in wrong:
+        if side not in keep:
+            continue
         key = f"{item}/p{pid}"
         if key in seen:
             continue
@@ -6668,7 +6721,7 @@ def unstable_cells_without_an_owner(excluding: str = '') -> list[str]:
     passes only because subgoal Q50 names it. That is a real gap and Q35 wrote
     it down: the written record is the only protection for such a cell.
     """
-    import handouts as H
+    import forms as H
 
     owners = _live_subgoal_owners(excluding)["any"]
     out: list[str] = []
@@ -6685,7 +6738,7 @@ def unstable_cells_without_an_owner(excluding: str = '') -> list[str]:
         if (item, pid) in DECLARED_CEILING_CELLS:
             continue
         # SUSPECT CELLS ARE NEVER EVIDENCE, so they are never a debt either.
-        if pid in set(H.suspect(_handout_of(item))):
+        if pid in set(H.suspect(_form_of(item))):
             continue
         if H.gold_divergence(item, pid):
             continue
@@ -6702,11 +6755,11 @@ def unstable_cells_without_an_owner(excluding: str = '') -> list[str]:
     return out
 
 
-def _handout_of(item: str) -> int:
+def _form_of(item: str) -> int:
     """Which handout an item belongs to, for the suspect list. Subgoal E45."""
     for h in H.declared():
         try:
-            if item in _handout_gold_items(h):
+            if item in _form_gold_items(h):
                 return h
         except Exception:
             continue
@@ -6813,7 +6866,7 @@ def _pick_slots(item_id: str) -> frozenset:
     pick.
     """
     import olx_prompts as O
-    import handouts as _H_R
+    import forms as _H_R
 
     # J-3. WAS config(1)/config(2)/config(3) written out, so a four-handout
     # course would have been audited on three of them and said nothing.
@@ -7050,8 +7103,8 @@ try:                                            # pragma: no cover
     import corpus_resolve as _corpus_resolve
     _corpus_orig_olx = _olx
 
-    def _olx(handout, _orig=_corpus_orig_olx):
-        return _corpus_resolve.expand(_orig(handout))
+    def _olx(form, _orig=_corpus_orig_olx):
+        return _corpus_resolve.expand(_orig(form))
 except Exception:
     pass
 

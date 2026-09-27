@@ -38,3 +38,45 @@ migration/goldens/
 # destination inside the repo, and this refuses one that arrives another way.
 courses/*/gold.json
 .lo-blocks
+
+# THE DRY RUN'S OWN $COURSE_DATA, 2026-09-26, on the user's instruction: *"copy
+# the live parts of $COURSE_DATA to psychology/bmod/course_data and reset that
+# as the dry run's $COURSE_DATA, so we don't have any more potential clashes"*.
+#
+# IT MUST NEVER BE COMMITTED. It holds this cohort's submissions, the gold the
+# rule above already refuses, and the reconstructed response fixtures -- student
+# writing keyed by participant, in a repository the rule above calls public.
+# Living inside the working tree is a convenience of the dry run; being tracked
+# would be a disclosure. The user's standing ruling covers it too: *"we're
+# talking data here, not code ... not exactly what I want in a repository"*.
+# At the REPOSITORY ROOT, not inside a course folder: the store is keyed by
+# `rubrics/<id>/` and `instruments/<id>/`, so it spans every rubric the repo
+# carries and belongs to none of them. The user caught this a few minutes after
+# the copy landed under `psychology/bmod/`.
+/course_data/
+# EXCEPT A RUBRIC'S AUTHORED DOCUMENTS. `rubrics/<id>/authored/` holds the goal
+# ledger, the backlog, the approved closures, the override log and the
+# rubric-specific halves of the guides -- documents a person writes and a
+# reviewer reads, whose history is the record of how the rubric was decided.
+# The rest of the store is gold, submissions, fixtures and run archives:
+# participant-keyed data that must never be committed to a public repository.
+#
+# SPELLED OUT RATHER THAN INHERITED. `git mv` into an ignored directory tracks
+# the file anyway, so these were already staged -- tracked by accident of the
+# command used rather than by intent, which is the kind of thing that survives
+# until someone runs `git add -A` in a clean checkout and it does not.
+!/course_data/rubrics/
+/course_data/rubrics/*/*
+!/course_data/rubrics/*/authored/
+!/course_data/rubrics/*/authored/**
+
+# THE PORT WORKLIST IS WORKING STATE, not a record. `scoring/metadata/` holds
+# the engine's records -- the definition inventory, the ratchet budgets, the
+# shape inventory -- and those are tracked. This one is the list of what is
+# left to port, which changes with the work rather than describing it, and the
+# user's decision of 2026-09-27 is that it stays out of the repository.
+#
+# IGNORED RATHER THAN MERELY UNTRACKED, because untracked is not a decision
+# that survives: it was picked up by a `git add` of its directory minutes after
+# being left out, and would be again by the next `git add -A`.
+scoring/metadata/K_PORT_WORKLIST.json

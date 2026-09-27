@@ -39,7 +39,7 @@ class ScorerError(RuntimeError):
 # is slot-sheet driven and subject-neutral, it lives in `score.py`, and it is
 # what an item gets when it declares no scorer at all.
 # EMPTY, AND THAT IS THE POINT OF E. The operant-conditioning scorer used to be
-# `scorer_oc` here; step 3 moved it to `COURSE_METADATA/scorers/oc.py`, so the
+# `scorer_oc` here; step 3 moved it to the course's own `scorers/oc.py`, so the
 # engine no longer ships -- or knows about -- any subject's scorer. A course
 # supplies its own. If the engine ever gains a genuinely subject-neutral scorer,
 # this is where it goes; `credit` is not one of them because it is not a plugin.
@@ -71,10 +71,15 @@ def name_for(item: dict) -> str:
 
 
 def _course_scorer(name: str):
-    """A scorer the COURSE ships, or None. Tried before the built-ins."""
+    """A scorer the COURSE ships, or None. Tried before the built-ins.
+
+    THE PATH IS `COURSE_SCORERS`, NOT `COURSE_METADATA/scorers`, since
+    2026-09-25: the records root holds no code. See `paths.COURSE_SCORERS` for
+    why. What is resolved and in what order did not change.
+    """
     import paths
 
-    path = paths.COURSE_METADATA / "scorers" / f"{name}.py"
+    path = paths.roots().scorers / f"{name}.py"
     if not path.is_file():
         return None
     mod_name = f"_course_scorer_{name}"
@@ -122,7 +127,7 @@ def resolve(name: str):
     if builtin is None:
         raise ScorerError(
             f"no scorer named {name!r}. The course ships none at "
-            f"COURSE_METADATA/scorers/{name}.py and the engine has "
+            f"{paths.roots().scorers}/{name}.py and the engine has "
             f"{sorted(BUILTIN) or 'none'} built in. Declare it or fix the name -- "
             f"this is NOT falling back to `credit`, because a wrong scorer that "
             f"runs is worse than one that does not.")

@@ -94,9 +94,9 @@ def slot_basis(item_id: str) -> dict:
     basis: dict = {}
     try:
         import enforcement as ENF
-        import handouts as H
+        import forms as H
         import olx_prompts as O
-        item = H.config(O.HANDOUT[item_id])["rubric"].BY_ID[item_id]
+        item = H.config(O.FORM[item_id])["rubric"].BY_ID[item_id]
         basis = ENF.slot_basis(item)
         declared = {k for (i, k) in getattr(ENF, "PROSE_ONLY_SLOTS", {}) if i == item_id}
         for k, v in list(basis.items()):
@@ -503,7 +503,7 @@ def _gold_scores() -> dict:
     # needs `rebuild_declared_gold` on top -- without it 1c reads as 18 over-credits
     # when it has none, which is exactly how a wrong figure reached a corpus-wide
     # ranking once already.
-    import handouts as _H
+    import forms as _H
     import agreement_app as _APP
     for h, loader in ((1, G.load_h1), (2, G.load_h2), (3, G.load_h3)):
         try:
@@ -531,7 +531,7 @@ def _excluded_cells(item: str) -> set:
 
 def _H_scored_exactly(item, gold_score, pred) -> bool:
     try:
-        import handouts as _H
+        import forms as _H
         return bool(_H.scored_exactly(item, gold_score, pred))
     except Exception:
         return abs(float(pred) - float(gold_score)) < 1e-9
@@ -631,7 +631,7 @@ def main() -> int:
 
     import paths
     def resolve(d: str) -> str:
-        return d if os.path.isdir(d) else os.path.join(str(paths.OUT), d)
+        return d if os.path.isdir(d) else os.path.join(str(paths.roots().out), d)
 
     # SAME CLASS AS equivalence.py's `--selftest`: a flag read in one branch and
     # silently dropped in the other. `--slots` annotates each DIVERGENT slot with

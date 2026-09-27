@@ -71,7 +71,7 @@ import tempfile
 # contains. Goal H states that failure in advance; `paths.SCORING` is the fix, and
 # it has to land BEFORE anything moves rather than with it.
 HERE = paths.SCORING
-INVENTORY = HERE / "DEFINITIONS.json"
+INVENTORY = paths.SCORING_METADATA / "DEFINITIONS.json"
 
 # Modules whose definitions are inventoried. The whole package: a helper deleted
 # out of a one-off script is as capable of silently changing a measurement as one
@@ -92,14 +92,24 @@ def modules() -> list:
     `HERE` that goal H makes this move wait for, one level up.
     """
     return sorted(list(HERE.glob("*.py")) + list((HERE / TOOLS).glob("*.py"))
-                  + list(paths.COURSE_FIXTURE.glob("*.py"))
+                  + list(paths.roots().fixture.glob("*.py"))
+                  # THE GENERAL SCORERS AND THIS COURSE'S OWN ENGINE MODULES,
+                  # since 2026-09-27. `scorers/` holds the programs that score
+                  # any rubric -- the generic scorer, the probe runner, the
+                  # sweep harnesses -- and `scoring/<course>/` holds a course's
+                  # non-scoring modules. Splitting them out without widening
+                  # this reported NINETEEN modules as vanished, which is the
+                  # warning above arriving on schedule: the glob missed the
+                  # directory, so the ledger missed its modules.
+                  + list(paths.SCORERS_GENERAL.glob("*.py"))
+                  + list(paths.SCORING_COURSE.glob("*.py"))
                   # COURSE-SUPPLIED SCORERS, since goal E step 3. Moving
                   # `scorer_oc.py` out of the package to `COURSE_METADATA/
                   # scorers/oc.py` took its six definitions out of BOTH checks
                   # -- exactly the silent failure this docstring warns about, one
                   # directory further out. The scorer is course-supplied but it
                   # is still code this ledger depends on.
-                  + list((paths.COURSE_METADATA / "scorers").glob("*.py")))
+                  + list(paths.roots().scorers.glob("*.py")))
 
 
 def definitions(text: str) -> set:

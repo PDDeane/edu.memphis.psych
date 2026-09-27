@@ -66,7 +66,18 @@ HERE = paths.SCORING
 # REPOINTING `GUIDE` WHOLESALE IS THE OBVIOUS FIX AND IS WRONG: the lesson check
 # would then compare the composed document against the HEAD-committed authored
 # half and report every course-half lesson as newly added.
-GUIDE = HERE / "QUALITY_CONTROL.md"
+# THROUGH THE COMPOSER, not spelled here. It was `HERE / "QUALITY_CONTROL.md"`
+# -- correct while the authored half lived beside this module, and broken the
+# day it moved to the rubric component. The file still existed, the path did
+# not, and the check reported that it COULD NOT RUN rather than passing, which
+# is the one thing that made the breakage visible. `compose_docs.generic_path`
+# is the single place that knows where an authored half lives.
+def _guide() -> Path:
+    import compose_docs
+    return Path(compose_docs.generic_path("QUALITY_CONTROL.md"))
+
+
+GUIDE = _guide()
 
 
 def _composed_guide():
@@ -102,7 +113,7 @@ def _cited_by() -> list[Path]:
         # a finding about the scan, delivered as a finding about the tree.
         [p for p in editguard.modules() if p.name != "guide.py"]
         + list(HERE.glob("*.md"))
-        + list(paths.OLX_DIR.glob("*.olx"))   # J-7b
+        + list(paths.roots().olx_dir.glob("*.olx"))   # J-7b
     )
 
 
@@ -358,6 +369,31 @@ def main(argv: list[str]) -> int:
 # to the guide should be enforced, not rely on you to remember." So it is state,
 # not a habit. To approve a lesson, paste the sha the finding prints.
 LESSONS_APPROVED: dict[str, str] = {
+    # ---- THE QUALITY_CONTROL GENERIC/SPECIFIC CLEAN-UP, approved 2026-09-26 on
+    # the user's explicit instruction ("Approve all four"). The guide carried
+    # this rubric's measured scores in twelve passages -- `run_score x37` by
+    # `course_prose` -- which is what stopped it being filable with the rubric
+    # component as a generic document. The numbers moved to the course half;
+    # 117 run-score figures before and after, none lost.
+    #
+    # TWO OF THE FOUR ARE REWORDINGS whose approval lapsed because the sha
+    # changed, which is the mechanism working as designed: the claim is the
+    # same and the numbers are gone.
+    "669345da7a52": "a stored result does not recompute when gold changes -- "
+                    "reworded to drop the 17/20/16/20 figures, which moved to "
+                    "the course half",
+    "0123a4a6d80d": "what a hand-picked set hides -- reworded to drop the "
+                    "4/12 -> 0/12 fall and the 76-vs-230 call counts",
+    #
+    # AND TWO ARE NEW connective sentences, written to replace a table that
+    # moved out. They say where the evidence went and what shape to read it
+    # for; without them the section states a lesson with its demonstration
+    # silently removed.
+    "fc535004c2d3": "points at the probe table now in the course half, and "
+                    "names the shape worth reading it for (a probe clean on "
+                    "its non-target cell-slots)",
+    "200b443a91cd": "points at the edit-vs-outcome table now in the course "
+                    "half: three sound diagnoses that each cost a sweep",
     # ---- THE QUALITY_CONTROL SPLIT, approved 2026-09-24 on the user's explicit
     # instruction to split this guide with "the illustrations becoming the course
     # specific part". Each of these lessons was GENERICISED, not re-argued: the
@@ -967,11 +1003,73 @@ def unapproved_lessons() -> list[str]:
         # version did that and every lesson in the file looked new: 144 findings
         # if the returncode had been ignored, and a silent clean because it was
         # not. Either way the check said nothing true.
-        head = subprocess.run(["git", "show", "HEAD:./QUALITY_CONTROL.md"],
-                              cwd=HERE, capture_output=True, text=True,
-                              timeout=30)
+        # THE PATH FOLLOWS THE FILE. `cwd=HERE` with a literal name was right
+        # while the guide sat beside this module; the day it moved to the rubric
+        # component, `HEAD:./QUALITY_CONTROL.md` still resolved from `scoring/`
+        # only because the move was UNCOMMITTED. On the next commit git would
+        # have returned non-zero, this would have returned `[]`, and the check
+        # would have gone silent exactly when the file moved -- an empty result
+        # reading as a clean one, which is the failure this project keeps
+        # meeting. Resolved from the guide's own directory instead.
+        guide = _guide()
+        head = subprocess.run(["git", "show", f"HEAD:./{guide.name}"],
+                              cwd=str(guide.parent), capture_output=True,
+                              text=True, timeout=30)
         if head.returncode != 0:
-            return []                      # no git, or no committed guide yet
+            # ACROSS A RENAME. The guide moved to the rubric component and the
+            # move is not committed, so its new path is not in HEAD -- but the
+            # committed content is, under the old path. Refusing here would
+            # drop the comparison for exactly as long as a move is in flight,
+            # which is when a lesson is most likely to slip in unnoticed. Find
+            # it in HEAD by NAME instead; one match is unambiguous.
+            # `--full-tree`, because `ls-tree` otherwise scopes to the CWD's
+            # path inside the tree -- and the CWD is the directory that does
+            # not exist in HEAD, so the listing came back empty and the
+            # fallback found nothing.
+            listing = subprocess.run(
+                ["git", "ls-tree", "-r", "--full-tree", "--name-only", "HEAD"],
+                cwd=str(guide.parent), capture_output=True, text=True, timeout=30)
+            # THE TWO HALVES SHARE A BASENAME, so matching on the name alone
+            # finds both and "exactly one match" refuses. The SPECIFIC half is
+            # a different document -- diffing against it would report every
+            # generic lesson as new -- so it is excluded.
+            #
+            # BY DIRECTORY, NOT BY ITS CURRENT PATH, and that distinction is the
+            # whole of a defect measured on 2026-09-26. The exclusion named
+            # `specific_path(...)` exactly; HEAD holds where the specific half
+            # was COMMITTED. Consolidating the QC documents moved it one level
+            # down, the old committed path no longer equalled the new resolved
+            # one, both halves survived the filter, and "exactly one match"
+            # refused -- reporting the guide's history as unreadable when the
+            # only thing that had happened was a move. A fallback that exists
+            # BECAUSE the working path is absent from HEAD cannot then assume
+            # any other path still agrees with HEAD.
+            #
+            # The course's location is the stable fact: the specific half lives
+            # somewhere beneath it, and the generic half never does.
+            import compose_docs as _cd
+            import paths as _pg
+            top = subprocess.run(
+                ["git", "rev-parse", "--show-toplevel"],
+                cwd=str(guide.parent), capture_output=True,
+                text=True, timeout=30).stdout.strip()
+            course = _os.path.relpath(str(_pg.roots().location), top)
+            hits = [p for p in listing.stdout.split("\n")
+                    if p.rsplit("/", 1)[-1] == guide.name
+                    and not p.startswith(course.rstrip("/") + "/")]
+            if listing.returncode == 0 and len(hits) == 1:
+                head = subprocess.run(["git", "show", f"HEAD:{hits[0]}"],
+                                      cwd=str(guide.parent), capture_output=True,
+                                      text=True, timeout=30)
+        if head.returncode != 0:
+            # NOT SILENCE. "I could not read the committed guide" and "nothing
+            # was added" are different answers, and only one of them is safe to
+            # print as a clean check.
+            return [f"the lesson-approval check could not read the committed "
+                    f"guide at {guide.parent}/{guide.name}: git show exited "
+                    f"{head.returncode}. A guide whose history cannot be read "
+                    f"cannot be checked for unapproved lessons, which is not "
+                    f"the same as having none."]
         before = _lesson_leads(head.stdout)
     except Exception as e:
         return [f"the lesson-approval check could not read the committed guide: "

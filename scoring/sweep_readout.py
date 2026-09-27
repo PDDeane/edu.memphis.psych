@@ -68,7 +68,7 @@ import pathlib as _pathlib
 _OWN_DIR = str(_pathlib.Path(__file__).resolve().parent)
 
 
-def _dropped(item: str, handout) -> set:
+def _dropped(item: str, form) -> set:
     """Cells that MUST NOT appear as evidence: suspect AND per-item excluded.
 
     A CELL DROPPED FROM THE RATE MUST NOT REACH A REVERT DECISION. This module
@@ -82,15 +82,15 @@ def _dropped(item: str, handout) -> set:
     keeping or reverting an edit either, and printing it invites exactly that.
     """
     sys.path.insert(0, _OWN_DIR)
-    import handouts as H
-    out = set(H.suspect(handout)) if handout else set()
+    import forms as H
+    out = set(H.suspect(form)) if form else set()
     out |= set((getattr(H, "PER_ITEM_EXCLUDE", {}) or {}).get(item, {}))
     return out
 
 def readout(item: str, before: dict) -> int:
     """0 if the edit is safe to keep, 1 if the evidence says revert."""
     sys.path.insert(0, _OWN_DIR)
-    import handouts as H
+    import forms as H
     import measured as M
 
     # E56: A BEFORE-SNAPSHOT MEASURES A PROMPT. If that prompt is not the one in
@@ -123,15 +123,15 @@ def readout(item: str, before: dict) -> int:
                   f"explicitly and say which prompt produced it.", file=sys.stderr)
             return 1
 
-    handout = None
+    form = None
     for h in H.declared():
         try:
-            if item in M._handout_gold_items(h):
-                handout = h
+            if item in M._form_gold_items(h):
+                form = h
                 break
         except Exception:
             continue
-    suspect = _dropped(item, handout)
+    suspect = _dropped(item, form)
 
     rows, regressions, watch = [], [], []
     for pid in range(1, 21):
@@ -253,18 +253,18 @@ def slot_profile(item: str, slots: tuple, cells: tuple = ()) -> int:
     sys.path.insert(0, _OWN_DIR)
     import collections
 
-    import handouts as H
+    import forms as H
     import measured as M
 
-    handout = None
+    form = None
     for h in H.declared():
         try:
-            if item in M._handout_gold_items(h):
-                handout = h
+            if item in M._form_gold_items(h):
+                form = h
                 break
         except Exception:
             continue
-    suspect = _dropped(item, handout)
+    suspect = _dropped(item, form)
     want = set(cells) if cells else None
 
     print(f"  {item}: {', '.join(slots)}")
@@ -326,18 +326,18 @@ def cell_texts(item: str, cells: tuple = (), fields: tuple = ()) -> int:
     import textwrap
 
     import agreement as A
-    import handouts as H
+    import forms as H
     import measured as M
 
-    handout = None
+    form = None
     for h in H.declared():
         try:
-            if item in M._handout_gold_items(h):
-                handout = h
+            if item in M._form_gold_items(h):
+                form = h
                 break
         except Exception:
             continue
-    suspect = _dropped(item, handout)
+    suspect = _dropped(item, form)
     want = set(cells) if cells else None
 
     for pid in range(1, 21):

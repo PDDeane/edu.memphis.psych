@@ -63,7 +63,20 @@ import paths as _paths_rev
 
 REVIEWS = str(_paths_rev.COURSE_LEAKAGE_REVIEWED)
 
-CADENCE = ("DAY1", "DAY2", "WK1", "WK2")
+def cadence_items() -> tuple:
+    """The items that declare a CADENCE, from the rubric.
+
+    DERIVED, NOT LISTED. This was `("DAY1", "DAY2", "WK1", "WK2")` -- four of
+    this course's item ids in engine code, and the default for `--items` besides,
+    so a course with a different cadence set got this one's.
+
+    The rubric already says it: each of those items carries `cadence="daily"` or
+    `cadence="weekly"`, so nothing new had to be declared to stop naming them.
+    Sorted for a stable CLI default.
+    """
+    import enforcement
+
+    return tuple(sorted(i["id"] for i in enforcement.all_items() if i.get("cadence")))
 VERDICTS = ("vocabulary", "coincidence", "rewritten")
 
 # Words too common to carry evidence of copying. Deliberately short: the point
@@ -237,7 +250,7 @@ def cohort(items: tuple[str, ...]) -> dict[tuple[str, int, str], str]:
 
 def _specs() -> dict[str, dict]:
     """Every rubric item across the three handouts, keyed by id."""
-    import handouts as H
+    import forms as H
     out: dict[str, dict] = {}
     for h in H.declared():
         try:
@@ -490,7 +503,7 @@ def _domain_words(items: tuple[str, ...]) -> set[str]:
     specs = _specs()
     txt = " ".join(str((specs.get(i) or {}).get("question") or "") for i in items)
     try:
-        import handouts as _H_L
+        import forms as _H_L
         # J-3. WAS config(2); OC_FRAME lives on the criteria handout.
         _h = _H_L.carrying("derive_from_criteria")[0]
         txt += " " + _H_L.config(_h)["rubric"].OC_FRAME
@@ -680,7 +693,7 @@ def findings(items: tuple[str, ...]) -> list[dict]:
     return out
 
 
-def unreviewed(items: tuple[str, ...] = CADENCE) -> list[str]:
+def unreviewed(items: tuple[str, ...] = ()) -> list[str]:
     """One line per flagged block with no standing verdict. The gate's payload.
 
     AUDITS EVERY ITEM and ignores `items`, for the reason spelled out on `gate`:
@@ -719,7 +732,7 @@ def gate(items: tuple[str, ...], stream=sys.stderr) -> int:
     # coincidence, and measured over all 26 items on a clean tree it finds
     # NOTHING. So a hit is a fault, not a judgement call, and there is nobody to
     # ask about it -- rewrite the example.
-    for v in verbatim_findings(items or CADENCE):
+    for v in verbatim_findings(items or cadence_items()):
         print(f"REFUSING: {v['label']} shares a {MIN_VERBATIM_WORDS}-word verbatim "
               f"span with p{v['student']} AND NO OTHER STUDENT: "
               f"{v['spans'][0]!r}", file=stream)
@@ -797,7 +810,7 @@ def report(items: tuple[str, ...], show_all: bool = False) -> int:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--items", default=",".join(CADENCE),
+    ap.add_argument("--items", default=",".join(cadence_items()),
                     help="comma-separated item ids, or ALL")
     ap.add_argument("--gate", action="store_true",
                     help="exit 1 with the refusal message if anything is unreviewed")

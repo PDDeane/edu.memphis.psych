@@ -98,7 +98,7 @@ def split_state() -> tuple[bool, list[str]]:
 def changelog_path() -> str:
     import paths
 
-    return str(paths.COURSE_CHANGELOG)
+    return str(paths.roots().changelog)
 
 
 def docstrings_outside_courses(directory: str | None = None) -> list[tuple[str, str]]:

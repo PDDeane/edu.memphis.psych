@@ -17,8 +17,8 @@ import json
 import os
 import statistics
 
-import handouts as _handouts
-from handouts import (HANDOUTS, config, exemplar_drops, gold_ceiling,
+import forms as _forms
+from forms import (FORMS, config, exemplar_drops, gold_ceiling,
                       gold_divergence_cells, suspect)
 from stale_check import audit as stale_audit
 
@@ -59,7 +59,7 @@ def tolerance(item_id: str) -> float:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--handout", type=int, default=1, choices=sorted(HANDOUTS))
+    ap.add_argument("--form", "--handout", type=int, default=1, choices=sorted(FORMS))
     ap.add_argument("--outdir", default=None)
     ap.add_argument("--tools", choices=["auto", "yes", "no"], default="auto",
                     help="Did the backend that produced these predictions have "
@@ -78,7 +78,7 @@ def main() -> int:
     )
     args = ap.parse_args()
 
-    cfg = config(args.handout)
+    cfg = config(args.form)
     global BY_ID, ITEMS
     BY_ID, ITEMS = cfg["rubric"].BY_ID, cfg["rubric"].ITEMS
     args.outdir = args.outdir or cfg["outdir"]
@@ -117,18 +117,18 @@ def main() -> int:
     if tools == {True}:
         not_comparable = {}
     elif tools == {False}:
-        not_comparable = _handouts.not_comparable_items(args.handout, False)
+        not_comparable = _forms.not_comparable_items(args.form, False)
     else:
         # Older outputs predate the provenance field. Assume the worst and say so,
         # rather than silently reporting a number that may be a missing tool.
-        not_comparable = _handouts.not_comparable_items(args.handout, False)
+        not_comparable = _forms.not_comparable_items(args.form, False)
         if not_comparable:
             print(f"!! predictions do not record which backend made them "
                   f"({sorted(x for x in backends_seen if x) or 'unrecorded'}). "
                   f"Treating {sorted(not_comparable)} as not comparable — re-score "
                   f"to remove the doubt.\n")
 
-    per_item_excl = {it["id"]: _handouts.cell_exclusions(args.handout, it["id"])
+    per_item_excl = {it["id"]: _forms.cell_exclusions(args.form, it["id"])
                      for it in ITEMS}
     per_item_drop = {k: sorted(v) for k, v in per_item_excl.items() if v}
     if per_item_drop:
@@ -141,7 +141,7 @@ def main() -> int:
         return 1
 
     pids = sorted(set(gold) & set(pred))
-    print(f"Handout {args.handout} baseline — {len(pids)} participants with both gold and predictions\n")
+    print(f"Handout {args.form} baseline — {len(pids)} participants with both gold and predictions\n")
 
     # These predictions are files on disk, not something this run computed, so a
     # rubric edit since they were written makes every number below describe a
@@ -149,14 +149,14 @@ def main() -> int:
     # sat stale for five days, handout 2 with six slots its rubric had dropped.
     # Warn rather than exit — printing the numbers is the point of this tool, and
     # a stale comparison is still worth seeing once it is labelled as one.
-    stale, _, _ = stale_audit(args.handout, args.outdir)
+    stale, _, _ = stale_audit(args.form, args.outdir)
     if stale:
         items = sorted({ln.split()[0] for ln in stale})
         print(f"!! STALE PREDICTIONS — {', '.join(items)} were scored by an "
               f"older rubric.\n"
               f"!! The rates below are not measurements of the current one. "
-              f"Details: python3 stale_check.py --handout {args.handout}\n"
-              f"!! Refresh: python3 score.py --handout {args.handout} "
+              f"Details: python3 stale_check.py --handout {args.form}\n"
+              f"!! Refresh: python3 score.py --handout {args.form} "
               f"--items {' '.join(items)}\n")
 
     # Cells where this scorer disagrees with a grader ON PURPOSE, because the
@@ -206,7 +206,7 @@ def main() -> int:
             e = p - g
             # Exact, or the nearest reachable score where gold names one the item
             # cannot produce — see handouts.scores_as_exact.
-            hit = _handouts.scores_as_exact(item, g, p)
+            hit = _forms.scores_as_exact(item, g, p)
             errs.append(e)
             all_err.append(e)
             all_abs.append(abs(e))
@@ -262,8 +262,8 @@ def main() -> int:
             print(f"  {iid:>5}  n={na:<3} -{nd} cell(s)  exact {ex:>4.0%}  "
                   f"MAE {mae:.2f}  bias {bias:+.2f}   {codes}")
 
-    ceil = [(i["id"], gold_ceiling(args.handout, i["id"])) for i in ITEMS
-            if gold_ceiling(args.handout, i["id"])]
+    ceil = [(i["id"], gold_ceiling(args.form, i["id"])) for i in ITEMS
+            if gold_ceiling(args.form, i["id"])]
     if ceil:
         print("\nMeasurement ceilings — gold does not decide these consistently "
               "(handouts.GOLD_CEILINGS):")
@@ -308,18 +308,18 @@ def main() -> int:
             "unscoreable": "no correct scorer can reach this gold — a miss is EXPECTED",
             "suspect":     "the submission is mis-transcribed — a miss says nothing",
         }
-        for kind in _handouts.EXCLUSION_KINDS:
+        for kind in _forms.EXCLUSION_KINDS:
             mine = [r for r in not_counted if r[0] == kind]
             if not mine:
                 continue
             ok = sum(1 for _, iid, _, g, p in mine
-                     if _handouts.scored_exactly(iid, g, p))
+                     if _forms.scored_exactly(iid, g, p))
             print(f"  {kind:<12} {ok}/{len(mine)} scored correctly — {meaning[kind]}")
             for _, iid, pid, g, p in sorted(mine, key=lambda r: (r[1], r[2])):
-                if not _handouts.scored_exactly(iid, g, p):
+                if not _forms.scored_exactly(iid, g, p):
                     flag = "  <-- MISSED" if kind == "self_graded" else ""
                     print(f"      p{pid:<3} {iid:<5} gold={g:.2f} pred={p:.2f}{flag}")
-                stale = _handouts.stale_claim(iid, pid, g, p)
+                stale = _forms.stale_claim(iid, pid, g, p)
                 if stale:
                     print(f"      p{pid:<3} {iid:<5} {stale}")
 

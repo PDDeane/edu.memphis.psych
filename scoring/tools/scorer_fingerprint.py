@@ -22,6 +22,7 @@ could have said otherwise.
 """
 from __future__ import annotations
 
+import functools
 import hashlib
 import itertools
 import json
@@ -37,27 +38,96 @@ BASELINE = os.path.join(HERE, "SCORER_FINGERPRINT.json")
 
 GATE_FACTS = ["behavior", "stimulus", "contingent", "follows_behavior",
               "stimulus_is_arranged"]
+# THE FALLBACK ONLY. `_enum` reads each item's own schema and uses this when the
+# schema constrains nothing, so these are not the swept values for a fact that
+# declares its own. Kept as a last resort rather than a source of truth.
 TYPES = ["", "PR", "NR", "PP", "NP"]
-REST = ["targets_own_behavior", "targets_intended_behavior",
-        "consequence_asserted", "avoidance_frame", "cadence_ok"]
-MOVES = ["", "added", "removed"]
 
-# THE PICK-VALUED FACTS, AND WITHOUT THEM THIS GUARD WAS BLIND TO THE `forbid`
-# RULES ENTIRELY. Measured on 2026-09-24: `forbid_hit` fired on 0 of NR's 6400
-# swept answers, because the conditions it reads -- `trigger_expects` and
-# `restricts` -- were never swept at all, and `restriction_authored` was fed
-# True/False when the fact is a PICK whose values are strings. So a migration of
-# `barrier_is_not_this_type` or `consequence_not_a_setup` could change the ledger
-# and the fingerprint would still say "reproduces".
+
+@functools.lru_cache(maxsize=1)
+def _declared_space() -> tuple[list, dict]:
+    """(boolean facts, {enum fact: values}) -- from the SCORERS' OWN SCHEMAS.
+
+    DERIVED, AND THE HARDCODED VERSION WAS WRONG IN THREE WAYS. Measured
+    2026-09-25 against what the scorers actually declare:
+
+      * `REST` listed FIVE boolean facts; the schemas declare ELEVEN. The six
+        never swept were `agent_delivers_consequence`, `aimed_correctly`,
+        `contingent`, `follows_behavior`, `states_a_contingency` and
+        `stimulus_is_arranged` -- every one of them a GATE, so the gate paths
+        were the part this guard was least covering.
+      * `PICKS` held THREE enum facts of the seven declared, missing
+        `stimulus_move`, `trigger_behavior` and the two type facts.
+      * `MOVES` swept `stimulus_move` over `["", "added", "removed"]` and the
+        schema declares `given_desirable / given_undesirable / taken_desirable /
+        taken_undesirable`. NOT ONE VALUE OVERLAPPED. The fact was varied over
+        values it can never hold, which is precisely the failure this file
+        already records finding once: *"the sweep did vary
+        `restriction_authored`, so it looked covered. It was varying it over
+        values the rule can never match."* The same error, three facts further
+        on, and it is why this now reads the schema instead of restating it.
+
+    A FACT NO SCORER DECLARES IS NOT SWEPT, which is the honest limit: this can
+    only cover what the schemas expose.
+
+    MEMOISED, AND THAT IS NOT AN OPTIMISATION DETAIL. `_profiles()` is called
+    once per case batch -- 6,400 times in a full check -- and this resolves
+    every scorer and builds every schema fragment. Uncached it took the check
+    from 23s to 69s while sweeping the SAME 115,200 cases, which is a threefold
+    cost for no extra coverage. Callers read the result and must not mutate it.
+    """
+    import coursedata
+    import scorers
+
+    bools: list = []
+    enums: dict = {}
+    for it in coursedata.items():
+        try:
+            mod = scorers.resolve(scorers.name_for(it))
+        except Exception:
+            continue
+        if not hasattr(mod, "schema_fragment"):
+            continue
+        try:
+            frag = mod.schema_fragment(it)
+        except Exception:
+            continue
+        props = ((frag.get("properties") or {}).get("oc_analysis") or {}).get(
+            "properties") or {}
+        for k, v in sorted(props.items()):
+            if v.get("type") == "boolean":
+                if k not in bools:
+                    bools.append(k)
+            elif v.get("enum"):
+                enums.setdefault(k, [])
+                for val in v["enum"]:
+                    if val not in enums[k]:
+                        enums[k].append(val)
+    return bools, enums
+
+
+# THE PER-ITEM FACTS, sweeping of which `_enum` already handles by reading each
+# item's schema. Excluded from the cross-product so they are not swept twice
+# over a union that no single item admits.
+PER_ITEM_FACTS = ("observed_type", "named_type")
+
+# THE PICK-VALUED FACTS ARE DERIVED NOW -- see `_declared_space`. The table that
+# stood here is gone; this is the incident it was written for, kept because it
+# is the reason the derivation exists.
 #
-# A wrong TYPE is the part worth keeping in mind: the sweep did vary
+# WITHOUT THE PICKS THIS GUARD WAS BLIND TO THE `forbid` RULES ENTIRELY.
+# Measured 2026-09-24: `forbid_hit` fired on 0 of NR's 6400 swept answers,
+# because the conditions it reads -- `trigger_expects` and `restricts` -- were
+# never swept at all, and `restriction_authored` was fed True/False when the
+# fact is a PICK whose values are strings. So a migration of
+# `barrier_is_not_this_type` or `consequence_not_a_setup` could change the
+# ledger and the fingerprint would still say "reproduces".
+#
+# A WRONG TYPE IS THE PART WORTH KEEPING IN MIND: the sweep did vary
 # `restriction_authored`, so it looked covered. It was varying it over values
-# the rule can never match.
-PICKS = {
-    "restriction_authored": ["created", "relieved", "neither"],
-    "trigger_expects": ["gain", "loss", "none"],
-    "restricts": ["target_behavior", "other_thing"],
-}
+# the rule can never match. That is exactly what `stimulus_move` was still
+# doing on 2026-09-25, one year of the same mistake later in the same file --
+# which is why the values are no longer written here at all.
 
 
 def _profiles():
@@ -71,14 +141,46 @@ def _profiles():
     boolean profile together with one SPECIFIC pick combination. Said here rather
     than left for someone to infer from the case count.
     """
-    combos = list(itertools.product(*PICKS.values()))
+    rest, enums = _declared_space()
+    enums = {k: v for k, v in enums.items() if k not in PER_ITEM_FACTS}
+
+    # BOUNDED THE SAME WAY IT ALWAYS WAS. Full cartesian over all seven enum
+    # facts is 216 profiles against today's 18, and this check runs in every
+    # audit at 23s -- so the cross-product keeps the budget it had and the rest
+    # are ROUND-ROBINED across the profiles it produces. Every value of every
+    # declared fact is still exercised; what is not covered is a bug needing one
+    # specific combination of a round-robined fact with a crossed one, which is
+    # the same class of gap the paragraph above already declares.
+    # SMALLEST CARDINALITY FIRST, which is not a detail. Taking the facts in
+    # declaration order crossed `stimulus_move` (4) with `restriction_authored`
+    # (3), spent the budget at 12, and spun the other three -- covering 6 of the
+    # 18 pick-combinations this check had always crossed. A COVERAGE LOSS
+    # disguised as a widening, caught by comparing against the old set rather
+    # than by trusting the new one. Ascending order fits the most facts into a
+    # fixed budget, and here it reproduces the historical 18 exactly.
+    cross, spin, budget = {}, {}, 1
+    for k, vals in sorted(enums.items(), key=lambda kv: (len(kv[1]), kv[0])):
+        if budget * max(1, len(vals)) <= _CROSS_BUDGET:
+            cross[k] = vals
+            budget *= max(1, len(vals))
+        else:
+            spin[k] = vals
+
+    combos = list(itertools.product(*cross.values())) or [()]
     out = []
     for i, combo in enumerate(combos):
-        p = {f: bool(i >> (n % 3) & 1) for n, f in enumerate(REST)}
-        p["stimulus_move"] = MOVES[i % len(MOVES)]
-        p.update(dict(zip(PICKS, combo)))
+        p = {f: bool(i >> (n % 3) & 1) for n, f in enumerate(rest)}
+        p.update(dict(zip(cross, combo)))
+        for k, vals in spin.items():
+            p[k] = vals[i % len(vals)]
         out.append(p)
     return out
+
+
+# How many crossed combinations the profile set may reach before the remaining
+# facts are round-robined instead. 18 was the figure this check was built and
+# timed at; the budget is stated so raising it is a decision, not a drift.
+_CROSS_BUDGET = 18
 
 
 def _enum(oc, item: dict, fact: str) -> list:

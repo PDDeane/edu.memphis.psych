@@ -38,7 +38,9 @@ import re as _re
 import subprocess
 import sys
 import time
-import handouts as _handouts   # forms are declared by the course, not counted here
+import forms as _forms   # forms are declared by the course, not counted here
+
+import paths
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 STATE_ONLY = ("ITEM UNMEASURED AS CONFIGURED",)
@@ -501,7 +503,7 @@ def _launders(idx=None) -> list:
     course = ""
     try:
         import olx_prompts as _O
-        course = " ".join(_O._src(h) for h in _handouts.declared()).lower()
+        course = " ".join(_O._src(h) for h in _forms.declared()).lower()
     except Exception:
         course = ""
     bad = []
@@ -519,7 +521,7 @@ def _launders(idx=None) -> list:
     return bad
 
 
-BUDGET = os.path.join(HERE, "STUDENT_TEXT_BUDGET.json")
+BUDGET = os.path.join(paths.SCORING_METADATA, "STUDENT_TEXT_BUDGET.json")
 EXCLUDED_SUFFIXES = (".olx",)          # course content: student-facing by design
 SCANNED_SUFFIXES = (".py", ".md", ".json")
 _VOICE = _re.compile(r"\b(I |I'm|I am|my |My |me |myself)")
@@ -627,7 +629,7 @@ def _classifier():
     cells = {k: norm(v) for k, v in idx.items()}
     try:
         import olx_prompts as _O
-        course = norm(" ".join(_O._src(h) for h in _handouts.declared()))
+        course = norm(" ".join(_O._src(h) for h in _forms.declared()))
     except Exception:
         course = ""
 

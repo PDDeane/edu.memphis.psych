@@ -95,7 +95,7 @@ def _ambiguous(i: str) -> bool:
 # Course artifacts that appear in MODULE NAMES but are not item ids. §10.7's
 # fourth category is "a course artifact in its own name", and an id-only rule
 # finds 2 of the 9 such modules -- it cannot see `rubric_h1.py` or `score_h1.py`,
-# which name a HANDOUT, or `handouts.py` and `gold.py`, which name course data.
+# which name a HANDOUT, or `forms.py` and `gold.py`, which name course data.
 # Declared with justification, like VOCABULARY.
 NAME_MARKERS: dict[str, str] = {
     "h1": "handout 1 -- a course artifact, not an engine concept",
@@ -115,18 +115,80 @@ NAME_MARKERS: dict[str, str] = {
 # that a gap with a date on it is still a gap. Item G2 adds each generic half to
 # this set as it splits one out, and the set is how "the split is finished" stops
 # being a judgement.
-GENERIC_DOCS: tuple[str, ...] = (
+_DECLARED_GENERIC: tuple[str, ...] = (
     "README.md",
     "PENDING_DECISIONS.md",
     "STAGE5_RUNBOOK.md",
     "ADOPTION_POSTMORTEM.md",
     "AGENDA_FROM_CLASSIFICATION.md",
     "VERDICT_VOCABULARY_PLAN.md",
-    "course_metadata/CHANGELOG.md",
+    "course_data/rubrics/bmod_rubric/CHANGELOG.md",
     "migration/RUNBOOK.md",
     "migration/products/README.md",
     "scoring/STAGE5_LICENCE.md",
 )
+
+
+# A BARE RATE IS NOT AN IDENTIFIED CELL, and this is the allowance that says so.
+#
+# Subgoal E59, 2026-09-25. Widening `GENERIC_DOCS` to the split documents' generic
+# halves surfaced 80 course-content signals; `EQUIVALENCE.md` and `README.md`
+# genuinely named participants, items and corpus spans, and every one of those
+# moved to the course half. `QUALITY_CONTROL.md` did not: all 37 of its signals
+# were `run_score` alone -- `12/12`, `4/6`, `17/20` -- with ZERO `cell`, ZERO
+# `item_and_participant` and ZERO `corpus_ref`, and it was allowed them here.
+#
+# IT RATCHETS, which is what stops it becoming a licence. The count may FALL and
+# may not RISE: a new `run_score` in a declared-generic document is reported, and
+# a NAMED cell is reported whatever this says, because only `run_score` is ever
+# allowed.
+#
+# AND IT HAS RATCHETED TO NOTHING. 2026-09-26. The user's instruction to clean
+# QUALITY_CONTROL.md moved the course's own measurements into the course half,
+# and all four generic halves now measure zero signals of every kind through
+# `course_prose`. The table is empty because the allowance was USED UP, not
+# because it was abandoned -- and empty is the strict state, so a single new rate
+# in any of them is now reported.
+#
+# THE ENTRY OUTLIVED ITS PATH, which is the smaller lesson and the reason this
+# note names the mechanism. Its key was `scoring/QUALITY_CONTROL.md`; the
+# document moved to the collection directory and then to `scoring/qc/`, and the
+# key followed neither. The allowance was therefore INERT for both moves -- it
+# would not have covered a rise, and nothing said so, because a lookup that
+# misses returns the same empty allowance as a document that declares none.
+# `check_generic_documents_are_generic` reports a GENERIC_DOCS entry whose file
+# is gone; it cannot report an ALLOWANCE whose document is gone, since the
+# allowance is keyed by a path it does not own. Anything added here should be
+# keyed by `compose_docs.generic_path` rather than by a written path.
+ANONYMOUS_RATE_ALLOWANCE: dict[str, dict] = {}
+
+
+def _split_generic_halves() -> tuple[str, ...]:
+    """The GENERIC half of every split document -- generic by definition.
+
+    Subgoal E59, 2026-09-25. A split document has a generic half in `scoring/`
+    and a course-specific half with the course; the whole point of the split is
+    that the first carries no course content. Three of the four were never in
+    the list above, so nothing had ever looked at them -- and they hold 80
+    course-content signals between them.
+
+    DERIVED FROM `compose_docs.SPLIT_DOCS`, not restated. That is the list of
+    record for which documents are split, and a hand-written copy of a list of
+    record is the drift `DATA_MODULES` was bitten by on this same day: the
+    source modules were split into four, one list was updated and the other was
+    not. A document added to `SPLIT_DOCS` is checked here at once.
+
+    NOT the specific halves, which are SUPPOSED to be full of course content and
+    are not in this repository at all.
+    """
+    import compose_docs
+
+    return tuple(os.path.relpath(compose_docs.generic_path(n), paths.REPO)
+                 for n in compose_docs.SPLIT_DOCS)
+
+
+GENERIC_DOCS: tuple[str, ...] = tuple(
+    dict.fromkeys(_DECLARED_GENERIC + _split_generic_halves()))
 
 
 def _course_prose_signals(ids: set) -> dict:
@@ -185,17 +247,27 @@ def item_ids(source: str | None = None) -> set[str]:
     # every module scan clean, which is not the same as clean.
     ids: set[str] = set()
     sys.path.insert(0, HERE)
+    # THE CAUSE IS CARRIED, NOT SWALLOWED. This was a bare `except Exception:
+    # ids = set()`, so EVERY failure -- a read error, a parse error, anything
+    # raised deep inside the rubric reader -- arrived as one message asserting a
+    # cause it had not established. Measured 2026-09-26: a forked selftest audit
+    # died here and the message sent the reader to look at imports, while
+    # `item_ids()` worked perfectly in isolation a minute later. The refusal is
+    # right; naming an unestablished cause is not.
+    why = ""
     try:
         import coursedata
 
         ids = {str(it["id"]) for it in coursedata.items() if "id" in it}
-    except Exception:
+    except Exception as exc:
+        why = f" The attempt raised {type(exc).__name__}: {exc}"
         ids = set()
     if not ids:
         raise SystemExit(
-            "course_inventory: no item ids available. The rubric modules did not "
-            "import and no course file was given -- scanning with an EMPTY id set "
-            "would report every module clean, which is not the same as clean.")
+            "course_inventory: no item ids available -- scanning with an EMPTY "
+            "id set would report every module clean, which is not the same as "
+            "clean." + (why or " Nothing was raised: the course declares no "
+                               "items, and no course file was given."))
     return ids
 
 

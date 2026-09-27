@@ -45,12 +45,14 @@ import json
 import os
 import sys
 
+import paths
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
 
 SCHEMA_VERSION = 1
-BUDGET = os.path.join(HERE, "PROPERTY_BUDGET.json")
+BUDGET = os.path.join(paths.SCORING_METADATA, "PROPERTY_BUDGET.json")
 
 # Modules that may branch on a property, each with the reason.
 EXEMPT = {
@@ -123,16 +125,37 @@ def premise_holds() -> list[str]:
     return []
 
 
+def _engine_module_files():
+    """Every engine module, wherever the split put it -- one list of record."""
+    import paths as _p
+    out = []
+    for d in (_p.SCORING, _p.SCORING / "tools", _p.SCORERS_GENERAL, _p.SCORING_COURSE):
+        try:
+            out.extend(sorted(d.glob("*.py")))
+        except OSError:
+            continue
+    return out
+
+
 def scan(directory: str | None = None) -> dict:
     """-> {property: [sites]}. Branch conditions only."""
-    directory = directory or HERE
     props = properties()
     hits: dict[str, list[dict]] = {}
     scanned = 0
-    for fn in sorted(os.listdir(directory)):
+    # EVERY ENGINE DIRECTORY, not just this one. The scan listed a single
+    # directory, so when the general scorers moved to `scorers/` and a course's
+    # own modules to `scoring/<course>/` their branches left the ratchet -- and
+    # a property that is no longer branched on ANYWHERE reads as a property that
+    # was tightened, which is the one direction this ratchet is built to refuse.
+    # Measured the day they moved: `guidance` reported as no longer branched.
+    if directory is not None:
+        _files = [os.path.join(directory, fn) for fn in sorted(os.listdir(directory))]
+    else:
+        _files = [str(p) for p in _engine_module_files()]
+    for path in _files:
+        fn = os.path.basename(path)
         if not fn.endswith(".py") or fn in EXEMPT:
             continue
-        path = os.path.join(directory, fn)
         try:
             tree = ast.parse(open(path, errors="ignore").read())
         except SyntaxError:

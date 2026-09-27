@@ -97,8 +97,12 @@ def self_test() -> int:
           certify("tables", before, after, must_differ=(before, after)), False)
 
     # 1. counting a mention as a use
+    # A NONCE, NOT A REAL FACT NAME. This case is about prose containing a
+    # name, so any name will do -- and using a live course fact made a
+    # self-test of the evidence mechanism depend on this course's vocabulary.
+    # Step 7, 2026-09-25.
     check("a name inside prose is not the same value as the name",
-          certify("count", "uses avoidance_frame here", "avoidance_frame",
+          certify("count", "uses widget_flag here", "widget_flag",
                   must_differ=("a", "b")), False)
 
     # 2. one side reading clean is not a finding

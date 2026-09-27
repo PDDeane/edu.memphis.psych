@@ -38,11 +38,11 @@ import argparse
 import json
 import os
 import sys
-import handouts as _handouts   # forms are declared by the course, not counted here
+import forms as _forms   # forms are declared by the course, not counted here
 
 SCHEMA_VERSION = 1
 HERE = os.path.dirname(os.path.abspath(__file__))
-HANDOUTS = _handouts.declared()
+FORMS = _forms.declared()
 
 # THE DERIVATIONS LIVE IN THE READER. Imported, never redefined: the export
 # decides what to DROP and `coursedata.py` REBUILDS it, which is one question
@@ -58,7 +58,7 @@ sys.path.insert(0, HERE)
 from coursedata import DERIVATIONS          # noqa: E402  (after sys.path)
 
 
-def _load(handout: int):
+def _load(form: int):
     """The rubric module for one handout, or None once its file is gone.
 
     Stage 5 deletes rubric_h1.py and rubric_h3.py: their data is the course
@@ -76,7 +76,7 @@ def _load(handout: int):
     module truly went still returns None by falling through both.
     """
     sys.path.insert(0, HERE)
-    for name in (f"rubric_h{handout}", f"rubric_h{handout}_source"):
+    for name in (f"rubric_h{form}", f"rubric_h{form}_source"):
         try:
             return __import__(name)
         except ModuleNotFoundError:
@@ -293,7 +293,27 @@ def generator_fields_for(item_id: str) -> dict:
 
 # The scoring DECLARATIONS. Seven of eight moved; `CONSENSUS_OVERLAP_BACKLOG` is
 # keyed by participant and belongs in the gold file under C1b.
-DECLARATION_TABLES = ("GOLD_COMMENT_PHRASES",
+# MOVED OUT OF `enforcement.py` 2026-09-25 (goal K's native work, subgoal E58):
+# each was course data living in engine code, and while it did the rule that
+# reads it could be run from python and from nowhere else. They are listed here
+# so a REGENERATION carries them: without these four names the exporter wrote a
+# course file that silently dropped them, which a round-trip check found before
+# any regeneration was run in anger.
+BUDGET_NAMES = ("HANDCODED_BUDGET", "ITEM_GATED_BUDGET", "OLX_CORPUS_REF_BUDGET",
+                "ONE_SIDED_SCORED_SLOTS_BUDGET", "PARKED_BUDGET",
+                "PROSE_ONLY_BUDGET", "RUBRIC_CONSUMER_BUDGET",
+                "SLOT_RULE_BACKLOG_BUDGET", "SLOT_STRUCTURE_BUDGET",
+                "UNEXERCISED_PRIMITIVES_BUDGET")
+
+DECLARATION_TABLES = ("HAND_AUTHORED_SHEET_ATTRS",
+                      "OVERLAP_SIBLING_ROLES",
+                      "CORPUS_QUOTE_BACKLOG",
+                      "SIM_FIELDS", "PARKED_UNDECLARED", "VERDICT_SPACE_DIVERGENCES",
+                      "GOLD_BOX_WORDS",
+                      "VERDICT_PAIRS",
+                      "SLOT_STRUCTURE_DIVERGENCES",
+                      "SLOT_RULE_BACKLOG", "HANDCODED_ITEM_RULES",
+                      "GOLD_COMMENT_PHRASES",
                       "ASK_EQUIVALENT_PROMPTS",
                       "PROSE_ONLY_SLOTS", "PROSE_ONLY_JUDGED_AGAINST",
                       "MULTI_BLOCK_DECLARED", "DESIGNED_TEXT",
@@ -310,20 +330,26 @@ DECLARATION_TABLES = ("GOLD_COMMENT_PHRASES",
                       # could hold a frozenset. Before that `json.dumps`
                       # refused it and the table could not be exported at all.
                       "PROBE_UNREACHABLE_PAIRS",
-                      # SLOT_STRUCTURE_FAMILIES and HAND_AUTHORED_ATTRS moved
-                      # 2026-09-19. They were held back because the probe calls
-                      # them INCONCLUSIVE -- but that verdict is about whether
-                      # their CONSUMING CHECK enforces them, not about whether a
-                      # bad migration would be noticed. `migrated_tables`
-                      # answers the second, order-sensitively, and both are
-                      # plainly authoring content: one names a family of this
-                      # course's items, the other is keyed by (item, attribute).
-                      "SLOT_STRUCTURE_FAMILIES", "HAND_AUTHORED_ATTRS",
-                      # BLOCKS moved 2026-09-19 WITHOUT its `refs`, which
-                      # `_context_refs` derives from the .olx -- storing that
-                      # would put a derived value in the course file and freeze
-                      # a map that changes whenever the .olx does.
-                      "BLOCKS",
+                      # HAND_AUTHORED_ATTRS moved 2026-09-19. It was held back
+                      # because the probe calls it INCONCLUSIVE -- but that
+                      # verdict is about whether its CONSUMING CHECK enforces
+                      # it, not about whether a bad migration would be noticed.
+                      # `migrated_tables` answers the second,
+                      # order-sensitively, and it is plainly authoring content:
+                      # keyed by (item, attribute).
+                      "HAND_AUTHORED_ATTRS",
+                      # SLOT_STRUCTURE_FAMILIES AND BLOCKS WENT FURTHER, and
+                      # their names left this list on 2026-09-26. Both moved
+                      # here on 09-19 and then stopped being authored tables at
+                      # all: `SLOT_STRUCTURE_FAMILIES` is read off
+                      # `<Item family="...">` by `coursedata.slot_structure_
+                      # families()`, and `BLOCKS` off the rubric by
+                      # `coursedata.gradable_blocks()`. With no authored source,
+                      # `_authored(name)` returned None and the export skipped
+                      # them every run -- so the names promised two tables the
+                      # course file has never carried. A list that names what it
+                      # does not write reads as coverage; removing them costs
+                      # nothing and stops the next reader looking for them.
                       # SELFTEST_NAMED_FIXTURES moved 2026-09-20. Declaring the
                       # nine named fixtures in `enforcement.py` MOVED this
                       # course's item ids into the engine rather than removing
@@ -406,8 +432,8 @@ def rubric_notes() -> dict:
     import ast
 
     out = {"items": {}, "handouts": {}, "runs": {}}
-    for handout in _handouts.declared():
-        mod = _load(handout)
+    for form in _forms.declared():
+        mod = _load(form)
         if mod is None:
             # Its file is gone and its notes are already in the course file;
             # `build` merges them forward. Lifting them from a module that does
@@ -441,7 +467,7 @@ def rubric_notes() -> dict:
                         iid = str(v.value)
             if iid is None:
                 raise SystemExit(
-                    f"rubric_export: {len(run)} comment line(s) in rubric_h{handout}'s "
+                    f"rubric_export: {len(run)} comment line(s) in rubric_h{form}'s "
                     f"ITEMS belong to an entry with no readable `id`. They have "
                     f"nowhere to go, so the export stops rather than dropping them.")
             out["items"].setdefault(iid, []).extend(run)
@@ -452,7 +478,7 @@ def rubric_notes() -> dict:
         got += len(tail)
         if got != had:
             raise SystemExit(
-                f"rubric_export: rubric_h{handout}'s ITEMS holds {had} comment "
+                f"rubric_export: rubric_h{form}'s ITEMS holds {had} comment "
                 f"line(s) and {got} were lifted. The reasoning is the expensive "
                 f"half of this record; it does not get dropped on the way out.")
         # AND THE PROSE OUTSIDE `ITEMS`: the module header, which explains what
@@ -460,7 +486,7 @@ def rubric_notes() -> dict:
         outside = (_comments_in(lines, 0, node.lineno - 1)
                    + _comments_in(lines, node.end_lineno, len(lines)))
         if outside:
-            out["handouts"][str(handout)] = outside
+            out["handouts"][str(form)] = outside
     return out
 
 
@@ -476,6 +502,17 @@ def _pairs(table: dict) -> list:
     `rubric_equivalence` and the reader both round-trip this, and the round trip
     is asserted rather than assumed -- see `--verify-declarations`.
     """
+    # A TABLE NEED NOT BE A MAPPING. `SIDE_INVERTED = ['avoidance_frame']` is a
+    # LIST -- a set of names, not a key-to-value table -- and this raised
+    # `'list' object has no attribute 'items'` on it, which meant `course.json`
+    # COULD NOT BE REGENERATED AT ALL. The failure was invisible because the
+    # pipeline reads the record rather than rebuilding it, so nothing ran the
+    # exporter; it surfaced only when a regeneration was attempted 2026-09-25.
+    #
+    # A sequence is already JSON, so it passes through: pairing exists to carry
+    # TUPLE KEYS, and a table with no keys has none to carry.
+    if not hasattr(table, "items"):
+        return list(table)
     return [[_key(k), v] for k, v in table.items()]
 
 
@@ -521,7 +558,7 @@ def build(course_id: str) -> tuple[dict, list[dict]]:
     doc = {"schema_version": SCHEMA_VERSION, "course": course_id,
            "handouts": {}, "items": []}
     full_report = []
-    for h in HANDOUTS:
+    for h in FORMS:
         mod = _load(h)
         if mod is None:
             # AUTHORED IN THE FILE NOW. Carry this handout's items, its authored
@@ -595,6 +632,14 @@ def build(course_id: str) -> tuple[dict, list[dict]]:
             out[item] = spec
         return out
 
+    # THE RATCHET CEILINGS, in their own section. They are NOT declarations:
+    # the schema requires every declaration to be a list of [key, value] pairs
+    # and a ceiling is a number. `course.json`'s structure is meant to be the
+    # same for every course and fixed once K and L are done, so a new KIND of
+    # value takes a new section rather than bending an existing one.
+    doc["budgets"] = {name: _authored(name) for name in BUDGET_NAMES
+                      if isinstance(_authored(name), int)}
+
     doc["declarations"] = {
         name: _jsonable(_pairs(_denamespace(_authored(name))
                                if name == "JOBS"
@@ -618,11 +663,11 @@ def build(course_id: str) -> tuple[dict, list[dict]]:
 
     doc["generator"]["CONTEXT_REFS"] = {
         str(h): _jsonable(_authored(f"_H{h}_CTX"), f"generator._H{h}_CTX")
-        for h in HANDOUTS
+        for h in FORMS
         if _authored(f"_H{h}_CTX") is not None}
     doc["generator"]["SEGMENT_MARKERS"] = {
         str(h): _jsonable(_authored(f"H{h}_MARKERS"), f"generator.H{h}_MARKERS")
-        for h in HANDOUTS
+        for h in FORMS
         if _authored(f"H{h}_MARKERS") is not None}
     for table, extra in sorted(residue.items()):
         doc["generator"][f"{table}__non_item"] = _jsonable(
@@ -677,9 +722,20 @@ def build(course_id: str) -> tuple[dict, list[dict]]:
     return doc, full_report
 
 
+def _paths_ns() -> str:
+    """This tree's declared namespace, for the `--course` default."""
+    import paths
+
+    return paths.roots().ns
+
+
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--course", default="edu.memphis.psych")
+    # THE COURSE THIS TREE DECLARES, not this course spelled out. `paths.NS`
+    # reads the namespace from the content collection's manifest, which is the
+    # same resolution every other reader uses; a literal default meant a second
+    # course got this one's name unless the caller remembered to say otherwise.
+    ap.add_argument("--course", default=_paths_ns())
     ap.add_argument("--out", required=True)
     # THE RUBRIC'S OWN OUTPUT. The course file is metadata and wiring; the RUBRIC
     # belongs in the content, as a component the course links beside the three

@@ -21,11 +21,16 @@ declares those, with a reason each, and they are counted separately here as
 from __future__ import annotations
 import argparse, os, re, sys
 sys.path.insert(0, __file__.rsplit("/", 1)[0])
+# `paths` FIRST: it puts this course's `scoring/<course>/` and the general
+# `scorers/` on `sys.path`, and the imports just below are modules that live
+# there. Importing them before `paths` raises ModuleNotFoundError -- measured
+# on 13 modules the day those directories were split out.
+import paths  # noqa: F401  (import order is load-bearing; see above)
 from score import build_prompt, SYSTEM_TMPL
-from handouts import config
+from forms import config
 from olx_prompts import primitives as _primitives
 O_PRIM = _primitives()
-from olx_prompts import (ACTION, HANDOUT, OLX, OMIT_CREDIT, OMIT_DEDUCTION,
+from olx_prompts import (ACTION, FORM, OLX, OMIT_CREDIT, OMIT_DEDUCTION,
                          SCORING_DIVERGENCES, PROBE_REACH_LIMITS, parse_slots,
                          resolve_guidance_omissions,
                          _slots_attr, _ACTION_RE, SHEET_ONLY, sheet_id, _sheet_tag)
@@ -35,13 +40,13 @@ import paths
 def norm(t): return " ".join(str(t).split()).lower()
 def frag(t, n=9): return " ".join(norm(t).split()[:n])
 
-def web_prompt(handout, aid):
-    src = open(OLX % handout).read()
+def web_prompt(form, aid):
+    src = open(OLX % form).read()
     m = re.search(r'<LLMAction\b[^>]*?\bid="%s".*?</LLMAction>' % re.escape(aid), src, re.S)
     return norm(re.sub(r'<Ref\b[^>]*/>', '', m.group(0))) if m else ""
 
 def audit(item):
-    h = HANDOUT[item]
+    h = FORM[item]
     rub = config(h)["rubric"].BY_ID[item]
     w = web_prompt(h, ACTION[item])
     oc, od = OMIT_CREDIT.get(item, {}), OMIT_DEDUCTION.get(item, {})
@@ -70,10 +75,10 @@ def audit(item):
                        exemplars=len(rub.get("exemplars") or [])),
     }
 
-def parse_onlyif_attr(handout, action):
+def parse_onlyif_attr(form, action):
     """The sheet's `onlyif` rules, for items that declare charge-once."""
     from olx_prompts import _sheet_tag
-    m = re.search(r'\bonlyif="([^"]*)"', _sheet_tag(handout, action))
+    m = re.search(r'\bonlyif="([^"]*)"', _sheet_tag(form, action))
     out = []
     for entry in (m.group(1) if m else "").split("|"):
         key, _, cond = entry.strip().partition(":")
@@ -106,7 +111,7 @@ def scoring_audit():
     findings = []
     for item in {**ACTION, **SHEET_ONLY}:
         action = sheet_id(item)
-        h = HANDOUT[item]
+        h = FORM[item]
         rub = config(h)["rubric"].BY_ID[item]
         slots = parse_slots(*_slots_attr(h, action))
         scored = [s for s in slots if s["pts"] is not None]
@@ -194,7 +199,7 @@ PROBE = paths.PROBE
 
 def _web_attrs(item):
     """The sheet attributes as shipped, straight out of the .olx."""
-    h = HANDOUT[item]
+    h = FORM[item]
     tag = _sheet_tag(h, sheet_id(item))
     get = lambda a: (re.search(r'\b%s="([^"]*)"' % a, tag) or [None, ""])[1] \
         if re.search(r'\b%s="([^"]*)"' % a, tag) else ""
@@ -227,9 +232,11 @@ def uncovered_cli_items():
     knew about every item. 1b was scored on the CLI and nowhere here for as long
     as it existed, and so were T1/T2. This is the check that fails instead.
     """
+    import forms
+
     covered = {**ACTION, **SHEET_ONLY}
     out = []
-    for h in handouts.declared():
+    for h in forms.declared():
         for it in config(h)["rubric"].ITEMS:
             if it["id"] not in covered:
                 out.append((it["id"], h, it["max"], it["label"]))
@@ -396,8 +403,8 @@ def schema_divergences():
     # judgements cannot show that picks and counts are built right, or built at
     # all. Reachability below is judged over the union for the same reason.
     sheets = {}
-    for handout in BLOCKS.values():
-        for aid, spec in handout.items():
+    for form in BLOCKS.values():
+        for aid, spec in form.items():
             if not spec.get("olx"):
                 continue
             act = load_action(spec["olx"], aid)
@@ -474,7 +481,7 @@ def unknown_action_attrs():
     """Attributes on any graded <LLMAction> that this audit does not know about."""
     out = []
     for item in sorted({**ACTION, **SHEET_ONLY}):
-        tag = _sheet_tag(HANDOUT[item], sheet_id(item))
+        tag = _sheet_tag(FORM[item], sheet_id(item))
         for name in re.findall(r'\b([A-Za-z_][\w-]*)="', tag):
             if name not in KNOWN_ACTION_ATTRS:
                 out.append((item, name))
@@ -587,7 +594,56 @@ def _audit_findings_fresh() -> list[tuple]:
 # so nothing outside certification pays the 13s.
 # `SELFTEST_WORKERS=8` turns it on for a run where speed matters more than
 # certification, and that run says so in its own output.
-_AUDIT_WORKERS = int(os.environ.get("SELFTEST_WORKERS", "1") or "1")
+def _default_workers() -> int:
+    """How many audits to run at once, when nobody says.
+
+    IT DEFAULTED TO 1, AND THAT WAS RIGHT UNTIL 2026-09-26. `_audit_async`
+    forks, and `lo_enforce` kept its warm node runner in a MODULE GLOBAL -- so a
+    forked child inherited the parent's pipe and wrote its requests into the
+    same stdin its siblings were using. The replies interleave and each reader
+    takes whichever line arrives first: not a crash, just wrong findings, in the
+    suite whose whole job is to be trusted. Serial never exposed it because
+    nothing forked. `lo_enforce._server` is fork-aware now and each child starts
+    its own runner, which is what makes a default above 1 honest.
+
+    MEMORY IS THE BINDING CONSTRAINT, NOT CPU. Measured on a 20-core/31 GB box:
+    ~375 MB per worker in practice (a forked child's RSS is ~880 MB but mostly
+    copy-on-write with the parent; its own node runner and tsx wrapper are the
+    rest). Load sat at 20 with 16 workers -- saturated, not thrashing, swap flat.
+
+    IT WAS CAPPED AT 8 WHILE A DEATH WAS UNEXPLAINED, and is not any more. The
+    unexplained deaths were `materialiseRubrics` deleting `.stage/expanded` and
+    repopulating it -- every audit shells out to `build:assemble-prompts`, so
+    sixteen forked audits each rebuilt the tree their siblings were reading.
+    The staging writes atomically now (write beside, rename into place), and two
+    consecutive 16-worker runs came back `65 of 65 expected, 0 failed` having
+    survived 25 rebuilds between them.
+
+    FOUR CORES LEFT FREE, and a memory floor besides. Measured: ~375 MB per
+    worker in practice, load at 20 with 16 workers on a 20-core box -- saturated
+    and not thrashing, swap flat. Memory is the binding constraint, so the cap
+    also asks what the machine has rather than trusting the core count: a
+    many-core box with little RAM would otherwise fork itself into swap, which
+    is far slower than fewer workers.
+    """
+    try:
+        cpus = len(os.sched_getaffinity(0))
+    except AttributeError:                              # pragma: no cover
+        cpus = os.cpu_count() or 1
+    by_cpu = min(cpus - 4, 16)
+    by_ram = 16
+    try:                                # MemAvailable, in the kernel's own terms
+        with open("/proc/meminfo") as fh:
+            for line in fh:
+                if line.startswith("MemAvailable:"):
+                    by_ram = int(int(line.split()[1]) / 1024 / 400)
+                    break
+    except Exception:                                   # pragma: no cover
+        pass                            # no /proc: the core count decides alone
+    return max(1, min(by_cpu, by_ram))
+
+
+_AUDIT_WORKERS = int(os.environ.get("SELFTEST_WORKERS", "") or _default_workers())
 _AUDIT_WARM = os.environ.get("SELFTEST_WARM_FIXTURES") == "1"
 
 
@@ -785,6 +841,7 @@ def _audit_async(label: str = ""):
             out = _audit_cold()
             with open(path, "wb") as fh:
                 pickle.dump(out, fh)
+            _child_stop_runner()
             os._exit(0)
         except BaseException:
             try:
@@ -797,6 +854,24 @@ def _audit_async(label: str = ""):
     h = _AuditHandle(pid, path, label)
     _AUDIT_INFLIGHT.append(h)
     return h
+
+
+def _child_stop_runner() -> None:
+    """Stop the node runner THIS forked child started. Never the parent's.
+
+    `os._exit` skips atexit, so the child's own `lo_enforce._stop_server` hook
+    never runs. Node usually dies on its own when the child's stdin pipe closes
+    -- but "usually" is what left two orphans when a run was interrupted, and a
+    leaked node process holding inotify watches is how this tree exhausted the
+    watch limit once already. `_stop_server` checks the owning pid, so a child
+    that somehow inherited the parent's handle stops nothing.
+    """
+    try:
+        import lo_enforce
+
+        lo_enforce._stop_server()
+    except Exception:
+        pass                    # a child that cannot tidy up still owes a result
 
 
 def _audit_resolve(found):
@@ -905,6 +980,8 @@ def enforcement_audit():
         findings.append(("-", "WEIGHTED SLOT UNSCORED", bad))
     for bad in ENF.check_ref_targets_resolve():
         findings.append(("-", "REF TARGET UNRESOLVED", bad))
+    for bad in ENF.check_response_boxes_are_bounded():
+        findings.append(("-", "STUDENT BOXES ARE NOT BOUNDED", bad))
     for bad in ENF.check_empty_fields_are_absent():
         findings.append(("-", "EMPTY FIELD PRESENT", bad))
     for bad in ENF.check_citation_necessity_is_recorded():
@@ -1005,6 +1082,12 @@ def enforcement_audit():
         findings.append(("-", "SIDE CONTRACT UNENFORCED", bad))
     for bad in ENF.check_no_declaration_cites_a_suspect_cell():
         findings.append(("-", "DECLARATION ARGUES FROM A SUSPECT CELL", bad))
+    for bad in ENF.check_response_fixtures_are_intact():
+        findings.append(("-", "A RESPONSE FIXTURE IS NOT WHAT ITS SHA SAYS", bad))
+    for bad in ENF.check_records_carry_no_machine_path():
+        findings.append(("-", "A RECORD CARRIES A MACHINE PATH", bad))
+    for bad in ENF.check_record_writers_target_the_right_place():
+        findings.append(("-", "A RECORD WRITER AIMS SOMEWHERE ELSE", bad))
     for bad in ENF.check_no_cell_is_both_corrected_and_declared():
         findings.append(("-", "CELL BOTH CORRECTED AND DECLARED", bad))
     for bad in ENF.check_gold_is_read_by_item():
@@ -1069,7 +1152,7 @@ def enforcement_audit():
         findings.append(("-", "COURSE CONTENT IN A GENERIC DOCUMENT", bad))
     for bad in ENF.check_composed_documents_are_current():
         findings.append(("-", "A COMPOSED DOCUMENT IS STALE", bad))
-    for bad in ENF.check_the_handouts_agree_with_the_assembler():
+    for bad in ENF.check_the_forms_agree_with_the_assembler():
         findings.append(("-", "A HANDOUT DISAGREES WITH THE RUBRIC", bad))
     for bad in ENF.check_every_document_is_where_its_readers_look():
         findings.append(("-", "A DOCUMENT IS NOT WHERE ITS READERS LOOK", bad))
@@ -1217,6 +1300,8 @@ def enforcement_audit():
         findings.append(("-", "GOLD COLUMN IS NOT THE ITEM LABEL", bad))
     for bad in ENF.check_property_vocabulary_has_not_grown():
         findings.append(("-", "PROPERTY VOCABULARY GREW", bad))
+    for bad in ENF.check_enumerated_slots_cover_the_rubric():
+        findings.append(("-", "ENUMERATION SHORTER THAN THE RUBRIC", bad))
     for bad in ENF.check_course_schema_is_complete():
         findings.append(("-", "COURSE SCHEMA INCOMPLETE", bad))
     for bad in ENF.check_cross_file_anchors_resolve():
@@ -1231,7 +1316,7 @@ def enforcement_audit():
         findings.append(("-", "SHEET AND RUBRIC DESCRIBE DIFFERENT SLOTS", bad))
     for bad in ENF.check_ask_equivalences_still_hold():
         findings.append(("-", "ASK EQUIVALENCE NO LONGER HOLDS", bad))
-    for bad in ENF.check_the_course_links_the_rubric_and_every_handout():
+    for bad in ENF.check_the_course_links_the_rubric_and_every_form():
         findings.append(("-", "COURSE DOES NOT LINK THE RUBRIC OR A HANDOUT", bad))
     for bad in ENF.check_no_old_environment_names():
         findings.append(("-", "OLD ENVIRONMENT NAME RETURNED", bad))
@@ -1268,7 +1353,7 @@ def enforcement_audit():
         if w is None:
             findings.append((item, "NO OLX SHEET", "item not probed"))
             continue
-        rub = config(HANDOUT[item])["rubric"].BY_ID[item]
+        rub = config(FORM[item])["rubric"].BY_ID[item]
 
         if item not in cli:
             # PLAIN-PATH item. The CLI's ledger is model-authored, so each web
@@ -1462,7 +1547,7 @@ def uncompared_web_rules():
     """
     out = []
     for item in sorted({**ACTION, **SHEET_ONLY}):
-        h = HANDOUT[item]
+        h = FORM[item]
         rub = config(h)["rubric"].BY_ID[item]
         if rub.get("derive_from_credit") or rub.get("derive_from_criteria"):
             continue
@@ -1514,7 +1599,30 @@ def uncompared_web_rules():
 # 72 as of 2026-09-16: the scored-slot check gained a case. It reads
 # ARTIFACTS rather than sheets, so it is blinded by dropping a slot from one
 # engine's recorded runs -- see the case for why a check at zero needs one.
-SELFTEST_EXPECTED = 72
+#
+# 65 as of 2026-09-26, LOWERED DELIBERATELY, which is what the two-sided
+# ratchet asks for. The arithmetic, so the next reader can check it:
+#
+#     72  the constant, unchanged since 2026-09-16
+#     -3  three fire cases retired 2026-09-24/25 with the python web engine
+#         (goal O). The constant was never lowered, so every run since has
+#         printed THE SUITE LOST 3 CASE(S) -- the message for a case somebody
+#         deleted, pointed at three that were retired on purpose.
+#     =69 what the suite actually constructed, and did print.
+#     -7  the rest of that same retirement, done here: six cases asserting
+#         `SHEET REACHES NO ARITHMETIC` and one asserting `SCORED SLOT ANSWERED
+#         BY ONE ENGINE ONLY`. BOTH of those checks were retired by goal O and
+#         now `return []` unconditionally, so all seven reported NOTHING FIRED
+#         on every run and one of them also ran VACUOUS.
+#     +3  live replacements for the three whose question the CRITERIA scorer
+#         still answers -- `equals`, `expect` and `forbid` through
+#         `score._*_rule`, each measured to fire.
+#     =65
+#
+# NOT a licence to keep lowering it. Every subtraction above names a check that
+# `return []`s; a case that stops firing for any other reason is a defect, and
+# the number must not move to accommodate one.
+SELFTEST_EXPECTED = 65
 
 # HOW MANY CASES ARE ALLOWED TO TEST NOTHING. A two-sided ratchet in the same
 # idiom as SELFTEST_EXPECTED: vacancy may FALL freely and may not RISE.
@@ -1597,11 +1705,27 @@ _SELFTEST_DOC_HOME = {"GOALS.md": "composed"}      # default: beside this module
 
 
 def _selftest_doc(name: str):
-    """The file a self-test case injects into, and the snapshot protects."""
+    """The file a self-test case injects into, and the snapshot protects.
+
+    A SPLIT DOCUMENT IS ASKED FOR, NOT ASSUMED TO SIT BESIDE THIS MODULE. The
+    fallback was `scoring/<name>`, true while the generic guides lived loose
+    among the modules; they moved to `scoring/qc/` and the suite died on the
+    first case with `FileNotFoundError: scoring/QUALITY_CONTROL.md` -- before
+    running a single check, so the whole selftest reported nothing rather than
+    a miss. `compose_docs` is what knows where a half lives.
+
+    THE GENERIC HALF for a split document, because that is the authored file a
+    person edits and the one `guide.unapproved_lessons` diffs against git; the
+    `composed` entry above overrides it for the cases that read the composition
+    instead. Anything not split -- a module -- is still beside this one.
+    """
     import pathlib
     if _SELFTEST_DOC_HOME.get(name) == "composed":
         import compose_docs
         return pathlib.Path(compose_docs.composed_path(name))
+    import compose_docs
+    if name in compose_docs.SPLIT_DOCS:
+        return pathlib.Path(compose_docs.generic_path(name))
     return pathlib.Path(__file__).resolve().parent / name
 
 
@@ -1704,11 +1828,11 @@ def _vacancy_report(records, skips):
     return rows
 
 
-def _rubric_view(handout: int):
+def _rubric_view(form: int):
     """The rubric for one handout, as the CHECKS see it.
 
     The self-test injects by mutating `BY_ID` and expects the audit to notice.
-    The audit reaches the rubric through `handouts.config(h)["rubric"]`, which
+    The audit reaches the rubric through `forms.config(h)["rubric"]`, which
     since 2026-09-19 is a view onto the course file rather than the
     `rubric_h{h}` module -- so mutating the MODULE now changes nothing the
     checks read, and every one of these cases would report VACUOUS while
@@ -1718,9 +1842,9 @@ def _rubric_view(handout: int):
     `rubric_h1.BY_ID["Q6"].pop("cover")` -- so what a case does is unchanged and
     only where it lands moves.
     """
-    import handouts
+    import forms
 
-    return handouts.config(handout)["rubric"]
+    return forms.config(form)["rubric"]
 
 
 _PICKED: list = []
@@ -1922,14 +2046,14 @@ def enforcement_selftest():
     _orig = globals()["_web_attrs"]
 
     if plain is not None:
-        _rub = config(HANDOUT[plain])["rubric"].BY_ID[plain]
+        _rub = config(FORM[plain])["rubric"].BY_ID[plain]
         _derive_saved = {k: _rub.pop(k) for k in
                          ("derive_from_credit", "derive_from_criteria") if k in _rub}
         try:
             def _inject(i, _p=plain):
                 a = _orig(i)
                 if i == _p:
-                    key = parse_slots(*_slots_attr(HANDOUT[i], sheet_id(i)))[0]["key"]
+                    key = parse_slots(*_slots_attr(FORM[i], sheet_id(i)))[0]["key"]
                     a["derived"] = f"{key}:present:some_field"
                 return a
             globals()["_web_attrs"] = _inject
@@ -2041,7 +2165,7 @@ def enforcement_selftest():
     # tolerance. Tightening it back to equality would be invisible here, since
     # the check reads the harnesses' source for the call and then probes the
     # helper for over-permissiveness — so that is what gets injected.
-    import handouts as _H5
+    import forms as _H5
     _real_sae = _H5.scores_as_exact
     _H5.scores_as_exact = lambda item, g, p: abs(p - g) <= 1.5
     cases.append(("the unreachable-gold allowance becomes a tolerance",
@@ -2086,11 +2210,13 @@ def enforcement_selftest():
     # The token is chosen per site too -- `pick(NAME)` options come from the
     # sheet's `choices=` map, so "a verdict this slot lacks" cannot be a constant.
     import olx_prompts as _O
-    from slot_vocab import KNOWN_VERDICTS as _KV
+    from slot_vocab import known_verdicts as _kv
+
+    _KV = _kv()
     _by_id = {i["id"]: i for _m in (_R1, _R2, _R3) for i in _m.ITEMS}
     _nsite = None
     for _iid, _act in sorted(_O.ACTION.items()):
-        _h = _O.HANDOUT.get(_iid)
+        _h = _O.FORM.get(_iid)
         if _h is None:
             continue
         try:
@@ -2174,7 +2300,7 @@ def enforcement_selftest():
     # the rule was measured as fixing. Injected with a REAL quote from a counted
     # cell, so the probe exercises the corpus comparison rather than a stub.
     import enforcement as _E2
-    import handouts as H_MOD
+    import forms as H_MOD
     _corp = _E2._corpus_cells()
     _leak = None
     for (_iid, _pid), _body in sorted(_corp.items()):
@@ -2370,7 +2496,7 @@ def enforcement_selftest():
     # Injected on Q4c/p16 since Q6/p9's exclusion became CORRECTED_GOLD; p16 is
     # now the cell carrying an `expect_error`, and the check is about the shape of
     # an exclusion rationale, not about which cell holds it.
-    import handouts as _H6
+    import forms as _H6
     # BY SHAPE, and this case has drifted ONCE ALREADY: it was Q6/p9 until that
     # exclusion became a CORRECTED_GOLD entry, and a person re-pointed it at
     # Q4c/p16 by hand. The comment above says the check is about the shape of an
@@ -2453,7 +2579,7 @@ def enforcement_selftest():
     # scored against, so a stale entry makes every rate measure against a score no
     # grader gave. The `was` value is asserted against the raw sheet; injected by
     # claiming to correct a value the sheet does not hold.
-    import handouts as _H7
+    import forms as _H7
     _real_cg = dict(_H7.CORRECTED_GOLD)
     _k = ("Q6", 18)
     _H7.CORRECTED_GOLD[_k] = {**_real_cg[_k], "was": 9.75}
@@ -2484,8 +2610,8 @@ def enforcement_selftest():
     # a citation is added without registering it (the rate counts a self-graded
     # cell). Neither shows up in any number: the first shrinks a denominator, the
     # second inflates a numerator, and both look like ordinary results.
-    import handouts as _H4
-    _cp = _H4.HANDOUTS[1]["cited_participants"]
+    import forms as _H4
+    _cp = _H4.FORMS[1]["cited_participants"]
     _saved_cp = dict(_cp)
     # The ITEM is incidental -- what makes the citation unjustified is pid 99,
     # which no cohort contains and no exclusion names. Picked by shape so the
@@ -2496,7 +2622,7 @@ def enforcement_selftest():
     cases.append(("an exclusion outlives the citation that justified it",
                   "EXCLUSION UNJUSTIFIED", "-",
                   _audit_async()))
-    _H4.HANDOUTS[1]["cited_participants"] = _saved_cp
+    _H4.FORMS[1]["cited_participants"] = _saved_cp
 
     # The "did not answer" guard. Un-gating the collapse changes no score, so
     # nothing else in this suite would notice; it only changes the code and the
@@ -2519,7 +2645,7 @@ def enforcement_selftest():
                   _audit_async()))
     _B.LoBlocksBackend.SUPPORTS_TOOLS = _real_st
 
-    import handouts as _H
+    import forms as _H
     _real_tbl = _AG.PER_ITEM_EXCLUDE
     _AG.PER_ITEM_EXCLUDE = {k: dict(v) for k, v in _real_tbl.items()}
     cases.append(("a harness keeps its own copy of the exclusions",
@@ -2665,17 +2791,24 @@ def enforcement_selftest():
                         (r.get(field) or {}).pop("week_1", None)
         return doc
 
-    _M._runs_doc = _blind_olx
-    # AGAINST ITEM "-", not "1a". The check is item-aware in what it REPORTS --
-    # the text names 1a/week_1 -- but `enforcement_audit` files it as a
-    # behavioural finding with no item id, exactly as the scorer injections below
-    # do. The first version of this case asserted "1a" and the suite said
-    # NOTHING FIRED while the finding was there all along, which is the same
-    # silent-installation failure the case exists to catch. Counting the
-    # injections that FIRE is what found it.
-    cases.append(("olx is blinded to a scored slot",
-                  "SCORED SLOT ANSWERED BY ONE ENGINE ONLY", "-",
-                  _audit_async()))
+    # A SEVENTH FIRE CASE RETIRED 2026-09-26, with the six below.
+    #
+    # It blinded one engine's recorded runs and required the audit to report
+    # `SCORED SLOT ANSWERED BY ONE ENGINE ONLY`. That is
+    # `check_scored_slots_are_answered_by_both_engines`, RETIRED by goal O and
+    # now `return []` unconditionally -- "a check that exists to catch drift
+    # between two implementations is dead weight once there is one
+    # implementation". The case could not pass and reported NOTHING FIRED.
+    #
+    # IT IS WHY SELFTEST_EXPECTED READ 72: the constant was raised by one on
+    # 2026-09-16 when this case was added, and the retirement eight days later
+    # took the case without lowering it again.
+    #
+    # The blinding machinery above is KEPT AND UNUSED on purpose, in the same
+    # spirit as the retired checks themselves: what stopped being watched stays
+    # legible. `_blind_olx` is the shape any future two-sided artifact check
+    # would need, and rewriting it from nothing would be the harder half.
+    _ = _blind_olx                      # named, so the reader sees it is idle
     _M._runs_doc = _runs_orig
 
     # ── INJECTIONS INTO THE SCORER, not into the sheet ───────────────────────
@@ -2744,36 +2877,49 @@ def enforcement_selftest():
         finally:
             restore()
 
-    # A computed primitive that always answers "satisfied" is the shape of every
-    # apply_computed regression: the rule is parsed, the key is filled, and the
-    # value no longer depends on the operands.
-    _real_computed = _A.apply_computed
-    for prim in ("equals", "expect", "forbid", "derived"):
-        def _always_ok(action, checks, fixture, _prim=prim):
-            out = _real_computed(action, checks, fixture)
-            by = {sl["key"]: sl for sl in action["slots"]}
-            for rule in action.get(_prim, []) or []:
-                opts = (by.get(rule["key"]) or {}).get("options") or ["met"]
-                out[rule["key"]] = {"verdict": opts[0], "evidence": "injected"}
-            return out
-        _scorer_case(f"the scorer stops computing `{prim}`",
-                     lambda f=_always_ok: setattr(_A, "apply_computed", f),
-                     lambda: setattr(_A, "apply_computed", _real_computed))
+    # SIX FIRE CASES RETIRED 2026-09-26, and they should have gone with the
+    # three above. This is the last of goal O's unfinished retirement.
+    #
+    # They patched `agreement.apply_computed` (for `equals`, `expect`, `forbid`
+    # and `derived`), `agreement.expand_counted` and `agreement.satisfied_map`,
+    # and every one of them asserted `SHEET REACHES NO ARITHMETIC` -- the label
+    # of `check_web_scorer_exercises_its_sheet`, which goal O RETIRED and which
+    # now `return []` unconditionally. A case whose check always returns nothing
+    # cannot pass, and all six reported NOTHING FIRED on every run since.
+    #
+    # NOT HARMLESS WHILE THEY LIVED, in the way the third retirement above
+    # records: `the scorer stops honouring cover` also ran VACUOUS -- its
+    # injection moved no finding at all -- which tripped SELFTEST_VACANT_MAX and
+    # made the whole suite red for a case that had nothing left to test.
+    #
+    # WHAT STILL COVERS THE QUESTION. For the WEB scorer, the side that ships:
+    # `slotSheet.test.ts` and `onlyif.test.ts` fire-test `gate` and `onlyif`,
+    # and `web_signatures` drives `probe.test.ts` to report what each sheet
+    # actually ENFORCES. That is the same question asked of the engine that
+    # exists.
+    #
+    # AND THE QUESTION IS NOW ASKED OF THE SCORER PYTHON STILL OWNS. The three
+    # cases below are the replacement: the criteria scorer reads its primitives
+    # through `score._equals_rule`, `_expect_rule` and `_forbid_rule`, which
+    # `scorers/oc.py:derive_ledger` RE-IMPORTS ON EVERY CALL -- so rebinding one
+    # on the module is a live seam. Returning None is exactly "the scorer stops
+    # computing it": the rule is no longer found, its charge block is skipped,
+    # and the 115,200-case ledger fingerprint moves. Each was measured to fire
+    # before this was written.
+    #
+    # `derived`, `count` and `cover` HAVE NO REPLACEMENT, deliberately: they are
+    # SLOT-SHEET primitives with no equivalent on the criteria path, so there is
+    # no seam here to point them at and inventing one would test nothing.
+    import score as _S_prim
 
-    # The counted expansion dropped -- the exact bug that left five items' members
-    # unscored while every sheet still declared them.
-    _real_expand = _A.expand_counted
-    _scorer_case("the scorer stops expanding a count",
-                 lambda: setattr(_A, "expand_counted", lambda item, checks: dict(checks)),
-                 lambda: setattr(_A, "expand_counted", _real_expand))
-
-    # Coverage dropped from satisfiedMap: naming one item twice earns both slots.
-    _real_sat = _A.satisfied_map
-    def _no_cover(spec, checks):
-        return _real_sat(dict(spec, cover=[]), checks)
-    _scorer_case("the scorer stops honouring `cover`",
-                 lambda: setattr(_A, "satisfied_map", _no_cover),
-                 lambda: setattr(_A, "satisfied_map", _real_sat))
+    for _prim, _attr in (("equals", "_equals_rule"),
+                         ("expect", "_expect_rule"),
+                         ("forbid", "_forbid_rule")):
+        _scorer_case(
+            f"the criteria scorer stops computing `{_prim}`",
+            (lambda a=_attr: setattr(_S_prim, a, lambda *x, **k: None)),
+            (lambda a=_attr, r=getattr(_S_prim, _attr): setattr(_S_prim, a, r)),
+            want="SCORER BEHAVIOUR MOVED")
 
     # TWO FIRE CASES RETIRED 2026-09-24 with the python web engine (goal O).
     #
@@ -2817,7 +2963,7 @@ def enforcement_selftest():
     # every other declaration check it fires the moment the second entry exists
     # -- which is exactly why three double-booked cells survived a whole day
     # while the audit read clean.
-    import handouts as _HH
+    import forms as _HH
     _scorer_case("a corrected cell is also declared",
                  lambda: _HH.GOLD_DIVERGENCES.append(
                      {"code": "PROBE", "cells": [("NR", 4)], "why": "injected"}),
@@ -2868,7 +3014,9 @@ def enforcement_selftest():
     # on the user's instruction that the asking be enforced rather than
     # remembered. The injection appends a bold-led paragraph, which is the house
     # style for a claim the reader is meant to act on.
-    _gp2 = _pl2.Path(__file__).resolve().parent / "QUALITY_CONTROL.md"
+    # THROUGH THE RESOLVER, not spelled: this named `scoring/QUALITY_CONTROL.md`
+    # and was the line the whole selftest died on when the guides moved.
+    _gp2 = _selftest_doc("QUALITY_CONTROL.md")
     _guide_src2 = _gp2.read_text()
     _scorer_case("a lesson is added to the guide unapproved",
                  lambda: _gp2.write_text(
@@ -2975,7 +3123,15 @@ def enforcement_selftest():
             "the headline already fires at baseline -- the build artifacts are "
             "not about this tree, so the case could not fail"))
     else:
-        _prov_file = _P_prov.OLX_DIR / "_selftest_provenance.olx"
+        # IN THE COURSE'S OWN FOLDER, which is where the check reads. It was
+        # written to the COLLECTION, true while a course kept its material
+        # loose there; once this course moved into a folder of its own the
+        # payload builder read the folder and the injected file sat one
+        # directory above, unseen. The case then reported NOTHING FIRED --
+        # vacuous, which is the failure mode a self-test is least able to
+        # afford, since a case that tests nothing passes for free the moment
+        # the ratchet is raised.
+        _prov_file = _P_prov.roots().location / "_selftest_provenance.olx"
         _scorer_case("a content file never reaches the build",
                      lambda: _prov_file.write_text(
                          "<Course><Vertical/></Course>\n"),
@@ -2992,11 +3148,11 @@ def enforcement_selftest():
     # written green: the first predicate matched only the dict spelling of the
     # loader pick, so cross_path's tuple form walked past it and the arm passed
     # with the table emptied.
-    _real_allow = dict(ENF.HANDOUT_KEYED_GOLD_READERS)
+    _real_allow = dict(ENF.FORM_KEYED_GOLD_READERS)
     _scorer_case("a module picks a gold loader by handout, undeclared",
-                 lambda: ENF.HANDOUT_KEYED_GOLD_READERS.pop("cross_path"),
-                 lambda: (ENF.HANDOUT_KEYED_GOLD_READERS.clear(),
-                          ENF.HANDOUT_KEYED_GOLD_READERS.update(_real_allow)),
+                 lambda: ENF.FORM_KEYED_GOLD_READERS.pop("cross_path"),
+                 lambda: (ENF.FORM_KEYED_GOLD_READERS.clear(),
+                          ENF.FORM_KEYED_GOLD_READERS.update(_real_allow)),
                  want="GOLD READ BY HANDOUT, NOT BY ITEM")
 
     # A RULE WRITTEN AND NEVER DELIVERED, added 2026-09-04. This state is
@@ -3072,18 +3228,51 @@ def enforcement_selftest():
         _shape_skips.append(("the fixture stops dealing a counted group",
                              "no job deals a counted group any more"))
     else:
-        _real_dealt = _APP.JOBS[_dealt_item].get("dealt")
+        # IT INJECTED INTO `dealt` AND `dealt` STOPPED DECIDING ANYTHING.
+        # Dropping the key made the job stop dealing a counted group, which
+        # used to force the fixture down a path that produced a box the
+        # student never wrote. Since the reconstructions were FROZEN as a
+        # record, `build_jobs` reads `_frozen_boxes` and reports
+        # `split_how={"_frozen": <item>}`; the dealing code is not reached, so
+        # the injection moved nothing and the case reported NOTHING FIRED.
+        # Measured before repair: 0 findings with the key, 0 without it.
+        #
+        # SO IT INJECTS WHERE THE FIXTURE NOW COMES FROM. Replacing one frozen
+        # box's text with words no student wrote is the same claim the case
+        # always made -- that a box holding something other than the
+        # student's writing is caught -- expressed against the mechanism that
+        # is actually in use. The text is a sentinel rather than a plausible
+        # sentence, so a run that somehow ships it is obvious.
+        _real_frozen = _APP._frozen_boxes
 
-        def _drop_dealt():
-            _APP.JOBS[_dealt_item].pop("dealt", None)
+        # A BOX THE CHECK ACTUALLY LOOKS AT. It reads only the components named
+        # in a job's `from_scorer`; corrupting the alphabetically-first box
+        # instead changed a box nothing compares, and the case stayed vacuous
+        # through one repair. Measured after aiming at `from_scorer`: 0
+        # findings before, 141 after.
+        _scored_boxes = {i: sorted(j["from_scorer"])
+                         for i, j in _APP.JOBS.items() if j.get("from_scorer")}
+
+        def _corrupt_frozen():
+            def _patched(item, pid, _real=_real_frozen):
+                boxes = _real(item, pid)
+                if not boxes:
+                    return boxes
+                out = dict(boxes)
+                for comp in _scored_boxes.get(item, ()):
+                    if comp in out:
+                        out[comp] = "SELFTEST TEXT NO PARTICIPANT EVER WROTE"
+                        break
+                return out
+            _APP._frozen_boxes = _patched
             _fx_reset()
 
-        def _put_dealt():
-            _APP.JOBS[_dealt_item]["dealt"] = _real_dealt
+        def _restore_frozen():
+            _APP._frozen_boxes = _real_frozen
             _fx_reset()
 
-        _scorer_case("the fixture stops dealing a counted group",
-                     _drop_dealt, _put_dealt,
+        _scorer_case("a frozen fixture box stops being the student's words",
+                     _corrupt_frozen, _restore_frozen,
                      want="FIXTURE BOX IS NOT THE STUDENT'S WORDS")
 
     # OWNERSHIP, which had no case until 2026-09-02 even though the check is
@@ -3229,7 +3418,7 @@ def enforcement_selftest():
                      want="COUNT SCAFFOLD IS NOT ARITHMETIC")
     finally:
         _remove_scaffold()
-    import handouts as _H
+    import forms as _H
     _real_why = _H.CORRECTED_GOLD[("NR", 4)]["why"]
     _scorer_case("a declaration starts citing a suspect cell",
                  lambda: _H.CORRECTED_GOLD[("NR", 4)].__setitem__(
@@ -3554,7 +3743,7 @@ def print_enforcement():
                   f"{pair(len(c['cover']), len(w.get('cover', []))):>8}"
                   f"{pair(0, len(w.get('computed', []))):>10}")
         else:
-            rub = config(HANDOUT[it])["rubric"].BY_ID[it]
+            rub = config(FORM[it])["rubric"].BY_ID[it]
             print(f"{it:<6}{rub['max']:>6g}{'rubric':>9}"
                   f"{'- /' + str(len(w.get('declaredGates', []))):>13}"
                   f"{'- /' + str(len(w.get('chargeOnce', [])) + len(w.get('equals', []))):>14}"
@@ -3724,7 +3913,7 @@ def main():
         return print_scoring()
 
     if a.cli:
-        h = HANDOUT[a.cli]
+        h = FORM[a.cli]
         rub = config(h)["rubric"].BY_ID[a.cli]
         print(SYSTEM_TMPL.format(blurb=config(h)["blurb"]))
         print("\n" + "=" * 70 + "\n")

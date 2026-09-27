@@ -36,7 +36,12 @@ import sourcecache
 
 sys.path.insert(0, __file__.rsplit("/", 1)[0])
 
-from handouts import config
+from forms import config
+# `paths` FIRST: it puts this course's `scoring/<course>/` and the general
+# `scorers/` on `sys.path`, and the imports just below are modules that live
+# there. Importing them before `paths` raises ModuleNotFoundError -- measured
+# on 13 modules the day those directories were split out.
+import paths  # noqa: F401  (import order is load-bearing; see above)
 from score import _computed_keys, build_schema, derive_ledger
 
 
@@ -133,7 +138,7 @@ ALIAS = _course_vocab("SIDE_ALIAS")
 # They built this course's hypothetical answers -- naming `observed_type`,
 # `named_type` and the PR/NR/PP/NP taxonomy -- so the audit could only construct
 # a probe for a subject it already knew. They are `probe_baseline`, `probe_fail`
-# and `_probe_value` in `COURSE_METADATA/scorers/oc.py` now, beside the tables
+# and `_probe_value` in the course's own `scorers/oc.py` now, beside the tables
 # they read, and are reached the same way the scorer is: through the registry.
 
 
@@ -169,7 +174,7 @@ def _forms() -> tuple:
 
     `(1, 2, 3)` appeared at 39 sites in this file alone: THIS COURSE'S SHAPE,
     spelled inside the audit. `course.json` declares it, and
-    `handouts.declared()` reads that declaration and REFUSES rather than
+    `forms.declared()` reads that declaration and REFUSES rather than
     returning an empty tuple -- a loop handed `()` runs zero times, finds
     nothing and reports clean, which is the failure this whole file exists to
     prevent.
@@ -179,7 +184,7 @@ def _forms() -> tuple:
     a constant would have to pick a moment to resolve and every site would then
     depend on import order.
     """
-    import handouts as _H
+    import forms as _H
 
     return _H.declared()
 
@@ -248,51 +253,32 @@ def check_slot_codes_exist(items: list[dict]) -> list[str]:
     presenting as a rubric finding. It also checks `blank_code`, which the collapse
     now depends on entirely.
     """
-    problems = []
-    for it in items:
-        valid = {d["code"] for d in it["deductions"]}
-        for c in it.get("credit", []):
-            for verdict, code in (c.get("codes") or {}).items():
-                if code not in valid:
-                    problems.append(f"{it['id']}: `{c['what']}`/{verdict} -> `{code}`, "
-                                    f"which is not one of its deduction codes")
-        want = it.get("blank_code")
-        if want and want not in valid:
-            problems.append(f"{it['id']}: blank_code `{want}` is not one of its "
-                            f"deduction codes")
-        for cr in it.get("counts", []):
-            names = {c["what"] for c in it.get("credit", [])}
-            for k in [cr["key"], *cr["slots"]]:
-                if k not in names:
-                    problems.append(f"{it['id']}: counts names `{k}`, which is not a "
-                                    f"credit component")
-        # `onlyif` IS KEYED BY THE SHEET, NOT BY THE CREDIT LIST, and testing it
-        # against credit names reported ten false gaps. Both evaluators key the
-        # charge map on the SHEET's slots -- agreement.py writes
-        # `charged = {sl["key"]: True for sl in spec["slots"]}` and
-        # slotSheet.chargedMap does the same -- so a name is live iff the sheet
-        # has it. On PR/NR/PP/NP the two tables come apart BY DESIGN: the rubric
-        # holds COMPOSITES (`is_operant_conditioning`, `is_pr`) while the sheet
-        # ENUMERATES the sub-checks, and it is the sheet's
-        # `targets_goal_behavior...@2` that carries the points. All ten reported
-        # names were live sheet slots implementing charge-once -- the arithmetic
-        # `score.py:derive_oc_ledger` writes as `elif` and `llm/onlyif.test.ts`
-        # exists to pin.
-        #
-        # Checking `cond` matters more than checking `key`. agreement.py
-        # suppresses nothing for an UNKNOWN condition, deliberately, so a typo'd
-        # cond does not fail loudly -- it makes the rule inert and the item
-        # charges twice for one cause.
-        sheet = {s["key"] for s in _sheet_slots().get(it["id"], ())}
-        universe = sheet | {c["what"] for c in it.get("credit", [])}
-        for r in it.get("onlyif", []):
-            for k in (r["key"], r["cond"]):
-                if k not in universe:
-                    problems.append(f"{it['id']}: onlyif names `{k}`, which is neither "
-                                    f"a slot on its sheet nor a credit component, so "
-                                    f"the rule is inert and the charge is never "
-                                    f"suppressed")
-    return problems
+    # A name used somewhere must be declared somewhere; the names are the
+    # course's.
+    #
+    # PYTHON KEEPS THE FETCH, and passes the items it was HANDED rather than
+    # letting the runner re-read the rubric. The self-test injects by mutating
+    # the in-memory view and forking -- its case "a slot points at a code that
+    # does not exist" writes `NO_VERDIKT` into a credit map that exists only in
+    # memory -- so a payload assembled from disk would be blind to it. Two
+    # earlier ports were converted that way and both went silent; see
+    # `check_codes_reachable`. The sheet comes from `_sheet_slots()` for the
+    # same reason, and `onlyif` is keyed on the SHEET, not the credit list.
+    import lo_enforce
+
+    sheet = _sheet_slots()
+    return lo_enforce.run("slot_codes_exist", {"items": [
+        {"id": it["id"],
+         "deductions": [d["code"] for d in it["deductions"]],
+         "credit": [{"what": c["what"], "codes": c.get("codes") or {}}
+                    for c in it.get("credit") or []],
+         "blankCode": it.get("blank_code"),
+         "counts": [{"key": cr["key"], "slots": list(cr["slots"])}
+                    for cr in it.get("counts") or []],
+         "onlyif": [{"key": r["key"], "cond": r["cond"]}
+                    for r in it.get("onlyif") or []],
+         "sheet": [s["key"] for s in sheet.get(it["id"], ())]}
+        for it in items]})
 
 
 def check_codes_reachable(items: list[dict]) -> list[str]:
@@ -307,23 +293,29 @@ def check_codes_reachable(items: list[dict]) -> list[str]:
     A code with no path to it is either a bug or a decision. This makes it say
     which.
     """
-    problems = []
-    for it in items:
-        if not it.get("derive_from_credit"):
-            continue
-        reach = {it.get("blank_code")} | set(it.get("unreachable_codes") or [])
-        for c in it.get("credit", []):
-            reach |= set((c.get("codes") or {}).values())
-        for d in it["deductions"]:
-            if d["code"] not in reach:
-                problems.append(f"{it['id']}: `{d['code']}` (-{d['pts']:g}) can be "
-                                f"produced by no slot verdict, and is not declared "
-                                f"in unreachable_codes")
-        for code in it.get("unreachable_codes") or []:
-            if code not in {d["code"] for d in it["deductions"]}:
-                problems.append(f"{it['id']}: unreachable_codes names `{code}`, which "
-                                f"is not one of its deduction codes")
-    return problems
+    # PORTED (goal K, step 8); the judgement is `enforce/codesReachable.ts` and
+    # is generic -- "a penalty no verdict can emit is either a bug or a decision,
+    # and the rubric must say which".
+    #
+    # PYTHON KEEPS THE FETCH, AND IT MUST. This passed `None` and let the runner
+    # assemble from the rubric FILE, which was measured identical and was still
+    # wrong: the self-test injects by MUTATING THE IN-MEMORY rubric view and
+    # forking, so a payload re-read from disk cannot see the injection. Measured
+    # 2026-09-26 -- the case "a verdict is dropped, retiring its code" went from
+    # detected to SILENT, and the audit reported clean either way. The assembler
+    # stays for callers inside lo-blocks, which have no python to ask; it is
+    # reached only when the payload is null, and python never sends null now.
+    import lo_enforce
+
+    return lo_enforce.run("codes_reachable", {"items": [
+        {"id": it["id"],
+         "deriveFromCredit": bool(it.get("derive_from_credit")),
+         "blankCode": it.get("blank_code"),
+         "unreachableCodes": list(it.get("unreachable_codes") or []),
+         "credit": [{"codes": c.get("codes") or {}} for c in it.get("credit") or []],
+         "deductions": [{"code": d["code"], "pts": d["pts"]}
+                        for d in it.get("deductions") or []]}
+        for it in items]})
 
 
 # Repeated families that are countable in shape but must NOT be converted, with
@@ -350,42 +342,28 @@ def check_countable_families_converted(items: list[dict]) -> list[str]:
     family, and a `counts` rule over members that carry more than one code — the
     second being the shape that silently retired live codes once already.
     """
-    problems = []
-    for it in items:
-        if not it.get("derive_from_credit"):
-            continue
-        counted = {k for cr in it.get("counts", []) for k in cr["slots"]}
-        fams: dict[str, list[dict]] = {}
-        for c in it.get("credit", []):
-            m = re.match(r"(.+?)_(\d+)$", c["what"])
-            if m:
-                fams.setdefault(m.group(1), []).append(c)
-        for stem, members in fams.items():
-            if len(members) < 2:
-                continue
-            codes = set()
-            for c in members:
-                codes |= set((c.get("codes") or {}).values())
-            covered = {c["what"] for c in members} <= counted
-            if len(codes) == 1 and not covered:
-                if (it["id"], stem) in COUNTABLE_EXEMPT:
-                    continue
-                problems.append(
-                    f"{it['id']}: `{stem}_*` is {len(members)} interchangeable slots "
-                    f"sharing one code ({codes.pop()}), so the model is asked for "
-                    f"{len(members)} judgements where a count would do. Convert it to "
-                    f"`counts`, or add ({it['id']}, {stem}) to COUNTABLE_EXEMPT with "
-                    f"the reason")
-            if len(codes) > 1 and covered:
-                problems.append(
-                    f"{it['id']}: `{stem}_*` is counted, but its slots carry "
-                    f"{len(codes)} codes ({', '.join(sorted(codes))}). A count cannot "
-                    f"express which one applies, so converting it retires all but one")
-            if (it["id"], stem) in COUNTABLE_EXEMPT and covered:
-                problems.append(
-                    f"{it['id']}: `{stem}_*` is in COUNTABLE_EXEMPT and also counted — "
-                    f"the exemption is stale, remove it")
-    return problems
+    # PORTED (goal K, step 8). "Interchangeable slots sharing one code are a
+    # COUNT, and a count cannot say which of several codes applies" is a
+    # statement about rubric authoring, so the judgement is generic; the items,
+    # codes and exemptions are data.
+    #
+    # PYTHON KEEPS THE FETCH, for the reason recorded on `check_codes_reachable`:
+    # self-assembly reads the rubric and `COUNTABLE_EXEMPT` from disk, and this
+    # check's self-test case mutates the IN-MEMORY table. Measured 2026-09-26 --
+    # "a stale exemption outlives its conversion" was silent.
+    import lo_enforce
+
+    return lo_enforce.run("countable_families_converted", {
+        "items": [
+            {"id": it["id"],
+             "deriveFromCredit": bool(it.get("derive_from_credit")),
+             "counted": sorted({k for cr in it.get("counts") or []
+                                for k in cr["slots"]}),
+             "credit": [{"what": c["what"], "codes": c.get("codes") or {}}
+                        for c in it.get("credit") or []]}
+            for it in items],
+        "exempt": [list(k) for k in COUNTABLE_EXEMPT],
+    })
 
 
 def check_scorer_behaviour_is_unchanged() -> list[str]:
@@ -455,46 +433,36 @@ def check_primitive_conformance() -> list[str]:
     model asked for answers it could not return, alongside the thing that replaced
     them. Neither showed up in any score, because the grader ignored the surplus.
     """
-    import re as _re
-    from olx_prompts import (ACTION, HANDOUT, SHEET_ONLY, sheet_id, _sheet_tag,
+    # PORTED to `enforce/primitiveConformance.ts` (goal K).
+    #
+    # IT NEEDED THE REAL RUNTIME PROMPT, and that is why it moved only now.
+    # `promptAssembler.webPrompts` reproduces `build_web_prompt` byte for byte
+    # on all 23 -- the engine has been the designed producer since item C, and
+    # this check was classified as blocked on a generator python had and the
+    # engine did not, which was never true.
+    #
+    # PYTHON STILL PASSES WHAT IT READS, so this path asks about the prompts
+    # THIS process builds; the self-test substitutes `build_web_prompt`, and a
+    # payload the runner assembled from the staged inputs would not see it.
+    from olx_prompts import (ACTION, FORM, SHEET_ONLY, sheet_id, _sheet_tag,
                              build_web_prompt, primitive_attrs, primitives)
 
-    problems = []
-    excluding = primitive_attrs(excluding_keys=True)
-    excludes = {p["attr"]: p.get("excludes") for p in primitives()["primitives"]}
-    for item in sorted({**ACTION, **SHEET_ONLY}):
-        h = HANDOUT[item]
-        tag = _sheet_tag(h, sheet_id(item))
-        keys: list[str] = []
-        for attr in excluding:
-            m = _re.search(r'\b%s="([^"]*)"' % attr, tag)
-            if not m:
-                continue
-            for entry in m.group(1).split("|"):
-                parts = [x.strip() for x in entry.split(":")]
-                if not parts or not parts[0]:
-                    continue
-                # Which keys leave the schema is the registry's to say — this
-                # was `if attr == "counts"` in two files, and agreement.py's copy
-                # was one of the three ways it drifted.
-                keys += ([x.strip() for x in parts[1].split(",") if x.strip()]
-                         if excludes.get(attr) == "members" and len(parts) > 1
-                         else [parts[0]])
-        if not keys:
-            continue
-        if item not in ACTION:
-            continue          # no prompt at all; nothing to conform to
-        body = build_web_prompt(item)
-        head, _, checklist = body.partition("## The checklist to return")
-        for k in keys:
-            if _re.search(r"^- `%s`" % _re.escape(k), checklist, _re.M):
-                problems.append(f"{item}: `{k}` is excluded from the schema but still "
-                                f"listed in the checklist the model fills")
-            if f"DO NOT ANSWER" not in checklist or k not in checklist:
-                problems.append(f"{item}: `{k}` is excluded from the schema and the "
-                                f"prompt never tells the model not to answer it")
-    return problems
+    import lo_enforce
 
+    tags = {}
+    for item in sorted({**ACTION, **SHEET_ONLY}):
+        try:
+            tags[item] = _sheet_tag(FORM[item], sheet_id(item))
+        except BaseException:
+            continue
+    return lo_enforce.run("primitive_conformance", {
+        "excluding": sorted(primitive_attrs(excluding_keys=True)),
+        "excludes": {p["attr"]: p.get("excludes")
+                     for p in primitives()["primitives"]},
+        "tags": tags,
+        "inAction": sorted(ACTION),
+        "prompts": {i: build_web_prompt(i) for i in sorted(ACTION)},
+    })
 
 def check_harness_schema_conformance() -> list[str]:
     """Does the SCHEMA the measurement harness sends honour the same exclusions?
@@ -510,14 +478,14 @@ def check_harness_schema_conformance() -> list[str]:
     wrong while claiming otherwise in a docstring.
     """
     import agreement as AG
-    from olx_prompts import ACTION, HANDOUT, SHEET_ONLY, sheet_id
+    from olx_prompts import ACTION, FORM, SHEET_ONLY, sheet_id
 
     problems = []
     for item in sorted({**ACTION, **SHEET_ONLY}):
         if item not in ACTION:
             continue          # a DerivedChecks sheet: no model call, so no schema
         try:
-            action = AG.load_action(_p7.handout_olx(HANDOUT[item]), sheet_id(item))
+            action = AG.load_action(_p7.handout_olx(FORM[item]), sheet_id(item))
         except SystemExit as e:
             problems.append(f"{item}: the harness cannot read its own sheet — {e}")
             continue
@@ -550,11 +518,11 @@ def check_derived_fields_resolve() -> list[str]:
     the same mistake fail the audit before a sweep is spent on it.
     """
     import agreement as AG
-    from olx_prompts import ACTION, HANDOUT, sheet_id
+    from olx_prompts import ACTION, FORM, sheet_id
 
     problems = []
     for item, aid in sorted(ACTION.items()):
-        spec = (AG.BLOCKS.get(HANDOUT[item]) or {}).get(aid)
+        spec = (AG.BLOCKS.get(FORM[item]) or {}).get(aid)
         if spec is None:
             problems.append(f"{item}: no BLOCKS entry, so the harness cannot run it")
             continue
@@ -590,14 +558,14 @@ def check_ref_targets_resolve() -> list[str]:
     """
     import re as _re
     import agreement as AG
-    from olx_prompts import ACTION, HANDOUT, sheet_id
+    from olx_prompts import ACTION, FORM, sheet_id
 
     import agreement_app as AA
-    from handouts import find_submissions
+    from forms import find_submissions
 
     problems = []
     for item, aid in sorted(ACTION.items()):
-        spec = (AG.BLOCKS.get(HANDOUT[item]) or {}).get(aid)
+        spec = (AG.BLOCKS.get(FORM[item]) or {}).get(aid)
         if spec is None:
             continue          # reported by check_derived_fields_resolve
         try:
@@ -810,6 +778,19 @@ def all_derive_items() -> list[dict]:
             if it.get("derive_from_criteria") or it.get("derive_from_credit")]
 
 
+def _harness_source(fname: str) -> str:
+    """The text of one sweep harness, wherever it lives.
+
+    BY IMPORT, NOT BY A SIBLING'S DIRECTORY. This joined `fname` onto
+    `dirname(handouts.__file__)` -- the engine package -- which was right only
+    while every harness sat in it. The general scorers moved to `scorers/` on
+    2026-09-27 and the whole audit died on `FileNotFoundError: agreement.py`
+    before a single check ran. Asking the import system where a module is
+    cannot go stale: it answers wherever `paths` has put it on the path.
+    """
+    return _p7.module_source(fname)
+
+
 def check_exclusions_agree() -> list[str]:
     """Do the three harnesses exclude the SAME cells, from the same source?
 
@@ -825,7 +806,7 @@ def check_exclusions_agree() -> list[str]:
     and the point is that there is ONE. A harness that reintroduces a local copy
     fails here even while the contents match.
     """
-    import handouts as H
+    import forms as H
     problems = []
 
     for name in ("agreement", "agreement_app"):
@@ -844,12 +825,10 @@ def check_exclusions_agree() -> list[str]:
     # Every harness that reports a rate must decide what it counts through the
     # one function. A grep, because the alternative is calling each harness's
     # main() to find out.
-    import os
     for fname in ("agreement.py", "agreement_app.py", "baseline.py"):
-        path = os.path.join(os.path.dirname(H.__file__), fname)
         try:
-            src = open(path).read()
-        except OSError as e:
+            src = _harness_source(fname)
+        except Exception as e:
             problems.append(f"cannot read {fname}: {e}")
             continue
         if "cell_exclusions(" not in src:
@@ -860,7 +839,7 @@ def check_exclusions_agree() -> list[str]:
     # The kinds must stay in step with what the reporters know how to explain: a
     # new kind that no harness has a sentence for prints as a bare label.
     for fname in ("agreement.py", "agreement_app.py", "baseline.py"):
-        src = open(os.path.join(os.path.dirname(H.__file__), fname)).read()
+        src = _harness_source(fname)
         for kind in H.EXCLUSION_KINDS:
             if f'"{kind}"' not in src:
                 problems.append(f"{fname} has no wording for exclusion kind "
@@ -880,7 +859,7 @@ def check_backend_deviations_declared() -> list[str]:
     """
     import inspect
     import backends as B
-    import handouts as H
+    import forms as H
 
     problems = []
     classes = [(n, c) for n, c in vars(B).items()
@@ -1041,35 +1020,31 @@ def check_citations_match_exclusions() -> list[str]:
     compared against the merged set and reported both of those as faults — two
     false alarms out of two findings, on a corpus with no real ones.
     """
-    rubric_h1, rubric_h2, rubric_h3 = _rubric_views()
-    from handouts import HANDOUTS
+    # Participant numbers are student data; the registry lives in the record,
+    # not in code.
+    # PYTHON KEEPS THE FETCH. The self-test injects by adding a participant to
+    # `FORMS[1]["cited_participants"]` IN MEMORY, and a payload the runner
+    # rebuilds from `course.json` cannot see it. The registry's VALUES still
+    # come from the record -- `FORMS` merges `HANDOUT_FIELDS` at import -- so
+    # this reads the record too, just through the object the injection touches.
+    from forms import FORMS
 
-    problems = []
-    for h, mod in ((1, rubric_h1), (2, rubric_h2), (3, rubric_h3)):
-        cfg = HANDOUTS[h]
-        registry = cfg.get("cited_participants", {}) or {}
-        exemplars = set(cfg.get("exemplar_participants", []) or [])
+    import lo_enforce
+
+    items = []
+    for h, mod in zip(_forms(), _rubric_views()):
+        registry = FORMS[h].get("cited_participants") or {}
         for item in mod.ITEMS:
-            iid = item["id"]
-            cited = set()
-            for m in _CITED_RE.finditer(_prompt_text(item)):
-                cited |= {int(x) for x in re.findall(r"\d+", m.group(1))}
-            registered = set(registry.get(iid, []) or [])
-
-            stale = registered - cited
-            if stale:
-                problems.append(
-                    f"H{h} {iid}: excludes {sorted(stale)} as self-graded, but the "
-                    f"prompt no longer names them — the rate drops those cells for "
-                    f"a reason that no longer exists")
-
-            missing = cited - registered - exemplars
-            if missing:
-                problems.append(
-                    f"H{h} {iid}: the prompt names {sorted(missing)} with the "
-                    f"grader's decision, and the rate counts them — that is "
-                    f"self-grading. Register them in cited_participants")
-    return problems
+            items.append({
+                "form": h, "id": item["id"],
+                "promptText": _prompt_text(item),
+                "registered": sorted(registry.get(item["id"], []) or []),
+            })
+    return lo_enforce.run("citations_match_exclusions", {
+        "items": items,
+        "exemplars": {str(h): sorted(FORMS[h].get("exemplar_participants") or [])
+                      for h in _forms()},
+    })
 
 
 def _handsplit_tables() -> dict[str, dict]:
@@ -1085,6 +1060,7 @@ def _handsplit_tables() -> dict[str, dict]:
     out = {}
     for spec in APP.JOBS.values():
         path = spec.get("handsplit")
+        path = str(_p7.record_path(path)) if path else path
         if not path or not os.path.exists(path):
             continue                 # corpus absent on this machine — see below
         try:
@@ -1117,31 +1093,50 @@ def check_handsplit_rows_are_disjoint() -> list[str]:
     $COURSE_DATA, outside both repositories by design, so a checkout without the
     student data must not fail this audit — it simply has nothing to check.
     """
+    # THE RULE LIVES IN LO-BLOCKS NOW. Goal K: python reads the hand-split
+    # tables -- they are source documents and knowing where they live is
+    # python's half -- and `enforce/handsplitDisjoint.ts` judges containment.
+    #
+    # PROVEN WITH A CONTROL: one box's text copied into a sibling box of the
+    # same row produced the same single finding on both sides.
+    # SELF-ASSEMBLED. Subgoal E63: the runner builds this payload, and the
+    # assembler was proven to build what python built -- payload-identical, or
+    # order-only with the finding SET shown unchanged on data mutated until
+    # the rule fires. `runner.SELF_ASSEMBLING` is that cleared list.
+    import lo_enforce
+
+    # PYTHON KEEPS THE FETCH. Self-assembly reads this from DISK; the
+    # self-test injects into the IN-MEMORY table and forks, so a rebuilt
+    # payload cannot see it and the case goes silent. Measured 2026-09-26.
+    # `_handsplit_tables` says so in its own docstring: "A seam, not a
+    # convenience: the selftest replaces this to inject a bad row, which is the
+    # only way to prove the check below still detects one." Self-assembly walked
+    # straight past that seam.
     import os
 
-    problems = []
-    for path, table in _handsplit_tables().items():
-        name = os.path.basename(path)
-        if "__error__" in table:
-            problems.append(f"{name} could not be read: {table['__error__']}")
-            continue
-        for pid, row in sorted(table.items(), key=lambda kv: str(kv[0])):
-            if not isinstance(row, dict):
-                continue
-            norm = {f: " ".join(str(v or "").replace("\u2019", "'").split())
-                          .strip().rstrip(".").lower()
-                    for f, v in row.items()}
-            fields = sorted(f for f, v in norm.items() if v)
-            for i, a in enumerate(fields):
-                for b in fields[i + 1:]:
-                    va, vb = norm[a], norm[b]
-                    if va in vb or vb in va:
-                        small, big = (a, b) if len(va) < len(vb) else (b, a)
-                        problems.append(
-                            f"{name} p{pid}: `{small}` is contained in `{big}` — the "
-                            f"same sentence is in two boxes, so one of them shows the "
-                            f"model text the student did not put there")
-    return problems
+    import lo_enforce
+
+    return lo_enforce.run("handsplit_rows_are_disjoint", {"tables": [
+        {"name": os.path.basename(path),
+         "rows": [{"pid": pid, "fields": fields}
+                  for pid, fields in (doc or {}).items()
+                  if isinstance(fields, dict)]}
+        for path, doc in _handsplit_tables().items()]})
+
+
+
+def _declaration_list(name: str) -> list:
+    """A list-shaped declaration, through the accessor.
+
+    THE FIRST VERSION REACHED `coursedata._load()` and the schema check refused
+    it in the same breath: obligation 3 is that no module crosses the boundary,
+    and a raw read is exactly that crossing. `coursedata.declaration_list` is
+    the accessor.
+    """
+    import coursedata
+
+    return coursedata.declaration_list(name)
+
 
 
 # Slot rules that reach the web and CLI and NOT score.py. PRE-EXISTING, and
@@ -1162,93 +1157,30 @@ def check_handsplit_rows_are_disjoint() -> list[str]:
 # Hoisted out of the check so the ratchet below reads the same list the check
 # does. Two copies of this would drift, which is the failure the whole
 # equivalence goal is about.
-SLOT_RULE_BACKLOG = [
-    # The four `1a:*` entries were MIGRATED on 2026-08-28, budget 17 -> 13. They
-    # led because they were the only group with a measured price: 1a/p6 scored 0.0
-    # on the paper path against 6.0-8.0 on the web, the whole item, 3 of 3 runs.
-    # Their text now lives in rubric_h3's `rule` fields, which both generators
-    # render, and the web prompt did not move because its checklist looks up
-    # `rule` before SLOT_NOTES and finds the same string.
-    # D1/D2:defines_type MIGRATED 2026-08-29, budget 13 -> 11. Same procedure
-    # as the 1a group: the text is now the `rule` on rubric_h2's
-    # `_definition_item` factory, which serves both items, and the web
-    # prompts are byte-identical before and after. The paper prompt GAINED
-    # the operative clause it never had -- "do not look at what they chose"
-    # -- which is the half that keeps `defines_type` independent of
-    # `named_type` for the `matches_chosen_type` comparison.
-    # 2026-08-29, E11: SIX MORE MIGRATED and two struck off as never having been
-    # gaps, 11 -> 3. Migrated to the credit component's `rule`, verbatim, web
-    # prompts byte-identical against a git-HEAD baseline:
-    #   Q2:reasons_given  Q2:wgb_inverts_utb  Q2:wgb_is_counterpart
-    #   Q5:example_2      reasons_failing     reasons_substantial
-    # The paper prompts gained what they had been missing -- Q2 3791 -> 4560
-    # chars, Q5 3161 -> 4346, D1/D2 +276 each.
-    #
-    # STRUCK OFF, NOT MIGRATED, because neither was a paper-blind rule:
-    #   `matches_chosen_type` is COMPUTED by `equals` from defines_type and
-    #   named_type, so no model is ever asked about it and NEITHER generator
-    #   renders its note. It reached no prompt at all -- dead text, deleted. A
-    #   `rule` was briefly added to its six components and reverted for the same
-    #   reason: it would have been dead too.
-    #   `named_type` CANNOT migrate for four of its six items: D1 and D2 have a
-    #   credit component and now carry the text as their `rule`, but DAY1, DAY2,
-    #   WK1 and WK2 carry the SLOT with no component behind it, so there is
-    #   nowhere to put a rule. Removing the note deleted the text from those four
-    #   web prompts -- caught by diffing the generated prompt against HEAD, and by
-    #   nothing else. The note stays, declared in place.
-    # 2026-08-29, third pass, 5 -> 2. Two struck off as mis-categorised and one
-    # migrated:
-    #   `1c:has_own_graph` is DERIVED -- computed from the typed data fields --
-    #     so no model is asked and neither generator renders its note. Dead
-    #     text, like matches_chosen_type. Deleted.
-    #   `Q1:matches_selected` STAYS, but not as work: the paper sheet has no
-    #     such SLOT, because a .docx has no closed choice to compare against,
-    #     and the asymmetry is already declared in SCORING_DIVERGENCES as a
-    #     no-penalty check. It is listed here because this list IS the
-    #     declaration of olx-only notes -- striking it out just made the
-    #     reach check demand it back.
-    #   `1c:legend` MIGRATED -- it reached the web only and 1c has a credit
-    #     component to host it, unlike has_own_graph beside it.
-    #
-    # 2026-08-30, E11 closed out, 4 -> 1. The three "olx-only BY DESIGN" entries
-    # -- Q5:example_2, reasons_substantial, 1c:legend -- MIGRATED. The
-    # declaration standing here said they named one side's verdict token and so
-    # could never be shared, and that `{fail}` was "workable for
-    # reasons_substantial and 1c:legend, not for example_2, which distinguishes
-    # two failure modes". The constraint was real; the conclusion was wrong, and
-    # wrong in BOTH directions, which is why it took measuring the vocabularies
-    # rather than reasoning about them:
-    #   `Q5:example_2` DOES migrate. Its second failure mode is `duplicate`,
-    #     which slot_vocab.SHARED_EXTRAS shows both sides offer, so `{fail}`
-    #     plus one literal covers both. Migrating it also fixed a live defect:
-    #     the note sat in olx-only SLOT_NOTES while naming `not_reason`, the
-    #     RUBRIC's token, so the web prompt listed met/absent/wrong_kind/
-    #     duplicate and then told the model when to answer `not_reason`. That
-    #     dates to the original import, not to any migration.
-    #   `reasons_substantial` did NOT migrate for the recorded reason. Bare
-    #     `{fail}` fills with the slot's OWN failing verdict, which here is
-    #     `absent` -- rendering "instead of reaching for `absent`" and inverting
-    #     the rule. The token it names belongs to the EXAMPLE slots. That is
-    #     what `{fail:key}` was added for; on the web it renders `wrong_kind`,
-    #     byte-identical to the note it replaced.
-    #   `1c:legend` migrated as recorded, on `{fail}` + a literal `absent`,
-    #     which is universal and means a different thing here (empty box) from
-    #     the failing verdict.
-    #
-    # THE ONE THAT REMAINS is not work waiting to be done:
-    #   `Q1:matches_selected` STAYS. The paper sheet has no such SLOT, because a
-    #     .docx has no closed choice to compare against, and the asymmetry is
-    #     already declared in SCORING_DIVERGENCES as a no-penalty check. It is
-    #     listed here because this list IS the declaration of olx-only notes --
-    #     striking it out just makes the reach check demand it back.
-    'Q1:matches_selected',
-]
+# MOVED TO THE RECORDS 2026-09-25: this course's backlog, not the
+# engine's. While it lived here the ratchet rule could be run from
+# python and from nowhere else.
+SLOT_RULE_BACKLOG = _declaration_list("SLOT_RULE_BACKLOG")
+
+def _budget(name: str) -> int:
+    """A ratchet ceiling, from the course's records rather than from here.
+
+    Moved 2026-09-25 on the user's instruction, beside the tables they bound.
+    A budget is a fact about THIS COURSE -- `PROSE_ONLY_BUDGET` is 27 because
+    this rubric has 27 prose-only slots -- so it was course data sitting in the
+    engine, and it left every ratchet rule unfeedable from inside lo-blocks.
+    """
+    import coursedata
+
+    return coursedata.declared_number(name)
+
+
 
 # How many may remain. It may only go DOWN. Same ratchet as HANDCODED_BUDGET, for
 # the same reason and on the evidence of the same day: a declared backlog with no
 # ceiling reads as coverage while enforcing nothing about its own size, and this
 # one had grown to seventeen entries costing at least one item its whole score.
-SLOT_RULE_BACKLOG_BUDGET = 1
+SLOT_RULE_BACKLOG_BUDGET = _budget("SLOT_RULE_BACKLOG_BUDGET")
 
 
 # The three programs that write scoring artifacts, and the field each must stamp.
@@ -1350,6 +1282,16 @@ def _declaration(name: str) -> dict:
 COUNTABLE_EXEMPT = _declaration("COUNTABLE_EXEMPT")
 SELFTEST_NAMED_FIXTURES = _declaration("SELFTEST_NAMED_FIXTURES")
 PROBE_UNREACHABLE_PAIRS = _declaration("PROBE_UNREACHABLE_PAIRS")
+# AUTHORED IN `declaration_source.py`, like every other declaration with a
+# reason attached: it has to reach the ENGINE, and the engine reads the course
+# file. A copy here would be the second statement of one fact.
+HAND_AUTHORED_SHEET_ATTRS = _declaration("HAND_AUTHORED_SHEET_ATTRS")
+# WHICH BOX ROLES MAY SHARE A CLAUSE. Declared, because the rule is generic and
+# the vocabulary is this instrument's -- see `declaration_source`.
+OVERLAP_SIBLING_ROLES = _declaration_list("OVERLAP_SIBLING_ROLES")
+# What gold CALLS each box. E58 moved it out of the check below, where it was a
+# dict literal keyed by this course's item ids. Its reasoning travelled with it.
+GOLD_BOX_WORDS = _declaration("GOLD_BOX_WORDS")
 import coursedata as _CD
 
 # FROM THE RUBRIC since 4a: `<Item family="...">`. It was a declaration naming
@@ -1362,7 +1304,7 @@ PROSE_ONLY_SLOTS = _declaration("PROSE_ONLY_SLOTS")
 # `DAY2.targets_own_behavior` were already judged by prose and by nothing
 # computable, and the budget moves because the DECLARATION was written, not
 # because the corpus grew. Lower it whenever one converts to a primitive.
-PROSE_ONLY_BUDGET = 27
+PROSE_ONLY_BUDGET = _budget("PROSE_ONLY_BUDGET")
 
 
 # WHICH PRIMITIVE SET each "NOT CONVERTIBLE" claim was judged against.
@@ -1396,15 +1338,21 @@ PROSE_ONLY_JUDGED_AGAINST = _declaration("PROSE_ONLY_JUDGED_AGAINST")
 # A slot whose gate/points structure is deliberately not uniform in its family.
 # The budget ratchets: an entry is either a decision with a reason or a defect
 # waiting to be fixed, and it must not sit here being neither.
-SLOT_STRUCTURE_DIVERGENCES: dict[tuple[str, str], str] = {
-}
+# Declared in the course file since E63, 2026-09-25, so that
+# `sibling_slots_share_their_structure` can be fed from lo-blocks: the families
+# already derive from the rubric and the budget already lives in the course
+# file, and this was the last input still on the python side. Its reasoning --
+# why it is empty and meant to stay so -- travelled with it and is quoted in
+# `declaration_source`.
+SLOT_STRUCTURE_DIVERGENCES: dict[tuple[str, str], str] = _declaration(
+    "SLOT_STRUCTURE_DIVERGENCES")
 # ZERO, and it is meant to stay there. The single entry was DAY1's
 # `phrased_directly`, retired 2026-09-04 by RENAMING the gated variant
 # `phrased_directly_gate` rather than exempting it: if two sheets price a
 # question differently they are not asking the same question, and the shared name
 # is what made a recorded claim about the slot wrong (subgoal Q21's precision
 # table). A new entry here now means someone chose an exemption over a name.
-SLOT_STRUCTURE_BUDGET = 0
+SLOT_STRUCTURE_BUDGET = _budget("SLOT_STRUCTURE_BUDGET")
 
 
 def _family_slot_structure() -> dict:
@@ -1419,9 +1367,7 @@ def _family_slot_structure() -> dict:
 
     import agreement_app as _A
 
-    olx = {f.name: f.read_text() for f in
-           _p7.OLX_DIR
-           .glob(_p7.handout_olx_glob())}
+    olx = {f.name: f.read_text() for f in _p7.handout_olx_paths()}
     out: dict = {}
     for fam, items in SLOT_STRUCTURE_FAMILIES.items():
         for item in items:
@@ -1469,47 +1415,23 @@ def check_sibling_slots_share_their_structure() -> list[str]:
     does not" may well resolve in favour of the odd one. A declaration with a
     reason is the product; a sweep that makes every slot identical is not.
     """
-    problems = []
-    for (fam, slot), per_item in sorted(_family_slot_structure().items()):
-        shapes = set(per_item.values())
-        if len(shapes) < 2:
-            continue
-        if (fam, slot) in SLOT_STRUCTURE_DIVERGENCES:
-            continue
-        groups: dict = {}
-        for item, shape in per_item.items():
-            groups.setdefault(shape, []).append(item)
-        desc = "; ".join(
-            f"{'gates' if g else 'advisory'}"
-            + (f" @{p:g}" if p is not None else "")
-            + f" on {', '.join(sorted(items))}"
-            for (g, p), items in sorted(groups.items(), key=lambda kv: -len(kv[1])))
-        problems.append(
-            f"`{slot}` is not uniform across the {fam} family: {desc}. Sibling "
-            f"items built from one pattern should give a slot name one meaning -- "
-            f"declare the difference in SLOT_STRUCTURE_DIVERGENCES with the reason, "
-            f"or make them agree")
+    # THE RULE LIVES IN LO-BLOCKS NOW. Goal K: python fetches the structure --
+    # `_family_slot_structure()` walks the rubric view -- and reports;
+    # `enforce/siblingSlots.ts` decides. "Sibling items built from one pattern
+    # should give a slot name one meaning" is a statement about authoring under
+    # SlotSheetGrader, so the judgement is generic and only the families and the
+    # declared exceptions are ours.
+    #
+    # PROVEN AGAINST THIS RUBRIC with a control, because the families currently
+    # agree and a clean corpus makes any port look right: flipping one item's
+    # shape produced one finding, byte-identical on both sides.
+    # SELF-ASSEMBLED. E63: the last input on the python side -- the
+    # divergence table -- moved to the course file, and the assembler then
+    # built an IDENTICAL payload on the first attempt. Fired identically
+    # with one item's gate flipped.
+    import lo_enforce
 
-    n = len(SLOT_STRUCTURE_DIVERGENCES)
-    if n != SLOT_STRUCTURE_BUDGET:
-        verb = "holds" if n > SLOT_STRUCTURE_BUDGET else "is down to"
-        problems.append(
-            f"SLOT_STRUCTURE_DIVERGENCES {verb} {n} entrie(s) against a budget of "
-            f"{SLOT_STRUCTURE_BUDGET} -- "
-            + ("a divergence was added; declare it deliberately or fix it"
-               if n > SLOT_STRUCTURE_BUDGET else
-               "one was resolved and the ceiling was not lowered, which leaves "
-               "room for a replacement to arrive unnoticed"))
-    # A declaration that has stopped being true.
-    live = _family_slot_structure()
-    for key in sorted(SLOT_STRUCTURE_DIVERGENCES):
-        per_item = live.get(key)
-        if per_item and len(set(per_item.values())) < 2:
-            problems.append(
-                f"SLOT_STRUCTURE_DIVERGENCES declares `{key[1]}` divergent in "
-                f"{key[0]}, but the family now agrees about it -- retire the entry "
-                f"and lower the budget")
-    return problems
+    return lo_enforce.run("sibling_slots_share_their_structure", None)
 
 
 def check_prose_only_claims_are_current() -> list[str]:
@@ -1529,41 +1451,22 @@ def check_prose_only_claims_are_current() -> list[str]:
     claim nobody dated, and a stamp with no entry is a claim that has already
     gone.
     """
+    # PORTED to `enforce/proseOnlyClaimsCurrent.ts` (goal K).
+    #
+    # THE REGISTRY IS THE ENGINE'S. `primitives.json` says what a rule CAN be
+    # expressed as, and the claim this check tests is about exactly that -- so
+    # the check belongs beside the registry. Python still passes what it reads,
+    # so this path answers about the tree it resolves.
     from olx_prompts import primitives
 
-    now = ",".join(sorted(p["attr"] for p in primitives()["primitives"]))
-    problems = []
+    import lo_enforce
 
-    unstamped = set(PROSE_ONLY_SLOTS) - set(PROSE_ONLY_JUDGED_AGAINST)
-    for k in sorted(unstamped):
-        problems.append(
-            f"PROSE_ONLY_SLOTS{list(k)} is declared NOT CONVERTIBLE with no "
-            f"entry in PROSE_ONLY_JUDGED_AGAINST -- an undated claim cannot be "
-            f"re-tested when the primitive set grows. Stamp it with the set it "
-            f"was judged against")
-    orphan = set(PROSE_ONLY_JUDGED_AGAINST) - set(PROSE_ONLY_SLOTS)
-    for k in sorted(orphan):
-        problems.append(
-            f"PROSE_ONLY_JUDGED_AGAINST{list(k)} stamps a slot that is no longer "
-            f"in PROSE_ONLY_SLOTS -- the entry left and its stamp did not")
-
-    for k in sorted(set(PROSE_ONLY_SLOTS) & set(PROSE_ONLY_JUDGED_AGAINST)):
-        was = PROSE_ONLY_JUDGED_AGAINST[k]
-        if was == now:
-            continue
-        added = sorted(set(now.split(",")) - set(was.split(",")))
-        gone = sorted(set(was.split(",")) - set(now.split(",")))
-        what = []
-        if added:
-            what.append("the registry now also has " + ", ".join(f"`{a}`" for a in added))
-        if gone:
-            what.append("no longer has " + ", ".join(f"`{a}`" for a in gone))
-        problems.append(
-            f"PROSE_ONLY_SLOTS{list(k)} was judged NOT CONVERTIBLE against "
-            f"{{{was}}}; {'; '.join(what)}. Re-judge the claim against the new "
-            f"set, then re-stamp it. Still not convertible is a fine answer -- "
-            f"the budget does not have to fall")
-    return problems
+    return lo_enforce.run("prose_only_claims_are_current", {
+        "now": sorted(p["attr"] for p in primitives()["primitives"]),
+        "slots": ["|".join(k) for k in PROSE_ONLY_SLOTS],
+        "judgedAgainst": {"|".join(k): v
+                          for k, v in PROSE_ONLY_JUDGED_AGAINST.items()},
+    })
 
 
 
@@ -1635,8 +1538,8 @@ def _authored_derived_kinds() -> set:
     import olx_prompts as OP
 
     out = set()
-    for handout in _forms():
-        src = OP._src(handout)
+    for form in _forms():
+        src = OP._src(form)
         for m in re.finditer(r'\bderived="([^"]*)"', src, re.S):
             for entry in m.group(1).split("|"):
                 parts = entry.strip().split(":")
@@ -1659,7 +1562,17 @@ def check_fails_verdict_is_mirrored_in_the_app() -> list[str]:
     Checks the SOURCE rather than running node: the mirror is a fact about the
     file, and the app's test suite already exercises the behaviour.
     """
+    # PORTED to `enforce/runtimeParsesFailsVerdict.ts` (goal K).
+    #
+    # THE READER MOVED TO THE RIGHT SIDE. Python reached across the repository
+    # boundary to grep an ENGINE file for ENGINE function names -- exactly the
+    # coupling this goal removes. `slotSheet.ts` belongs to lo-blocks and so does
+    # the check on it; python still passes the source it read, so the answer here
+    # is about the file this process can see rather than whichever tree the
+    # runner happens to resolve.
     import pathlib
+
+    import lo_enforce
     import paths
 
     ts = pathlib.Path(paths.SLOTSHEET_TS)
@@ -1667,39 +1580,8 @@ def check_fails_verdict_is_mirrored_in_the_app() -> list[str]:
         src = ts.read_text()
     except OSError as e:
         return [f"cannot read {ts} to confirm the app understands `->`: {e}"]
-
-    out = []
-    # `maps` is the fourth computed primitive and the runtime must parse it too: a
-    # `maps` attribute the app ignores means the check it names is never computed
-    # there, so the app credits a slot both harnesses refuse.
-    for fn in ("parseMaps", "mappedVerdict"):
-        if f"export function {fn}(" not in src:
-            out.append(f"{ts.name} has no {fn}: the `maps` primitive is declared in "
-                       f"primitives.json and computed by both python engines, so the "
-                       f"app would ignore the attribute and credit a check they "
-                       f"refuse")
-    if "for (const r of maps)" not in src:
-        out.append(f"{ts.name}:satisfiedMap does not apply `maps`, so a mapped check "
-                   f"is parsed there and never computed")
-    if "splitFailsVerdict" not in src:
-        out.append(f"{ts.name} has no splitFailsVerdict: the app would read the "
-                   f"arrow as part of the key, so a rule written "
-                   f"`behavior_1->not_active` would compute NOTHING there while "
-                   f"both python engines honoured it")
-        return out
-    for fn in ("parseForbid", "parseExpect"):
-        i = src.find(f"export function {fn}(")
-        if i < 0:
-            out.append(f"{ts.name} has no {fn} -- retarget this check")
-            continue
-        j = src.find("\nexport ", i + 1)
-        body = src[i:j if j > 0 else len(src)]
-        if "splitFailsVerdict" not in body:
-            out.append(f"{ts.name}:{fn} does not call splitFailsVerdict, so a "
-                       f"`key->verdict` rule parsed there keeps the arrow in its "
-                       f"key and silently computes nothing")
-    return out
-
+    return lo_enforce.run("fails_verdict_is_mirrored_in_the_app",
+                          {"name": ts.name, "src": src})
 
 def check_both_engines_compute_the_same_primitives() -> list[str]:
     """If a primitive removes a key from the schema, BOTH engines must compute it.
@@ -1815,23 +1697,13 @@ def check_computed_rules_do_not_share_a_key() -> list[str]:
     # `enforce/computedKeys.ts` counts the collisions. Which primitives ASSIGN
     # is named there rather than inferred from the payload, so a primitive
     # added to the engines and not to that list is unwatched loudly.
+    # SELF-ASSEMBLED. Subgoal E63: the runner builds this payload, and the
+    # assembler was proven to build what python built -- payload-identical, or
+    # order-only with the finding SET shown unchanged on data mutated until
+    # the rule fires. `runner.SELF_ASSEMBLING` is that cleared list.
     import lo_enforce
 
-    rubric_h1, rubric_h2, rubric_h3 = _rubric_views()
-    payload = []
-    for h, mod in ((1, rubric_h1), (2, rubric_h2), (3, rubric_h3)):
-        for item in mod.ITEMS:
-            payload.append({
-                "handout": h, "id": item["id"],
-                "kinds": {kind: [r.get("key") for r in (item.get(kind) or ())
-                                 if isinstance(r, dict)]
-                          for kind in ("forbid", "expect", "equals", "derived")},
-            })
-    if not payload:
-        # NOT SILENCE. No rubric item means nothing was examined.
-        return ["no rubric item could be read, so no computed-rule collision "
-                "was looked for"]
-    return lo_enforce.run("computed_rules_do_not_share_a_key", {"items": payload})
+    return lo_enforce.run("computed_rules_do_not_share_a_key", None)
 
 
 
@@ -1906,7 +1778,7 @@ def check_prior_record_reaches_every_item() -> list[str]:
 # out/q6_e15_cli and out/q6_e15_web. Every primitive in the registry now has an
 # item that justifies it.
 UNEXERCISED_PRIMITIVES: dict[str, str] = {}
-UNEXERCISED_PRIMITIVES_BUDGET = 0
+UNEXERCISED_PRIMITIVES_BUDGET = _budget("UNEXERCISED_PRIMITIVES_BUDGET")
 
 
 def _primitives_with_live_app_evidence() -> dict:
@@ -1926,9 +1798,7 @@ def _primitives_with_live_app_evidence() -> dict:
     from olx_prompts import primitives as _prims
 
     attrs = {q["attr"] for q in _prims()["primitives"]}
-    olx = [f.read_text() for f in
-           _p7.OLX_DIR
-           .glob(_p7.handout_olx_glob())]
+    olx = [f.read_text() for f in _p7.handout_olx_paths()]
     try:
         # THROUGH `paths`, NOT THIS FILE'S POSITION. This built the
         # ledger's path independently of `measured.LEDGER`, so it would
@@ -1991,7 +1861,7 @@ GOLD_ALPHABET_EXEMPT = {
 }
 
 
-HANDOUT_KEYED_GOLD_READERS = {
+FORM_KEYED_GOLD_READERS = {
     # Sites that pick a gold loader by HANDOUT NUMBER rather than by item, which
     # is legitimate only when the handout is not being derived from an item. See
     # measured.gold_cell for the failure this table exists to bound: naming the
@@ -1999,7 +1869,7 @@ HANDOUT_KEYED_GOLD_READERS = {
     # `{}` -- which reads exactly like "this cell has no gold row".
     "cross_path": "iterates all three handouts; no item is in scope",
     "compare_runs": "takes the handout from the command line, alongside the item",
-    "handouts": "builds the per-handout config; this is where the mapping LIVES",
+    "forms": "builds the per-handout config; this is where the mapping LIVES",
     "measured": "_corrected_gold IS the handout-keyed cache gold_cell derives "
                 "onto, and error_profile takes its handout from _jobs()[item]",
     "enforcement": "audits the sheets themselves, one handout at a time",
@@ -2082,8 +1952,11 @@ def check_gold_accounting_is_uniform() -> list[str]:
         mod_name, _, fn_name = name.rpartition(".")
         if not mod_name:                        # a bare module, exempt entire
             exempt_modules.add(name)
-            f = here / f"{name}.py"
-            if not f.exists():
+            try:
+                f = _p7.module_path(f"{name}.py")
+            except Exception:
+                f = None
+            if f is None or not f.exists():
                 problems.append(
                     f"RAW_GOLD_READERS declares {name} as a raw gold reader, but "
                     f"there is no {name}.py -- the module was renamed or removed "
@@ -2297,33 +2170,21 @@ def check_prose_only_slots_are_declared() -> list[str]:
     slot that no longer qualifies -- it was converted to a primitive, or its rule
     was removed, and the list is rotting. And the count against its budget.
     """
-    rubric_h1, rubric_h2, rubric_h3 = _rubric_views()
+    # THE RULE LIVES IN LO-BLOCKS NOW. Goal K: python reads which slots are
+    # judged by a per-slot `rule` and by nothing computable;
+    # `enforce/proseOnlySlots.ts` does the three-way comparison and the ratchet.
+    #
+    # PROVEN WITH A CONTROL: with the declarations stripped, both sides reported
+    # the SAME 28 findings in the same order.
+    # SELF-ASSEMBLED. Subgoal E63: the runner builds this payload itself,
+    # from the same course records python would have read. The assembler was
+    # compared against the payload python used to send and found IDENTICAL
+    # before this fetch was deleted; `runner.SELF_ASSEMBLING` names the rules
+    # that comparison has cleared, and the runner refuses any other.
+    import lo_enforce
 
-    actual = {}
-    for mod in (rubric_h1, rubric_h2, rubric_h3):
-        for item in mod.ITEMS:
-            for key, basis in slot_basis(item).items():
-                if basis == "prose+rule":
-                    actual[(item["id"], key)] = basis
+    return lo_enforce.run("prose_only_slots_are_declared", None)
 
-    out = []
-    for k in sorted(set(actual) - set(PROSE_ONLY_SLOTS)):
-        out.append(f"{k[0]}.{k[1]} is judged by a per-slot `rule` and by nothing "
-                   f"computable, and is not in PROSE_ONLY_SLOTS. Either express it "
-                   f"as a primitive, which the enforcement audit can then compare "
-                   f"between the two scorers, or declare it here with the reason it "
-                   f"cannot be one")
-    for k in sorted(set(PROSE_ONLY_SLOTS) - set(actual)):
-        out.append(f"PROSE_ONLY_SLOTS names {k[0]}.{k[1]}, which no longer carries a "
-                   f"prose-only rule. If it became a primitive, drop it from the "
-                   f"list and lower PROSE_ONLY_BUDGET")
-    n = len(PROSE_ONLY_SLOTS)
-    if n != PROSE_ONLY_BUDGET:
-        verb = "grew to" if n > PROSE_ONLY_BUDGET else "is down to"
-        out.append(f"PROSE_ONLY_SLOTS {verb} {n} against a budget of "
-                   f"{PROSE_ONLY_BUDGET} -- raise it only for a rule that genuinely "
-                   f"cannot be a primitive, and lower it whenever one converts")
-    return out
 
 
 def check_artifacts_record_their_era() -> list[str]:
@@ -2342,12 +2203,10 @@ def check_artifacts_record_their_era() -> list[str]:
     corpus is full of legitimately unstamped older runs, and flagging those would
     be thousands of findings about the past instead of one about the code.
     """
-    import pathlib
-    here = pathlib.Path(__file__).parent
     out = []
     for fname, what in ARTIFACT_WRITERS:
         try:
-            src = (here / fname).read_text()
+            src = _p7.module_source(fname)        # wherever it lives; see paths
         except OSError as e:
             out.append(f"{fname} ({what}) cannot be read, so its era stamp "
                        f"cannot be checked: {e}")
@@ -2552,8 +2411,25 @@ def check_slot_rules_reach_both_prompts() -> list[str]:
     return sorted(set(failed)) + problems
 
 
-def _olx_slot_verdicts(item_id: str, slot: str) -> set:
-    """Verdicts the OLX slot spec declares for this slot, e.g. `key:label:fail@2`."""
+def _olx_slot_verdicts(item_id: str, slot: str):
+    """Verdicts the OLX slot spec declares for this slot, e.g. `key:label:fail@2`.
+
+    RETURNS `None` WHEN THE SLOT IS NOT FOUND, a set when it is -- and the empty
+    set is a real answer meaning "this slot offers met/absent and nothing else".
+
+    THE TWO WERE ONE VALUE UNTIL E63, 2026-09-25, and the conflation quietly
+    reintroduced the fault subgoal E52 exists to stop. Its caller wrote
+    `sorted({"met","absent"} | extra) if extra else None`, so a slot offering
+    only the defaults sent `offered: null`, and the rule then falls back to the
+    RUBRIC's verdict list -- which is exactly what E52 records as having "let
+    the exact fault this check was built for survive a whole sweep". The sheet
+    is the authority; an empty extras set is the sheet SPEAKING, not the sheet
+    being unreadable.
+
+    One mapped slot is affected today (`Q2/wgb_inverts_utb`), and its rubric
+    list happens to equal the sheet's defaults, so nothing was misreported --
+    the defect was latent, waiting for a slot where the two differ.
+    """
     import re as _re
     import pathlib as _pl
 
@@ -2564,7 +2440,7 @@ def _olx_slot_verdicts(item_id: str, slot: str) -> set:
     if not g:
         return set()
     act = g.replace("_grader", "_llm")
-    for f in _p7.OLX_DIR.glob(_p7.handout_olx_glob()):
+    for f in _p7.handout_olx_paths():
         txt = f.read_text()
         m = _re.search(r"<LLMAction\b(?:(?!</?LLMAction)[^>])*?(?:^|\s)id=\"" +
                        _re.escape(act) + r"\"(?:(?!</?LLMAction)[^>])*>", txt, _re.S)
@@ -2579,8 +2455,8 @@ def _olx_slot_verdicts(item_id: str, slot: str) -> set:
             for b in bits[2:]:
                 for tok in b.split("/"):
                     out.add(_re.sub(r"@[0-9.]+$", "", tok).strip())
-            return {o for o in out if o}
-    return set()
+            return {o for o in out if o}          # may be empty: it SPOKE
+    return None                                   # the slot was never found
 
 
 def check_prompt_prose_names_only_offered_verdicts() -> list[str]:
@@ -2616,52 +2492,44 @@ def check_prompt_prose_names_only_offered_verdicts() -> list[str]:
     # JUDGEMENT is `enforce/offeredVerdicts.ts`, where vitest holds both of the
     # cases a naive version gets wrong: a `pick(NAME)` group supplying the
     # verdict, and a `rule` slot that belongs to a different check.
+    # SELF-ASSEMBLED. E63: this was `NATIVE_BLOCKED` on the grounds that
+    # porting the verdict vocabulary would make a third copy -- which
+    # stopped being true when `verdictVocabulary.ts` became the single
+    # source and this side started reading it. The assembler builds the
+    # same 217 slots; proven on firing data, not on a clean tree.
     import lo_enforce
-    import olx_prompts as O
-    from slot_vocab import KNOWN_VERDICTS
 
-    by_id = {it["id"]: it for it in all_items()}
-    payload = []
-    for item_id, action in sorted(O.ACTION.items()):
-        handout = O.HANDOUT.get(item_id)
-        if handout is None:
-            continue
-        try:
-            spec, defaults = O._slots_attr(handout, action)
-            choices = O._choices_attr(handout, action)
-            slots = O.parse_slots(spec, defaults)
-        except Exception:
-            continue
-        rubric = by_id.get(item_id) or {}
-        credit = rubric.get("credit", []) or []
-        rules = {c["what"] for c in credit if c.get("rule")}
-        for s in slots:
-            key = s["key"]
-            offered = set(s["options"] or ())
-            if s.get("picks") is not None:
-                offered |= set(choices.get(s["picks"], []) or ())
-            comp = next((c for c in credit if c["what"] == key), None)
-            offered_paper = (set((comp or {}).get("verdicts") or [])
-                             | set(((comp or {}).get("codes") or {}).keys())
-                             | {"met", "absent"})
-            for grp in rubric.get("cover", []) or []:
-                if key in (grp.get("keys") or ()):
-                    offered_paper |= set(grp.get("verdicts") or ())
-            payload.append({
-                "item": item_id, "key": key, "hasRule": key in rules,
-                "offered": sorted(offered), "offeredPaper": sorted(offered_paper),
-                "note": (O.SLOT_NOTES.get(f"{item_id}:{key}")
-                         or O.SLOT_NOTES.get(key)),
-                "desc": (comp or {}).get("desc"),
-            })
-    if not payload:
-        # NOT SILENCE. No slot resolved means nothing was examined, which is the
-        # one answer this must never render as clean.
-        return ["no slot could be resolved, so no prompt prose was checked "
-                "against the verdicts its slot offers"]
-    return lo_enforce.run("prompt_prose_names_only_offered_verdicts",
-                          {"knownVerdicts": sorted(KNOWN_VERDICTS),
-                           "slots": payload})
+    # PYTHON OWNS THE NOTES, AND ONLY THE NOTES. Self-assembly rebuilt the whole
+    # payload from disk, and the self-test injects by appending a sentence to the
+    # IN-MEMORY `olx_prompts.SLOT_NOTES` -- so the case went silent. Measured
+    # 2026-09-26: before=0, after=0.
+    #
+    # ASKING FOR THE PAYLOAD AND PATCHING ONE FIELD, rather than rebuilding it
+    # here. Rebuilding would restore in python the slot-sheet reading this port
+    # removed -- the duplicate implementation the whole goal exists to end. The
+    # `assemble` probe hands back what the assembler built; this replaces the
+    # single field python holds and sends it back, so the assembler stays the
+    # one definition of the payload's shape and the seam is one line long.
+    #
+    # THE RESOLUTION IS THE ASSEMBLER'S: `item:key`, then bare `key`, then none.
+    # Checked before relying on it -- python reproduces the assembler's `note`
+    # on all 217 slots.
+    import coursedata as _cd_pp
+    import lo_enforce
+    import olx_prompts as _O_pp
+
+    try:
+        payload = lo_enforce.probe(
+            "assemble", {"rule": "prompt_prose_names_only_offered_verdicts",
+                         "ns": _cd_pp.course_id()})
+    except Exception as exc:
+        return [f"the prompt-prose payload could not be assembled: "
+                f"{type(exc).__name__}: {exc}"]
+    notes = _O_pp.SLOT_NOTES
+    for s in payload.get("slots") or []:
+        s["note"] = (notes.get(f"{s['item']}:{s['key']}")
+                     or notes.get(s["key"]) or None)
+    return lo_enforce.run("prompt_prose_names_only_offered_verdicts", payload)
 
 
 
@@ -2676,48 +2544,12 @@ def check_prompt_prose_names_only_offered_verdicts() -> list[str]:
 # asymmetries themselves, written down, so a new one has to be looked at.
 #
 # Key: (frozenset olx-only tokens, frozenset paper-only tokens) -> why.
-VERDICT_SPACE_DIVERGENCES: dict[tuple[frozenset, frozenset], str] = {
-    (frozenset({"unclear"}), frozenset()):
-        "17 slots. The web offers a third 'cannot tell' verdict and the paper "
-        "offers only met/absent -- three-valued against two-valued, NOT a "
-        "renaming: those slots declare no third token under any name. Score "
-        "impact is NIL, because `unclear` is not satisfied and so deducts exactly "
-        "as `absent` does; what the paper loses is the DIAGNOSIS, not marks. "
-        "2a.how_*, 2b.sentence_*, 3.example_*, Q1.reason_*, Q2.reason_*, and "
-        "D1/D2's add_or_remove and increase_or_decrease.",
-    (frozenset(), frozenset({"0", "1", "2", "3"})):
-        "The paper encodes a COUNT as its verdict list. Not judgements, so there "
-        "is nothing for the web to offer against them.",
-    (frozenset(), frozenset({"0", "1", "2"})):
-        "Same count encoding, on a slot whose maximum is two.",
-    (frozenset(), frozenset({"no"})):
-        "A boolean answer written as a token. Same as the counts: an encoding, "
-        "not a judgement the other side could return.",
-    (frozenset({"mismatch"}), frozenset({"first", "neither", "second"})):
-        "The paper reports WHICH listed entry is referred to -- a `cover` "
-        "identity -- where the web reports whether it matched at all. Different "
-        "questions, the same deduction; the identity is what `cover` exists for.",
-    # RENAMED COUNTERPARTS. Each pair is one judgement with two names, which is
-    # exactly what `{fail}` renders per side, and is why a shared rule must never
-    # name either half literally.
-    (frozenset({"incomplete"}), frozenset({"not_described"})):
-        "Counterparts: the web's `incomplete` is the paper's `not_described`. 5 "
-        "slots, 1c's chart parts among them.",
-    (frozenset({"wrong_kind"}), frozenset({"not_antecedent"})):
-        "Counterparts on Q4a's antecedent_1/antecedent_2.",
-    (frozenset({"wrong_kind"}), frozenset({"not_consequence"})):
-        "Counterparts on Q4c's consequence_1/consequence_2.",
-    (frozenset({"wrong_kind"}), frozenset({"not_reason"})):
-        "Counterparts on Q5's example_1/example_2. The pair E11 migrated onto "
-        "`{fail}`, and the one whose web prompt named the paper's token for "
-        "months -- see BACKLOG.md:94.",
-    (frozenset({"generic"}), frozenset({"not_described"})):
-        "Counterparts: a generic label is the web's version of not describing it.",
-    (frozenset({"tick_values"}), frozenset({"not_described"})):
-        "Counterparts: missing tick values is the web's version of the same.",
-    (frozenset({"generic", "tick_values"}), frozenset({"not_described"})):
-        "Both web refinements collapse to the paper's single `not_described`.",
-}
+# MOVED TO THE RECORDS 2026-09-25. Which verdict-space asymmetries this
+# COURSE has declared is course data, and while the table lived here the
+# two rules that read it could be run from python and from nowhere else.
+# Its keys are tuples of FROZENSETS, which the records already carry via
+# `__frozenset__` -- the same tagging gold uses.
+VERDICT_SPACE_DIVERGENCES = _declaration("VERDICT_SPACE_DIVERGENCES")
 
 
 def check_verdict_spaces_are_declared() -> list[str]:
@@ -2732,29 +2564,22 @@ def check_verdict_spaces_are_declared() -> list[str]:
     A slot the web does not carry is skipped, not reported: paper-only checks are
     a different kind of difference and have their own declarations.
     """
-    problems = []
-    for item in all_items():
-        for c in item.get("credit", []) or []:
-            web = _web_slot_options(item["id"], c["what"])
-            if web is None:
-                continue
-            paper = set(c.get("verdicts") or []) | set(
-                (c.get("codes") or {}).keys()) | {"met", "absent"}
-            for grp in item.get("cover", []) or []:
-                if c["what"] in (grp.get("keys") or ()):
-                    paper |= set(grp.get("verdicts") or ())
-            if web == paper:
-                continue
-            shape = (frozenset(web - paper), frozenset(paper - web))
-            if shape in VERDICT_SPACE_DIVERGENCES:
-                continue
-            problems.append(
-                f"{item['id']}.{c['what']}: the two scorers' verdict spaces differ "
-                f"in a shape nothing declares -- olx-only {sorted(shape[0])}, "
-                f"paper-only {sorted(shape[1])}. Either make them match, or add "
-                f"the shape to VERDICT_SPACE_DIVERGENCES with the reason and "
-                f"whether it moves a score")
-    return problems
+    # THE RULE LIVES IN LO-BLOCKS NOW. Goal K: python fetches both spaces --
+    # the web's from the shipped SHEET, the paper side's from the rubric -- and
+    # `enforce/verdictSpaces.ts` compares them. Declared BY SHAPE, so one entry
+    # covers every slot that differs in exactly that way.
+    #
+    # PROVEN WITH A CONTROL: the live corpus is clean, so agreement there proves
+    # nothing. With the declarations stripped, both sides reported the SAME 44
+    # findings in the same order.
+    # SELF-ASSEMBLED. Subgoal E63: the runner builds this payload, and the
+    # assembler was proven to build what python built -- payload-identical, or
+    # order-only with the finding SET shown unchanged on data mutated until
+    # the rule fires. `runner.SELF_ASSEMBLING` is that cleared list.
+    import lo_enforce
+
+    return lo_enforce.run("verdict_spaces_are_declared", None)
+
 
 
 def _web_slot_options(item_id: str, key: str) -> set | None:
@@ -2765,12 +2590,12 @@ def _web_slot_options(item_id: str, key: str) -> set | None:
     a mismatch would flag every paper-only check.
     """
     import olx_prompts as O
-    handout, action = O.HANDOUT.get(item_id), O.ACTION.get(item_id)
-    if handout is None or action is None:
+    form, action = O.FORM.get(item_id), O.ACTION.get(item_id)
+    if form is None or action is None:
         return None
     try:
-        spec, defaults = O._slots_attr(handout, action)
-        choices = O._choices_attr(handout, action)
+        spec, defaults = O._slots_attr(form, action)
+        choices = O._choices_attr(form, action)
         slots = O.parse_slots(spec, defaults)
     except Exception:
         return None
@@ -2810,76 +2635,42 @@ def check_slot_rules_are_vocabulary_neutral() -> list[str]:
     Rules must therefore use the `{fail}` placeholder, which each generator
     fills with the verdict IT offers. This checks for the literal tokens.
     """
-    rubric_h1, rubric_h2, rubric_h3 = _rubric_views()
-    from slot_vocab import KNOWN_VERDICTS
+    # A rule naming a literal verdict instructs one side about a token it cannot
+    # emit.
+    # PYTHON KEEPS THE FETCH. The self-test injects by rewriting a credit
+    # entry's `rule` IN MEMORY -- it replaces `{fail}` with a literal verdict --
+    # and forks. A payload the runner rebuilds from the rubric FILE cannot see
+    # that: measured 2026-09-26, before=0 and after=0 on the case's own
+    # injection. `tools/injection_reach.py` is the standing guard for this.
+    #
+    # The assembler stays for callers inside lo-blocks; the runner reaches it
+    # only when the payload is null, which python no longer sends.
+    from forms import config
+    from slot_vocab import known_verdicts
 
-    # RESTORED 2026-08-30 to its original strictness, after being weakened
-    # twice on a false premise. slot_vocab.py is explicit: the web's extras
-    # come from EXTRA_VERDICTS in slotSheet.ts, the rubric's from the
-    # `verdicts` lists on credit components, "and a rule may legitimately
-    # mention NEITHER". The two vocabularies differ BY DESIGN -- `wrong_kind`
-    # is the web's token and `not_reason` the rubric's counterpart -- so a
-    # slot declaring one of them is not evidence that both sides offer it.
-    # Reading the rubric list as "what this slot offers" and then unioning it
-    # with the OLX spec made the check blind to exactly the case it exists
-    # for, and cost a cell on Q5 before the measurement caught it.
-    problems = []
-    for h, mod in ((1, rubric_h1), (2, rubric_h2), (3, rubric_h3)):
-        for item in mod.ITEMS:
-            for c in item.get("credit", []) or []:
-                rule = c.get("rule")
-                if not rule:
+    import lo_enforce
+
+    slots = []
+    for h in _forms():
+        for item in config(h)["rubric"].ITEMS:
+            for c in item.get("credit") or []:
+                if not c.get("rule"):
                     continue
-                # PER-SLOT, not against the global SHARED_EXTRAS intersection.
-                # A token is safe to name only if BOTH sides offer it ON THIS
-                # SLOT, and sharedness is a per-slot property that a corpus-wide
-                # intersection cannot express.
-                #
-                # `wrong_kind` is the proof. Q4b's behavior_1/behavior_2 declare
-                # it in the RUBRIC, so there it is shared and naming it is fine;
-                # on Q4a's antecedent_*, Q4c's consequence_* and Q5's example_*
-                # the web offers it and the paper does not. One token, shared on
-                # two slots and one-sided on six. Adding it to RUBRIC_EXTRAS to
-                # reflect Q4b -- the list IS incomplete without it -- would have
-                # exempted it globally and re-opened the hole on the other six.
-                #
-                # And the global form had already opened one. E27 fixed the
-                # `unclear` misclassification by deriving SHARED_EXTRAS, which is
-                # right for the 21 rubric slots that declare it and wrong for the
-                # SEVENTEEN where the web offers it and the paper does not --
-                # 2a.how_*, 2b.sentence_*, 3.example_* among them. A rule naming
-                # `unclear` on any of those passed. No rule did, so it was latent,
-                # and latent is how the Q4b instance started too.
-                offered_paper = set(c.get("verdicts") or []) | set(
-                    (c.get("codes") or {}).keys()) | {"met", "absent"}
-                for grp in item.get("cover", []) or []:
+                paper = (set(c.get("verdicts") or [])
+                         | set((c.get("codes") or {}).keys())
+                         | {"met", "absent"})
+                for grp in item.get("cover") or []:
                     if c["what"] in (grp.get("keys") or ()):
-                        offered_paper |= set(grp.get("verdicts") or ())
-                offered_web = _web_slot_options(item["id"], c["what"])
-                named = sorted({v for v in KNOWN_VERDICTS if f"`{v}`" in rule})
-                bad = sorted(v for v in named
-                             if v not in offered_paper
-                             or (offered_web is not None and v not in offered_web))
-                if bad:
-                    problems.append(
-                        f"H{h} {item['id']}.{c['what']}: `rule` names the verdict "
-                        f"{bad} literally, and this SLOT does not offer it on both "
-                        f"sides -- web {sorted(offered_web) if offered_web is not None else 'n/a'}, "
-                        f"paper {sorted(offered_paper)}. The rule is rendered into "
-                        f"both prompts, so one side gets an instruction about a "
-                        f"token it cannot emit. Use `{{fail}}`, which each generator "
-                        f"fills with its own verdict")
-                named = bad
-                # `{fail}` OR `{fail:sibling}`. Testing for the bare literal
-                # reported every rule that uses the qualified form as having lost
-                # its failing condition.
-                from olx_prompts import _FAIL_RE
-                if not _FAIL_RE.search(rule) and not named:
-                    # A rule that never says when to FAIL is not necessarily wrong,
-                    # but one that neither uses the placeholder nor names a token is
-                    # worth noticing — it may have lost its failing condition.
-                    pass
-    return problems
+                        paper |= set(grp.get("verdicts") or ())
+                web = _web_slot_options(item["id"], c["what"])
+                slots.append({
+                    "form": h, "item": item["id"], "what": c["what"],
+                    "rule": c["rule"],
+                    "offeredPaper": sorted(paper),
+                    "offeredWeb": None if web is None else sorted(web),
+                })
+    return lo_enforce.run("slot_rules_are_vocabulary_neutral",
+                          {"slots": slots, "known": list(known_verdicts())})
 
 
 def check_rule_fail_tokens_agree() -> list[str]:
@@ -2967,7 +2758,7 @@ def _corpus_cells() -> dict[tuple[str, int], str]:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             from agreement import fixture_for
-            import handouts as H
+            import forms as H
             for h in _forms():
                 for item in H.config(h)["rubric"].ITEMS:
                     for pid in range(1, 21):
@@ -2975,8 +2766,15 @@ def _corpus_cells() -> dict[tuple[str, int], str]:
                             fx = fixture_for(item["id"], pid)
                         except Exception:
                             continue
+                        # SORTED BY FIELD, so the join is reproducible. It
+                        # was dict order, which is the insertion order of
+                        # whatever built the fixture -- fine while one reader
+                        # existed, and a silent divergence the moment a second
+                        # reads the same cells from a record whose keys are
+                        # sorted. The joins are where grams cross a box
+                        # boundary, so the order decides which 6-grams exist.
                         out[(item["id"], pid)] = _norm(
-                            " ".join(str(v) for v in fx.values()))
+                            " ".join(str(fx[k]) for k in sorted(fx)))
     except Exception:
         _CORPUS_MEMO = {}
         return _CORPUS_MEMO            # corpus absent — nothing to check against
@@ -3019,7 +2817,10 @@ def _norm(s: str) -> str:
 # The point of declaring them is that a NEW leak fails immediately. The one that
 # prompted the check was written this session, into Q6's `affect_c*` rule, and
 # would have sat here unnoticed among the others.
-CORPUS_QUOTE_BACKLOG: set[tuple[str, int]] = set()  # noqa: C408
+# AUTHORED IN `declaration_source.py` and exported, so the engine can read it.
+# It was a bare `set()` here, which left a native caller nothing to consult.
+CORPUS_QUOTE_BACKLOG: set = {tuple(p) for p in
+                             _declaration_list("CORPUS_QUOTE_BACKLOG")}
 # (
     # Empty. All 21 entries were the same mistake, made 21 times: a rule
     # illustrated with a counted student's own words, so the prompt handed the
@@ -3085,16 +2886,24 @@ def check_rule_examples_are_not_corpus() -> list[str]:
     floor, not a guarantee — writing examples from a participant's answer is
     still the thing not to do.
     """
-    import collections
-    import handouts as H
+    # PORTED to `enforce/ruleExamplesNotCorpus.ts` (goal K).
+    #
+    # PYTHON KEEPS THE FETCH: `_corpus_cells` is a SEAM the self-test replaces
+    # to prove this still fires, and a payload rebuilt from the record would not
+    # see the substitution.
+    #
+    # IT READS THE RECORD NOW. The corpus comes from `derived/responses/`, so no
+    # submission is opened on either side; the prompt text comes from the rubric
+    # and the slot notes, both of which the engine already parses.
+    import forms as H
+    import lo_enforce
     import olx_prompts as O
 
-    corpus = _corpus_cells()
-    if not corpus:
-        return []                      # corpus absent; nothing to compare against
+    corpus: dict[str, dict[str, str]] = {}
+    for (iid, pid), body in _corpus_cells().items():
+        corpus.setdefault(iid, {})[str(pid)] = body
 
-    problems = []
-    seen_backlog: set[tuple[str, int]] = set()
+    items = []
     for h in _forms():
         for item in H.config(h)["rubric"].ITEMS:
             iid = item["id"]
@@ -3109,45 +2918,21 @@ def check_rule_examples_are_not_corpus() -> list[str]:
                 owner, _, slot = key.partition(":")
                 if not slot or owner == iid:
                     parts.append(note)
-            prompt = _grams(_norm(" ".join(parts)))
-            if not prompt:
-                continue
+            items.append({"h": h, "id": iid, "parts": parts,
+                          "question": str(item.get("question") or ""),
+                          "excluded": sorted(H.cell_exclusions(h, iid))})
 
-            per = {pid: _grams(body) for (i, pid), body in corpus.items() if i == iid}
-            shared = collections.Counter(g for gs in per.values() for g in gs)
-            # A student echoing the question back is not us quoting the student.
-            asked = _grams(_norm(str(item.get("question") or "")))
-            excluded = set(H.cell_exclusions(h, iid))
-            for pid, gs in sorted(per.items()):
-                if pid in excluded:
-                    continue
-                own = [g for g in (prompt & gs) if shared[g] == 1 and g not in asked]
-                if not own:
-                    continue
-                if (iid, pid) in CORPUS_QUOTE_BACKLOG:
-                    seen_backlog.add((iid, pid))
-                    continue
-                problems.append(
-                    f"H{h} {iid}: the prompt reproduces p{pid}'s own words "
-                    f"(\"...{' '.join(sorted(own)[0])}...\") and p{pid} is still "
-                    f"COUNTED on this item. Either invent the example, or "
-                    f"register p{pid} in handouts `cited_participants` and accept "
-                    f"the smaller denominator")
-
-    # A backlog entry that no longer fires has been fixed; leaving it listed
-    # would exempt a future leak on the same cell.
-    for stale in sorted(CORPUS_QUOTE_BACKLOG - seen_backlog):
-        problems.append(
-            f"CORPUS_QUOTE_BACKLOG lists {stale[0]}/p{stale[1]}, which no longer "
-            f"reproduces that participant. Remove it from the list")
-    return problems
+    return lo_enforce.run("rule_examples_are_not_corpus", {
+        "corpus": corpus, "items": items,
+        "backlog": sorted(f"{i}|{p}" for i, p in CORPUS_QUOTE_BACKLOG),
+    })
 
 
-def _attr(handout: int, item_id: str, attr: str) -> str:
+def _attr(form: int, item_id: str, attr: str) -> str:
     """One sheet attribute, or "" — the reader the slot guard needs."""
     import re
     import olx_prompts as O
-    m = re.search(r'\b%s="([^"]*)"' % attr, O._sheet_tag(handout, O.ACTION[item_id]))
+    m = re.search(r'\b%s="([^"]*)"' % attr, O._sheet_tag(form, O.ACTION[item_id]))
     return m.group(1) if m else ""
 
 
@@ -3219,7 +3004,8 @@ def check_criteria_prose_has_one_source() -> list[str]:
     compares a thing with itself passes forever.
     """
     import ast, pathlib
-    src = pathlib.Path(__file__).with_name("score.py").read_text()
+    # By import; see `_harness_source`. This was `with_name("score.py")`.
+    src = _harness_source("score.py")
     try:
         tree = ast.parse(src)
     except SyntaxError as exc:
@@ -3348,66 +3134,10 @@ def check_web_scorer_exercises_its_sheet() -> list[str]:
 # POLARITY_GATE_ITEMS branch here, so declaring a forbid rule on a new item made
 # the CLI ASK the model a question the web computed -- and the only reason it
 # surfaced is that the prompt-text audit noticed the extra question.
-HANDCODED_ITEM_RULES: dict[tuple[str, str], str] = {
-    # ONE ENTRY, ADDED 2026-09-12 AFTER THE ALTERNATIVE WAS TRIED AND REVERTED.
-    # The obvious fix is the one the seven cleared entries used: move the datum
-    # onto the rubric item and read it as CONTENT, the way `reads_utb_choice` is
-    # read. It was implemented -- `rubric_h1.PAPER_NOTES` attaching a
-    # `paper_note` key -- and then reverted, because it trades a guarantee for a
-    # convention.
-    #
-    # WHY THIS ONE STAYS IN score.py. `PAPER_ITEM_NOTES` is paper-only BY
-    # CONSTRUCTION: no other engine imports this module, so the web cannot read
-    # it whatever anyone does later. In the shared rubric it would be paper-only
-    # only for as long as nothing looks for the key -- and the standing
-    # instruction for this split was that a paper note be paper-only
-    # NECESSARILY, not by naming convention. Measured during the attempt: the
-    # generated .olx did not carry the text and `prompt_sha(Q3,'olx')` did not
-    # move, so nothing leaked -- but "did not leak today" is the weaker property.
-    #
-    # AND THE ITEM-KEYING HERE IS CONTENT, NOT MECHANISM. The mechanism is
-    # uniform: every item is offered a paper-side note and the ones that declare
-    # text get it. What varies by item is which items declare text -- exactly
-    # one, Q3 -- and `PAPER_ITEM_NOTES_WHY` records why it and not the other
-    # eight >=2-answer items (it keys on the student LABELLING their parts, and
-    # the label rate is Q3 19/20 against Q4b, Q6, Q5 and `3` at zero).
-    #
-    # WHAT WOULD CLEAR IT: a way for score.py to read a paper-only per-item
-    # declaration that the shared rubric cannot carry -- a paper-side companion
-    # to the rubric, rather than a key inside it. Until then this is a declared
-    # hand-coding, which is what this table is for.
-    ("build_prompt", "PAPER_ITEM_NOTES"):
-        "the paper-only per-item note; kept in score.py so it CANNOT reach the "
-        "web, after moving it to the rubric was tried and reverted on 2026-09-12",
-    # EMPTY, 2026-08-28. All seven went, and the last five were the ones this
-    # table called "schema shape, not scoring" -- true, and beside the point: the
-    # schema is what the model is ASKED, so a shape keyed by item id is a rule
-    # keyed by item id wearing a different hat.
-    #
-    # Each now follows the declaration that CONSUMES the answer, so the sheet
-    # cannot drift from the rule that reads it:
-    #   the three barrier readings  <- the slots this item's `forbid` names
-    #   states_a_contingency        <- an `oc_gates` key
-    #   aimed_correctly             <- an `oc_gates` key
-    #   agent_delivers_consequence  <- an `oc_gates` key
-    #   trigger_behavior            <- the slot this item's `expect` parses
-    #   stimulus_move               <- rubric_h2 `move_pick`
-    #   the underlined-UTB hint     <- rubric_h1 `reads_utb_choice`
-    # with answer vocabularies in rubric_h2.SLOT_OPTIONS, keyed by SLOT rather
-    # than by item, because the vocabulary belongs to the question.
-    #
-    # VERIFIED: all 26 built schemas identical before and after, including the
-    # ORDER of each `required` list, which is what a reordered insertion would
-    # have broken silently.
-    #
-    # `score_participant`/`only` was never a rule. It is `--only Q1 Q4b`, a
-    # user-supplied filter, and the check now excludes a comparison against
-    # runtime data rather than carrying an entry that misdescribes itself. A table
-    # about rules containing a non-rule teaches its readers to skim.
-    #
-    # Keep it empty. A new entry is a rule one scorer states as a declaration and
-    # the other reimplements, which is what this whole goal exists to remove.
-}
+# MOVED TO THE RECORDS 2026-09-25: this course's backlog, not the
+# engine's. While it lived here the ratchet rule could be run from
+# python and from nowhere else.
+HANDCODED_ITEM_RULES = _declaration("HANDCODED_ITEM_RULES")
 
 
 # How many hand-coded item rules are still declared. It may only go DOWN.
@@ -3425,7 +3155,7 @@ HANDCODED_ITEM_RULES: dict[tuple[str, str], str] = {
 # built, measured and reverted because it moved a paper-only string into the
 # shared rubric. Lower it the moment a paper-side per-item declaration exists
 # that the rubric does not have to carry.
-HANDCODED_BUDGET = 1
+HANDCODED_BUDGET = _budget("HANDCODED_BUDGET")
 
 
 def check_handcoded_rules_are_being_cleared() -> list[str]:
@@ -3805,48 +3535,44 @@ def check_action_attributes_are_declared_in_the_block() -> list[str]:
     re-dump and is invisible to a prompt-text freshness check -- which is why the
     STALE IDMAP guard reported those items as fine.
     """
+    # PORTED to `enforce/actionAttributesDeclared.ts` (goal K).
+    #
+    # THE READER MOVED TO THE RIGHT SIDE, as it did for
+    # `check_fails_verdict_is_mirrored_in_the_app`: python was crossing the
+    # repository boundary to grep an ENGINE file for an ENGINE schema. The block
+    # belongs to lo-blocks and so does the check on it.
+    #
+    # PYTHON STILL PASSES BOTH HALVES IT READS -- the schema source and the
+    # attributes the handouts author -- so this path answers about the tree this
+    # process can see rather than whichever one the runner resolves.
     import re as _re
 
+    import lo_enforce
     import paths as _p
-    lo = _p.LO
-    block = lo / "packages/shared/components/blocks/action/LLMAction.ts"
+
+    block = _p.LO / "packages/shared/components/blocks/action/LLMAction.ts"
     try:
         src = block.read_text()
     except OSError:
         return []                      # lo-blocks absent on this machine
 
-    m = _re.search(r"attributes:\s*z\.object\(\{(.*?)\}\)\.strict\(\)", src, _re.S)
-    if not m:
-        return [f"{block.name}: cannot find the `attributes: z.object({{...}}).strict()` "
-                f"block, so undeclared attributes cannot be detected"]
-    declared = set(_re.findall(r"^\s{4}(\w+):", m.group(1), _re.M))
-    declared.add("id")
-    declared.add("target")
-
-    used: dict[str, set] = {}
-    for f in sorted(_p7.OLX_DIR.glob(_p7.handout_olx_glob())):
+    used: dict[str, list] = {}
+    for f in _p7.handout_olx_paths():
         try:
             txt = f.read_text()
         except OSError:
             continue
         for tag in _re.findall(r"<LLMAction\b[^>]*>", txt, _re.S):
             tid = _re.search(r'(?:^|\s)id="([^"]+)"', tag)
+            site = tid.group(1) if tid else f.name
             for a in _re.findall(r'(?:^|\s)(\w+)="', tag):
-                used.setdefault(a, set()).add(tid.group(1) if tid else f.name)
+                at = used.setdefault(a, [])
+                if site not in at:
+                    at.append(site)
 
-    problems = []
-    for attr in sorted(used):
-        if attr in declared:
-            continue
-        where = ", ".join(sorted(used[attr])[:4])
-        problems.append(
-            f'<LLMAction {attr}="..."> is authored on {len(used[attr])} action(s) '
-            f"({where}) but is NOT declared in LLMAction.ts's attributes schema, "
-            f"which is .strict(). Every one of those blocks becomes an ErrorNode "
-            f"at parse time: the button renders, the click does nothing, and the "
-            f"cell times out as `no-cell` with no error anywhere. Declare it")
-    return problems
-
+    return lo_enforce.run("action_attributes_are_declared_in_the_block",
+                          {"blockName": block.name, "blockSrc": src,
+                           "used": {k: sorted(v) for k, v in used.items()}})
 
 def check_olx_attributes_are_read() -> list[str]:
     """Is every attribute authored on an <LLMAction> actually PARSED?
@@ -3877,7 +3603,7 @@ def check_olx_attributes_are_read() -> list[str]:
     """
     import re
     import agreement as A
-    import handouts as H
+    import forms as H
 
     # Structural, or consumed by a path other than the attribute parser.
     KNOWN = {
@@ -4161,31 +3887,41 @@ def check_rubric_items_are_unique() -> list[str]:
     flags separately. Without a rule that tells a real shortfall from those, the
     invariant reports two standing findings and teaches people to ignore it.
     """
-    import collections
-    import handouts as H
+    # PORTED TO LO-BLOCKS (goal K, step 8). Python keeps the FETCH -- it knows
+    # which forms this course declares and how to reach each rubric view -- and
+    # the JUDGEMENT is `enforce/rubricItemsUnique.ts`. The invariants assume
+    # nothing about any course: a list of items must not carry the same id
+    # twice, and an index over it must reach every one.
+    # SELF-ASSEMBLED. Subgoal E63: the runner builds this payload itself,
+    # from the same course records python would have read. The assembler was
+    # compared against the payload python used to send and found IDENTICAL
+    # before this fetch was deleted; `runner.SELF_ASSEMBLING` names the rules
+    # that comparison has cleared, and the runner refuses any other.
+    # PYTHON KEEPS THE FETCH, and it must. E63 made this self-assembling --
+    # measured payload-identical, and still wrong, because the self-test injects
+    # by APPENDING A DUPLICATE ITEM TO THE IN-MEMORY `ITEMS` list and forking.
+    # A payload the runner rebuilds from the rubric FILE cannot see that, so the
+    # case went silent and the audit reported clean either way. Measured
+    # 2026-09-26: before=0, after=0, against a rule that fires correctly when a
+    # duplicated id is placed in its payload by hand.
+    #
+    # The assembler stays for callers inside lo-blocks, which have no python to
+    # ask; the runner reaches it only when the payload is null, and python no
+    # longer sends null.
+    import lo_enforce
 
-    problems = []
+    by_form: dict = {}
     for h in _forms():
-        mod = H.config(h)["rubric"]
-        ids = [it["id"] for it in mod.ITEMS]
-        for iid, n in sorted(collections.Counter(ids).items()):
-            if n > 1:
-                problems.append(
-                    f"H{h}: rubric ITEMS has {n} entries with id {iid!r}. BY_ID "
-                    f"resolves to one of them and every audit here reads through "
-                    f"BY_ID, so the others are invisible")
-        if len(getattr(mod, "BY_ID", {})) != len(set(ids)):
-            problems.append(
-                f"H{h}: BY_ID has {len(mod.BY_ID)} entries for {len(set(ids))} "
-                f"distinct item ids")
-
-        for it in mod.ITEMS:
-            slots = [c["what"] for c in it.get("credit", []) or []]
-            for what, n in sorted(collections.Counter(slots).items()):
-                if n > 1:
-                    problems.append(
-                        f"H{h} {it['id']}: credit lists {what!r} {n} times")
-    return problems
+        for it in config(h)["rubric"].ITEMS:
+            by_form.setdefault(h, []).append(
+                {"id": it["id"],
+                 "slots": [c["what"] for c in it.get("credit") or []]})
+    return lo_enforce.run("rubric_items_are_unique", {"forms": [
+        {"form": form,
+         "ids": [i["id"] for i in items],
+         "byIdCount": len({i["id"] for i in items}),
+         "credit": items}
+        for form, items in sorted(by_form.items(), key=lambda kv: str(kv[0]))]})
 
 
 # Cells where a fixture box is empty AND the response still has unassigned text,
@@ -4236,7 +3972,7 @@ def check_single_box_fixtures_are_verbatim() -> list[str]:
     MULTI_BLOCK_DECLARED says the split is intended.
     """
     import warnings
-    import handouts as H
+    import forms as H
     import segment as SEG
 
     MOJIBAKE = ("\u00e2\u0080\u0099", "\u00e2\u0080\u009c", "\u00e2\u0080\u009d",
@@ -4333,7 +4069,7 @@ _CONSENSUS_SOURCE: str | None = None
 #
 # The budget ratchets DOWN and never up: a new reference in an .olx is a
 # finding, not a precedent.
-OLX_CORPUS_REF_BUDGET = 0
+OLX_CORPUS_REF_BUDGET = _budget("OLX_CORPUS_REF_BUDGET")
 
 
 def check_olx_corpus_references() -> list[str]:
@@ -4355,32 +4091,11 @@ def check_olx_corpus_references() -> list[str]:
     Reported per reference, with its cell named, so the readout says which
     student's words are still load-bearing rather than only how many.
     """
-    import re as _re
+    # A reference leaves the page dependent on the corpus to render; the budget
+    # ratchets down.
+    import lo_enforce
 
-    import olx_prompts as _O
-    out = []
-    for h in _forms():
-        try:
-            src = _O._src(h)
-        except Exception as exc:                       # pragma: no cover
-            out.append(f"handout {h}: cannot read the .olx ({exc})")
-            continue
-        for m in _re.finditer(r"\{\{corpus:([A-Za-z0-9]+)/p(\d+):([A-Za-z0-9_]+):"
-                              r"(\d+):(\d+)(?::sha=[0-9a-f]+)?\}\}", src):
-            out.append(f"handout {h} still quotes {m.group(1)}/p{m.group(2)} "
-                       f"{m.group(3)} through a corpus reference: the page cannot "
-                       f"render without $COURSE_DATA, and a student's sentence is "
-                       f"still the worked example. Replace it with an invented "
-                       f"one and the reference goes away")
-    if len(out) > OLX_CORPUS_REF_BUDGET:
-        out.append(f"OLX corpus references: {len(out)} against a budget of "
-                   f"{OLX_CORPUS_REF_BUDGET}. The budget ratchets DOWN -- lower it "
-                   f"when one is retired, never raise it to fit a new one")
-    elif len(out) < OLX_CORPUS_REF_BUDGET:
-        out.append(f"OLX corpus references: {len(out)}, BELOW the budget of "
-                   f"{OLX_CORPUS_REF_BUDGET} -- lower OLX_CORPUS_REF_BUDGET to "
-                   f"{len(out)} so the ground gained is held")
-    return out
+    return lo_enforce.run("olx_corpus_references", None)
 
 
 def check_consensus_fixes_have_no_duplicate_cells() -> list[str]:
@@ -4398,48 +4113,41 @@ def check_consensus_fixes_have_no_duplicate_cells() -> list[str]:
     did nothing, and the boxes it was meant to fill read as empty — which looked
     exactly like the repair having been considered and correctly skipped.
     """
-    # RE-POINTED 2026-09-15 TO CONSENSUS_SPANS.json. The corrections moved out of
-    # the dict literal when their 102 values -- student sentences, the largest
-    # store of response text in the repo -- were replaced by spans resolved from
-    # the corpus. The HAZARD DID NOT MOVE WITH THEM: `json.load` resolves a
-    # repeated key exactly as Python does, keeping the last and discarding the
-    # earlier one with no error, so the same silent loss is available in the new
-    # file and the same check is still the only thing that can see it. Reading
-    # the loaded object can never find it; only the raw text can.
-    import json
+    # THE RULE LIVES IN LO-BLOCKS NOW. Goal K: python locates and reads the file
+    # -- `_CONSENSUS_SOURCE` STAYS, because it is the selftest's injection point
+    # -- and `enforce/consensusDuplicates.ts` compares the RAW TEXT against the
+    # parsed object. Reading the loaded object can never find a duplicate: the
+    # parser has already discarded one of them.
+    #
+    # THE PARSE-ERROR ARM STAYS HERE, DELIBERATELY. Its message embeds the
+    # PARSER'S own words, and python's differ from V8's. A ported check whose
+    # finding text differs is indistinguishable, in a baseline diff, from a new
+    # fault, so python parses first and the rule is only asked about text that
+    # already parsed. Found by a control that accidentally produced invalid JSON.
+    # SELF-ASSEMBLED. Subgoal E63: the runner builds this payload itself,
+    # from the same course records python would have read. The assembler was
+    # compared against the payload python used to send and found IDENTICAL
+    # before this fetch was deleted; `runner.SELF_ASSEMBLING` names the rules
+    # that comparison has cleared, and the runner refuses any other.
+    import lo_enforce
+
+    # PYTHON KEEPS THE FETCH. Self-assembly reads this from DISK; the
+    # self-test injects into the IN-MEMORY table and forks, so a rebuilt
+    # payload cannot see it and the case goes silent. Measured 2026-09-26.
     import os
-    import re as _re
 
-    import paths
+    import lo_enforce
+    import paths as _p_cs
 
-    # `_CONSENSUS_SOURCE` STAYS: it is the selftest's injection point, and
-    # dropping it while repointing the default would have removed a fire test
-    # rather than a path.
-    src = _CONSENSUS_SOURCE or str(paths.COURSE_FIXTURE_DATA / "CONSENSUS_SPANS.json")
+    src = _CONSENSUS_SOURCE or os.path.join(
+        str(_p_cs.roots().fixture_data), "CONSENSUS_SPANS.json")
     try:
-        raw = open(src).read()
-    except Exception as exc:                    # pragma: no cover
-        return [f"cannot read {os.path.basename(src)}: {exc}"]
-    try:
-        loaded = json.loads(raw)
-    except Exception as exc:
-        return [f"{os.path.basename(src)} is not valid JSON: {exc}"]
+        raw = open(src, encoding="utf-8").read()
+    except OSError:
+        return []                    # an absent fixture is another check's finding
+    return lo_enforce.run("consensus_fixes_have_no_duplicate_cells",
+                          {"raw": raw, "name": os.path.basename(src)})
 
-    # Count the keys as WRITTEN, then compare with what survived the load. A
-    # difference is a duplicate, whatever its spelling or ordering.
-    written = _re.findall(r'^\s*"([^"]+)"\s*:', raw, _re.M)
-    seen, dupes = set(), []
-    for key in written:
-        if key in seen:
-            dupes.append(f"CONSENSUS_SPANS has TWO entries for {key!r}. JSON "
-                         f"keeps only the last, so the other one is silently "
-                         f"doing nothing — merge them into one entry")
-        seen.add(key)
-    if not dupes and len(written) != len(loaded):
-        dupes.append(f"CONSENSUS_SPANS has {len(written)} written key(s) but "
-                     f"{len(loaded)} after loading — a duplicate is being "
-                     f"discarded and this check could not name it")
-    return dupes
 
 
 # Whether each registered citation was MEASURED to be load-bearing. Keyed
@@ -4479,11 +4187,11 @@ def check_citation_necessity_is_recorded() -> list[str]:
     are removed, not recorded — so the table holds only `necessary` and `untested`,
     and `untested` is a backlog item with a name on it rather than a silence.
     """
-    from handouts import HANDOUTS
+    from forms import FORMS
 
     problems = []
     for h in _forms():
-        registry = (HANDOUTS[h].get("cited_participants") or {})
+        registry = (FORMS[h].get("cited_participants") or {})
         for item, pids in sorted(registry.items()):
             for pid in sorted(pids):
                 state = CITATION_NECESSITY.get((item, pid))
@@ -4502,7 +4210,7 @@ def check_citation_necessity_is_recorded() -> list[str]:
                         f"registration, not recorded")
     for stale in sorted(CITATION_NECESSITY):
         item, pid = stale
-        if not any(pid in (HANDOUTS[h].get("cited_participants") or {}).get(item, [])
+        if not any(pid in (FORMS[h].get("cited_participants") or {}).get(item, [])
                    for h in _forms()):
             problems.append(
                 f"CITATION_NECESSITY lists {item}/p{pid}, which is no longer "
@@ -4618,19 +4326,19 @@ DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "enforcement.ABSOLUTE_PATH_EXCEPTIONS": (
         "absolute literals that are patterns, not locations",
         ("check_filesystem_locations_come_from_paths_py",)),
-    "handouts.PER_ITEM_EXCLUDE": (
+    "forms.PER_ITEM_EXCLUDE": (
         "cells dropped from every rate",
         ("check_exclusion_claims_are_data", "check_citations_match_exclusions",
          "check_declarations_still_have_evidence")),
-    "handouts.CORRECTED_GOLD": (
+    "forms.CORRECTED_GOLD": (
         "the target a cell is measured against",
         ("check_corrected_gold_matches_the_sheet",
          "check_no_declaration_cites_a_suspect_cell")),
-    "handouts.GOLD_DIVERGENCES": (
+    "forms.GOLD_DIVERGENCES": (
         "cells we knowingly disagree with gold about",
         ("check_declarations_still_have_evidence",
          "check_no_declaration_cites_a_suspect_cell")),
-    "handouts.GOLD_CEILINGS": (
+    "forms.GOLD_CEILINGS": (
         "why an item cannot reach 100%",
         ("check_declarations_still_have_evidence",)),
     "enforcement.UNCHARGED_VERDICTS": (
@@ -4682,6 +4390,22 @@ DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "enforcement.DATA_MODULES": (
         "modules that ARE authored course data, exempt from the engine ratchet",
         ("check_module_has_no_course_data",)),
+    # KEYED `enforcement.`, like every other `_declaration`-backed table
+    # (`COUNTABLE_EXEMPT`, `PROBE_UNREACHABLE_PAIRS`). The key names the module
+    # the check READS it from, not the one that authors it -- authoring lives in
+    # `declaration_source.py` for all of them.
+    "enforcement.CORPUS_QUOTE_BACKLOG": (
+        "cells whose prompt reproduces that participant's own words",
+        ("check_rule_examples_are_not_corpus",)),
+    "enforcement.OVERLAP_SIBLING_ROLES": (
+        "box roles that may legitimately hold the same clause",
+        ("check_consensus_spans_are_disjoint",)),
+    "enforcement.RECORD_DESTINATIONS": (
+        "where each record writer puts its output, and the class it must be in",
+        ("check_record_writers_target_the_right_place",)),
+    "enforcement.HAND_AUTHORED_SHEET_ATTRS": (
+        "sheet attributes no generator produces, and why each may be",
+        ("check_olx_attributes_are_all_generated",)),
     "enforcement.OLD_ENV_NAMES_ALLOWED": (
         "the one place the pre-Stage-9 environment names may still appear",
         ("check_no_old_environment_names",)),
@@ -4804,7 +4528,7 @@ DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
         "functions comparing our slot set against gold's without a vocabulary "
         "guard, on purpose",
         ("check_gold_comparisons_share_an_alphabet",)),
-    "enforcement.HANDOUT_KEYED_GOLD_READERS": (
+    "enforcement.FORM_KEYED_GOLD_READERS": (
         "modules that pick a gold loader by handout number instead of by item",
         ("check_gold_is_read_by_item",)),
     "enforcement.RAW_GOLD_READERS": (
@@ -4835,6 +4559,9 @@ DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "enforcement.COUNTABLE_EXEMPT": (
         "countable families deliberately not converted to `counts`",
         ("check_countable_families_converted",)),
+    "enforcement.GOLD_BOX_WORDS": (
+        "what the graders CALL each box, and what their wording must not say",
+        ("check_fixture_agrees_with_gold",)),
     "enforcement.MULTI_BLOCK_DECLARED": (
         "items whose response is split across blocks on purpose",
         ("check_single_box_fixtures_are_verbatim",)),
@@ -4958,56 +4685,10 @@ def check_prompt_deviation_tables_are_current() -> list[str]:
         resolve_guidance_omissions already enforces at generation time, so this
         is the same test asked before a sweep rather than during one.
     """
-    import olx_prompts as _OP
+    # Course data the engine can read for itself.
+    import lo_enforce
 
-    problems = []
-    items = set(_OP.ACTION) | set(_OP.SHEET_ONLY)
-    for name in ("RESPONSE", "CONTEXT", "ITEM_NOTES", "OMIT_CREDIT",
-                 "OMIT_DEDUCTION", "OMIT_GUIDANCE"):
-        for key in sorted(getattr(_OP, name, {}) or {}):
-            # A LEADING UNDERSCORE is a shared fragment, not an item. CONTEXT
-            # keys `_utb` and `_wgb` are single fields several items pull in, and
-            # the generator reads them by that pseudo-key -- so requiring every
-            # key to be a live item reported two correct entries as stale. The
-            # table's shape, not a finding.
-            if key.startswith("_"):
-                continue
-            if key not in items:
-                problems.append(
-                    f"olx_prompts.{name} declares a deviation for {key!r}, which "
-                    f"is not a live item -- the item was renamed or dropped and "
-                    f"its deviation was not")
-
-    for item, omitted in sorted((getattr(_OP, "OMIT_GUIDANCE", {}) or {}).items()):
-        if item not in items:
-            continue
-        try:
-            rub = config(HANDOUT[item])["rubric"].BY_ID[item]
-            guidance = " ".join(rub.get("guidance") or [])
-        except Exception:
-            continue
-        for phrase in sorted(omitted):
-            if phrase not in guidance:
-                problems.append(
-                    f"olx_prompts.OMIT_GUIDANCE[{item!r}] omits "
-                    f"\"{phrase[:48]}\", which is no longer in that item's "
-                    f"guidance. The omission outlived the line it omits")
-
-    for name, field in (("OMIT_CREDIT", "credit"), ("OMIT_DEDUCTION", "deductions")):
-        for item, dropped in sorted((getattr(_OP, name, {}) or {}).items()):
-            if item not in items:
-                continue
-            try:
-                rub = config(HANDOUT[item])["rubric"].BY_ID[item]
-            except Exception:
-                continue
-            have = {c.get("what") or c.get("code") for c in (rub.get(field) or [])}
-            for key in sorted(dropped):
-                if key not in have:
-                    problems.append(
-                        f"olx_prompts.{name}[{item!r}] omits {key!r}, which the "
-                        f"rubric no longer has -- the omission outlived its target")
-    return problems
+    return lo_enforce.run("prompt_deviation_tables_are_current", None)
 
 
 def check_every_declaration_table_has_a_verifier() -> list[str]:
@@ -5029,7 +4710,7 @@ def check_every_declaration_table_has_a_verifier() -> list[str]:
     Named checks must EXIST. A table pointing at a function that has been renamed
     or deleted is the same hole with a comment over it.
     """
-    import handouts as _H
+    import forms as _H
     import importlib
     import measured as _MEAS
     import olx_prompts as _OP
@@ -5038,7 +4719,7 @@ def check_every_declaration_table_has_a_verifier() -> list[str]:
     # resolved and the registry reported it as a table nobody has -- which is
     # indistinguishable from the failure this check exists to catch. Found by
     # registering GOLD_SLOT_CHARGES and being told it did not exist.
-    mods = {"handouts": _H, "olx_prompts": _OP, "measured": _MEAS,
+    mods = {"forms": _H, "olx_prompts": _OP, "measured": _MEAS,
             "enforcement": sys.modules[__name__]}
     problems = []
     for path, (what, verifiers) in sorted(DECLARATION_TABLES.items()):
@@ -5064,7 +4745,7 @@ def check_every_declaration_table_has_a_verifier() -> list[str]:
 
     # And the other direction: a declaration table that nobody registered.
     # `measured` TOO. This scanned only this module, so a declaration table added
-    # to measured.py, handouts.py or olx_prompts.py was never reported as
+    # to measured.py, forms.py or olx_prompts.py was never reported as
     # unregistered -- and that is not hypothetical: four tables were added to
     # measured.py on 2026-08-31 and the audit asked for none of them. Three were
     # registered by hand and the fourth was forgotten, with nothing complaining.
@@ -5074,7 +4755,7 @@ def check_every_declaration_table_has_a_verifier() -> list[str]:
     # declarations already -- CORRECTED_GOLD, GOLD_DIVERGENCES, PER_ITEM_EXCLUDE,
     # SCORING_DIVERGENCES -- so they were exactly the files most likely to gain
     # an unregistered one.
-    for mod_name in ("enforcement", "measured", "handouts", "olx_prompts"):
+    for mod_name in ("enforcement", "measured", "forms", "olx_prompts"):
         mod = (sys.modules[__name__] if mod_name == _SELF_MODULE
                else importlib.import_module(mod_name))
         for attr in dir(mod):
@@ -5134,16 +4815,16 @@ _NOT_DECLARATIONS: dict[str, str] = {
     "enforcement.DECLARATION_TABLES": "the registry itself, not a declaration in "
                                       "it",
     # handouts / olx_prompts / rubric: structural data.
-    "handouts.MATERIALS": "where the submission files are",
-    "handouts.HANDOUTS": "the handout numbers",
-    "handouts.H1_MARKERS": "the section markers that split a .docx into items. "
+    "forms.MATERIALS": "where the submission files are",
+    "forms.FORMS": "the form numbers",
+    "forms.H1_MARKERS": "the section markers that split a .docx into items. "
                            "Parsing configuration -- a marker that stops matching "
                            "breaks the FIXTURE, which the fixture checks own",
-    "handouts.H2_MARKERS": "as H1_MARKERS",
-    "handouts.H3_MARKERS": "as H1_MARKERS, and regexes rather than literals",
+    "forms.H2_MARKERS": "as H1_MARKERS",
+    "forms.H3_MARKERS": "as H1_MARKERS, and regexes rather than literals",
     "olx_prompts.ACTION": "item id -> LLMAction id; a lookup",
     "olx_prompts.SHEET_ONLY": "items whose grader is a sheet with no action",
-    "olx_prompts.HANDOUT": "item id -> handout number",
+    "olx_prompts.FORM": "item id -> form number",
     "olx_prompts.SUBS": "text substitutions applied to generated prose",
     "olx_prompts.TOTAL": "the points wording",
     "olx_prompts.MAPS": "parsed `maps` rules; derived from the OLX, not authored",
@@ -5210,9 +4891,7 @@ def check_divergence_arithmetic_is_still_true() -> list[str]:
     rubric_h1, rubric_h2, rubric_h3 = _rubric_views()
 
     RB = {1: rubric_h1, 2: rubric_h2, 3: rubric_h3}
-    olx = {f.name: f.read_text() for f in
-           _p7.OLX_DIR
-           .glob(_p7.handout_olx_glob())}
+    olx = {f.name: f.read_text() for f in _p7.handout_olx_paths()}
 
     def _maxes(item):
         J = _A.JOBS.get(item) or {}
@@ -5302,7 +4981,7 @@ def check_prose_numbers_match_the_ledger() -> list[str]:
     """A score written into the repo's prose that the ledger contradicts.
 
     A measurement travels as a sentence — in a guide, a backlog entry, a note in
-    handouts.py — and the sentence outlives the configuration it was computed
+    forms.py — and the sentence outlives the configuration it was computed
     over. Q4c and Q5 were described in writing as perfect items while they stood
     at 12/14 and 14/15, because their denominators had grown underneath the
     prose. Nothing about a stale sentence looks stale.
@@ -5420,33 +5099,14 @@ def check_recorded_sides_are_readable() -> list[str]:
     # pointer and goal O's `folded_from` -- and a second resolver in TypeScript
     # is the divergence this project exists to close. TS reads the file through
     # `courseData`, which refuses a path outside $COURSE_DATA.
-    import os
-
+    # SELF-ASSEMBLED. Subgoal E63: the runner builds this payload itself,
+    # from the same course records python would have read. The assembler was
+    # compared against the payload python used to send and found IDENTICAL
+    # before this fetch was deleted; `runner.SELF_ASSEMBLING` names the rules
+    # that comparison has cleared, and the runner refuses any other.
     import lo_enforce
-    import measured as M
-    import paths as _pth
 
-    root = str(_pth.OUT.parent)
-    sides = []
-    for item, rec in sorted((M.load().get("items") or {}).items()):
-        for side in M.SIDES:
-            e = (rec or {}).get(side)
-            if not e or e.get("pending") or e.get("numerator") is None:
-                continue
-            p = os.path.join(str(_pth.OUT), str(e.get("out")), f"{item}.runs.json")
-            sides.append({"item": item, "side": side,
-                          "numerator": e.get("numerator"),
-                          "denominator": e.get("denominator"),
-                          "out": str(e.get("out")),
-                          "path": os.path.relpath(p, root)})
-    if not sides:
-        # NOT SILENCE. No recorded column means nothing was examined.
-        return ["no recorded column could be read from the ledger, so none was "
-                "checked for having a findable artifact"]
-    # NAMED, because roots are resolved PER COURSE now: one global
-    # $COURSE_DATA cannot mean two courses at once.
-    return lo_enforce.run("recorded_sides_are_readable",
-                          {"sides": sides, "ns": _pth.NS})
+    return lo_enforce.run("recorded_sides_are_readable", None)
 
 
 
@@ -5591,7 +5251,7 @@ ITEM_GATED_MECHANISMS: dict[tuple[str, str], str] = {
     #       gate. Q6 is the known risk and is being measured, not designed
     #       around.
 }
-ITEM_GATED_BUDGET = 0
+ITEM_GATED_BUDGET = _budget("ITEM_GATED_BUDGET")
 
 _ENGINE_MODULES = ("score", "agreement", "agreement_app", "olx_prompts")
 
@@ -5635,7 +5295,7 @@ def check_paper_prompt_has_no_box_deixis() -> list[str]:
     """
     import re as _re
 
-    import handouts as _H
+    import forms as _H
     import score as _SC
     from olx_prompts import RESPONSE
 
@@ -5691,20 +5351,24 @@ def check_prompts_carry_no_process_history() -> list[str]:
     corpus-wide rewrite needing its own measurement, and burying one real
     accident under 174 deliberate uses is how a check gets ignored.
     """
-    import leakage as _L
+    # THE RULE LIVES IN LO-BLOCKS NOW. Goal K: python fetches the authored
+    # prose -- `leakage.authored` is exactly what a grader sees -- and reports;
+    # `enforce/processHistory.ts` decides what counts as process language. The
+    # patterns are ENGINE vocabulary (our dates, our sweeps, our filenames), so
+    # they are generic for any course maintained the way this one is.
+    #
+    # PROVEN AGAINST THIS CORPUS, not merely unit-tested: python and TypeScript
+    # returned byte-identical findings in identical order, and because the live
+    # corpus is clean that agreement was re-run on a SPIKED corpus carrying the
+    # sentence 2a actually shipped -- 5 findings, identical on both sides. An
+    # agreement that cannot fail is not evidence.
+    # SELF-ASSEMBLED. Subgoal E63: the runner builds this payload, and the
+    # assembler was proven to build what python built -- payload-identical, or
+    # order-only with the finding SET shown unchanged on data mutated until
+    # the rule fires. `runner.SELF_ASSEMBLING` is that cleared list.
+    import lo_enforce
 
-    items = tuple(it["id"] for it in all_items())
-    seen, out = set(), []
-    for f in _L.process_findings(items):
-        item = str(f["block"]).split()[0]
-        key = (item, f["kind"], f["phrase"].lower())
-        if key in seen:
-            continue
-        seen.add(key)
-        out.append(f"{item}: shipped prose carries {f['kind']} -- "
-                   f"{f['phrase']!r} in \u2026{f['context'][:110]}\u2026. The grader "
-                   f"cannot act on this; move it to a comment beside the rule")
-    return out
+    return lo_enforce.run("prompts_carry_no_process_history", None)
 
 
 def check_side_notes_are_side_specific() -> list[str]:
@@ -5847,42 +5511,17 @@ def check_side_notes_are_side_specific() -> list[str]:
 # non-example is now invented, the reference is gone, and the `corpus_data:`
 # frontmatter went with it -- so the page renders without the corpus again.
 # A park that outlives its finding is a declaration nobody reviewed.
-PARKED_UNDECLARED: dict[tuple[str, str], str] = {
-    # D2d's exemption was REMOVED on 2026-09-19, not merely expired. Its two
-    # conditions -- the concurrency guard and the self-test's restore defect --
-    # closed on 2026-09-18, the expiry check reported it for a day, and then it
-    # went. The embeddings it excused did not go with it: `equivalence.py` rose
-    # from 0 to 27 and the ratchet refuses to baseline a rise, which is the
-    # finding this park now covers.
-    #
-    # THE PARK IS THE SAME SIZE AS THE EXEMPTION WAS, and that is the point. The
-    # course data in `enforcement_selftest` has not changed; what changed is that
-    # it is counted, printed, and attached to the work that removes it instead of
-    # being subtracted before anyone looked. A park states the number and names
-    # its fix; an exemption states neither.
-    #
-    # Parked, not declared, and the difference matters: this is not "the 27
-    # course-bound fixtures in `enforcement_selftest` are right", it is "they are
-    # wrong and D2a is the scheduled work that fixes them". The finding stays
-    # computed and printed with this reason attached.
-    #
-    # D2a: each fixture selects its target BY SHAPE -- the first item with
-    # `counts`, the first `dealt` job -- and REPORTS the target it chose, so the
-    # coverage drift D2a is otherwise vulnerable to appears in the run's own
-    # output. This park goes when D2a lands; `check_parked_entries_still_apply`
-    # reports it if the finding disappears first.
-    ("-", "MIGRATED MODULE HOLDS COURSE DATA"):
-        "D2d's exemption was removed 2026-09-19; its 27 embeddings in "
-        "`equivalence.py::enforcement_selftest` are now counted rather than "
-        "excused, and D2a (shape-selected fixtures, each reporting its chosen "
-        "target) is owed and scheduled. The park goes when D2a lands.",
-}
+# MOVED TO THE RECORDS 2026-09-25. Parked findings are this COURSE's, and
+# while the table lived here the rule could be run from python and from
+# nowhere else -- a native caller could read the budget but not the entries
+# it bounds. Its reasons travel with it, as the `why` of each entry.
+PARKED_UNDECLARED = _declaration("PARKED_UNDECLARED")
 
 # Ratcheted like every other table here. A park is cheap to add and easy to
 # forget, which is the failure mode: a parking lot nobody empties becomes a
 # second declaration table with none of the review. Raise this only with the
 # entry, and lower it when one is retired.
-PARKED_BUDGET = 1
+PARKED_BUDGET = _budget("PARKED_BUDGET")
 
 
 # How far a side's own verdicts may fail to reproduce its own score before the
@@ -5925,13 +5564,13 @@ def check_parked_entries_still_apply() -> list[str]:
     # THE RULE LIVES IN LO-BLOCKS NOW. Goal K. The parking lot is course data;
     # "an override needs a budget raised deliberately and a reason that says
     # what would unpark it" is generic.
+    # SELF-ASSEMBLED. Subgoal E63: the runner builds this payload, and the
+    # assembler was proven to build what python built -- payload-identical, or
+    # order-only with the finding SET shown unchanged on data mutated until
+    # the rule fires. `runner.SELF_ASSEMBLING` is that cleared list.
     import lo_enforce
 
-    entries = [{"key": list(k) if isinstance(k, tuple) else [k],
-                "keyRepr": repr(k), "why": str(why or "")}
-               for k, why in sorted(PARKED_UNDECLARED.items(), key=lambda kv: repr(kv[0]))]
-    return lo_enforce.run("parked_entries_still_apply",
-                          {"entries": entries, "budget": PARKED_BUDGET})
+    return lo_enforce.run("parked_entries_still_apply", None)
 
 
 
@@ -6097,29 +5736,28 @@ def check_probe_unreachable_pairs_still_apply() -> list[str]:
       * THE WEB STOPS DECLARING IT. Then there is no pair to be unreachable, and
         the entry is describing a rule that no longer exists.
     """
-    out = []
+    # THE RULE LIVES IN LO-BLOCKS NOW. Goal K: python reads the CLI probe's
+    # signatures, `enforce/probeUnreachable.ts` decides whether each declared
+    # pair is still out of reach. A declaration that has COME TRUE is reported,
+    # because from that moment it suppresses a real answer rather than a gap.
+    #
+    # PROVEN WITH A CONTROL: a pair declared unreachable that the probe does
+    # reach produced the same single finding on both sides.
+    import lo_enforce
+
     try:
         cli = cli_signatures()          # defined here, not in equivalence
     except Exception as e:
         return [f"cannot read the CLI probe ({type(e).__name__}: {e}) -- these "
                 f"declarations cannot be re-tested, which is not the same as "
                 f"their being sound"]
-    for (item, pair), why in sorted(PROBE_UNREACHABLE_PAIRS.items(),
-                                    key=lambda kv: (kv[0][0], sorted(kv[0][1]))):
-        c = cli.get(item)
-        if c is None:
-            out.append(f"{item}: declared a probe-unreachable pair "
-                       f"({', '.join(sorted(pair))}) but the probe has no signature "
-                       f"for the item at all -- the declaration cannot be re-tested")
-            continue
-        reached = {frozenset((a, b)) for a, b in c.get("charge_once", ())}
-        names = {frozenset(pair)}
-        if any(p & pair == pair for p in reached) or pair in names & reached:
-            out.append(f"{item}: ({', '.join(sorted(pair))}) is declared UNREACHABLE "
-                       f"by the CLI probe, but the probe now finds it. The gap has "
-                       f"closed -- delete the entry rather than leave it suppressing "
-                       f"a finding that would no longer fire")
-    return out
+    return lo_enforce.run("probe_unreachable_pairs_still_apply", {
+        "signatures": {it: {"charge_once": [list(x) for x in (c.get("charge_once") or ())]}
+                       for it, c in cli.items()},
+        "declarations": [{"item": it, "pair": sorted(pair)}
+                         for (it, pair) in PROBE_UNREACHABLE_PAIRS],
+    })
+
 
 
 def check_every_item_has_a_findable_slot_sheet() -> list[str]:
@@ -6146,27 +5784,14 @@ def check_every_item_has_a_findable_slot_sheet() -> list[str]:
     # THE RULE LIVES IN LO-BLOCKS NOW. Goal K. Python supplies the item-to-
     # element map and the handout text; `enforce/sheetDiscovery.ts` looks for
     # each id. An empty corpus is a REFUSAL there, not a pass.
+    # SELF-ASSEMBLED. Subgoal E63: the runner builds this payload itself,
+    # from the same course records python would have read. The assembler was
+    # compared against the payload python used to send and found IDENTICAL
+    # before this fetch was deleted; `runner.SELF_ASSEMBLING` names the rules
+    # that comparison has cleared, and the runner refuses any other.
     import lo_enforce
 
-    try:
-        import olx_prompts as _O
-    except Exception as e:
-        return [f"olx_prompts will not import ({type(e).__name__}), so no item's "
-                f"sheet can be located -- this check cannot run, which is not a pass"]
-    want = dict(_O.ACTION)
-    want.update(getattr(_O, "SHEET_ONLY", {}) or {})
-    if not want:
-        return ["no item-to-element mapping at all; ACTION and SHEET_ONLY are both "
-                "empty, so every sheet-reading check is looking at nothing"]
-    blob = ""
-    for h in _forms():
-        try:
-            blob += (_p7.OLX_DIR / _p7.handout_olx(h)).read_text()
-        except OSError:
-            continue
-    return lo_enforce.run("every_item_has_a_findable_slot_sheet", {
-        "sheets": [{"item": i, "elementId": e} for i, e in sorted(want.items())],
-        "olx": blob})
+    return lo_enforce.run("every_item_has_a_findable_slot_sheet", None)
 
 
 
@@ -6176,7 +5801,7 @@ def check_no_file_points_into_a_developers_notes() -> list[str]:
     A POINTER ONLY ONE PERSON CAN FOLLOW IS NOT A CITATION. Those notes live
     outside every checkout, under one developer's home directory, private to that
     machine and rewritten whenever they learn something. A comment in
-    `handouts.py` saying the evidence is "recorded in" one of them tells a second
+    `forms.py` saying the evidence is "recorded in" one of them tells a second
     reader that evidence exists and gives them no way to reach it, and tells a
     future reader nothing at all once the note is renamed.
 
@@ -6216,7 +5841,9 @@ def check_no_file_points_into_a_developers_notes() -> list[str]:
     ]
     exts = (".py", ".md", ".olx", ".json", ".ts", ".tsx", ".sh", ".txt", ".yaml", ".yml")
     out, scanned = [], 0
-    for f in sorted(root.rglob("*")):
+    # PRUNED: see `paths.repo_files`. An in-repository data store would
+    # otherwise be scanned as if it were source.
+    for f in _p7.repo_files(root=root):
         if not f.is_file() or f.suffix.lower() not in exts:
             continue
         if ".git" in f.parts or "node_modules" in f.parts:
@@ -6265,46 +5892,23 @@ def check_every_reference_has_the_data_that_resolves_it() -> list[str]:
     AN EMPTY TREE IS NOT A CLEAN TREE. If no .olx can be found, the scan proves
     nothing and says so, rather than returning the same `[]` a healthy repo does.
     """
-    import re as _re
-    import paths as _p
+    # THE RULE LIVES IN LO-BLOCKS NOW, AND THAT DELETED A COPY. Goal K. This
+    # carried the build's rule TRANSCRIBED BY HAND under a comment saying so. A
+    # transcription is correct only while someone keeps it in step, and this one
+    # had already been wrong once: it demanded a `---` fence at byte 0, every
+    # .olx here wraps its frontmatter in an HTML comment, and all fifteen
+    # reference-carrying files reported missing data, three of which plainly
+    # carried it. `enforce/referenceData.ts` IMPORTS `corpusDataPath` and asks
+    # it, so the check can no longer disagree with what it predicts.
+    # SELF-ASSEMBLED. Subgoal E63: the runner builds this payload itself,
+    # from the same course records python would have read. The assembler was
+    # compared against the payload python used to send and found IDENTICAL
+    # before this fetch was deleted; `runner.SELF_ASSEMBLING` names the rules
+    # that comparison has cleared, and the runner refuses any other.
+    import lo_enforce
 
-    root = _p.OLX_DIR
-    if not root.exists():
-        return [f"{root} does not exist, so no .olx could be read; that is NOT "
-                f"the same as every reference having its data"]
+    return lo_enforce.run("every_reference_has_the_data_that_resolves_it", None)
 
-    files = sorted(root.rglob("*.olx"))
-    if not files:
-        return [f"no .olx found under {root}; the scan covered nothing, which "
-                f"cannot be reported as agreement"]
-
-    out = []
-    for f in files:
-        try:
-            text = f.read_text(errors="replace")
-        except OSError as exc:
-            out.append(f"{f.name}: cannot be read ({exc}), so whether its "
-                       f"references resolve is unknown")
-            continue
-        if "{{corpus:" not in text:
-            continue
-        # THE BUILD'S OWN RULE, COPIED EXACTLY. `resolveCorpusRefs.corpusDataPath`
-        # reads `olx.slice(0, 4000)` and matches `/^\s*corpus_data:\s*(\S+)\s*$/m`
-        # -- a head-of-file scan, with no frontmatter fence parsed at all. Any
-        # other rule here makes this check disagree with the very thing it is
-        # predicting, in one direction or the other.
-        #
-        # MEASURED, AND IT WAS WRONG THE OTHER WAY FIRST. This asked for a `---`
-        # fence at the start of the file, and every .olx in this tree wraps its
-        # frontmatter in an HTML comment (`<!--`, then `---`), so the fence never
-        # began at byte 0 and all fifteen reference-carrying files reported
-        # missing data -- including the three handouts that plainly carry it.
-        if not _re.search(r"^\s*corpus_data:\s*(\S+)\s*$", text[:4000], _re.M):
-            n = text.count("{{corpus:")
-            out.append(f"{f.relative_to(root.parent)}: carries {n} reference(s) "
-                       f"but no `corpus_data:` in its frontmatter -- the content "
-                       f"build refuses this file, and with it the whole build")
-    return out
 
 
 def check_rewritten_artifacts_still_parse() -> list[str]:
@@ -6335,7 +5939,7 @@ def check_rewritten_artifacts_still_parse() -> list[str]:
     like). They are genuine student series and belong in the table, but as search
     keys they carry no lexical anchor, so they match any file holding those
     numbers in that order. Measured the same day: references from those keys
-    reached five other files -- agreement.py, enforcement.py, handouts.py,
+    reached five other files -- agreement.py, enforcement.py, forms.py,
     GOALS.md, course.json -- and were harmless in every one, because they landed
     inside strings and prose. Placement is the whole difference, and only a
     parser can tell.
@@ -6345,7 +5949,7 @@ def check_rewritten_artifacts_still_parse() -> list[str]:
     import paths as _paths_pp
     out = []
     root = _paths_pp.REPO
-    for f in sorted(root.rglob("*.json")):
+    for f in _p7.repo_files(".json", root=root):
         if ".git" in f.parts or "node_modules" in f.parts:
             continue
         try:
@@ -6359,7 +5963,7 @@ def check_rewritten_artifacts_still_parse() -> list[str]:
                        f"A substitution most likely landed in a structural "
                        f"position -- a bare number or key -- rather than inside "
                        f"a string.")
-    for f in sorted(root.rglob("*.py")):
+    for f in _p7.repo_files(".py", root=root):
         if ".git" in f.parts or "node_modules" in f.parts:
             continue
         try:
@@ -6392,100 +5996,11 @@ def check_no_unresolved_reference_reaches_the_page() -> list[str]:
     not evidence about that content -- reporting either as clean is how a check
     becomes decoration.
     """
-    import os
-    import pathlib as _pl
-    import paths as _p
+    # A reference must be resolved before anybody sees it; the artefacts are lo-
+    # blocks' own.
+    import lo_enforce
 
-    lo = _p.LO
-    if not lo.exists():
-        return [f"$LO_BLOCKS does not exist ({lo}); the built page cannot be read, "
-                f"which is NOT the same as it being clean"]
-
-    newest_src = 0.0
-    for f in list(_p.OLX_DIR.glob("*.olx")):
-        newest_src = max(newest_src, f.stat().st_mtime)
-
-    out = []
-
-    # WAS IT BUILT FROM *THIS* TREE? The mtime test below asks only whether the
-    # artifacts are NEWER, and that is satisfied by any rebuild from any source.
-    # Measured on 2026-09-20: the live artifacts were rebuilt from the live psych
-    # tree, became newer than this tree's .olx, and the check fell silent --
-    # while `.stage/content` held a file that exists only in the live tree and
-    # lacked `psych_highlight_quizzes.olx`, the newest file here and the one that
-    # had made the check fire. A green that means "someone ran a build
-    # somewhere" is worse than the finding it replaced.
-    #
-    # ONE DIRECTION ONLY. A staged file this tree does not have is ordinary --
-    # the stage carries demos and other courses, 12 of them here. A file THIS
-    # TREE HAS and the stage does not means the stage is not about this tree.
-    staged_names = {f.name for f in (lo / ".stage/content").rglob("*.olx")}
-    if staged_names:
-        missing = sorted({f.name for f in _p.OLX_DIR.glob("*.olx")} - staged_names)
-        if missing:
-            out.append(
-                f".stage/content was built from a DIFFERENT content tree: "
-                f"{len(missing)} .olx file(s) in {_p.OLX_DIR.name}/ are absent "
-                f"from it ({', '.join(missing[:3])}"
-                f"{' ...' if len(missing) > 3 else ''}). Its age says nothing "
-                f"about this tree -- rebuild with lo-blocks pointed here, or "
-                f"read the finding as 'not evidence' rather than as clean.")
-
-    for rel, what in ((".stage/content", "the resolver's staged output"),
-                      ("apps/static/public/static-content", "the JSON the page loads")):
-        root = lo / rel
-        if not root.exists():
-            out.append(f"{rel} does not exist -- {what} has never been built, so "
-                       f"this check cannot see what a student would receive")
-            continue
-        newest_built = max((p.stat().st_mtime for p in root.rglob("*") if p.is_file()),
-                           default=0.0)
-        if newest_src and newest_built < newest_src:
-            hrs = (newest_src - newest_built) / 3600
-            out.append(f"{rel} is {hrs:.0f}h older than the newest .olx -- it is not "
-                       f"evidence about the content this tree now holds; rebuild")
-        # DOES THIS ARTEFACT EVEN CONTAIN OUR CONTENT? The resolver stages only
-        # `./content`; a MOUNTED source -- which is how this repository's
-        # handouts reach the engine -- is scanned in `--check` mode and NOT
-        # staged in `--out` mode. So `.stage/content` can be spotless and say
-        # nothing whatever about these handouts. Reporting that as clean is the
-        # exact shape of failure this check exists to catch, one level up.
-        ours = [h.stem for h in _p.OLX_DIR.glob(_p7.handout_olx_glob())]
-        if ours and not any(
-                o in q.name or o in q.read_text(errors="replace")[:200000]
-                for q in root.rglob("*") if q.is_file()
-                and q.suffix.lower() in (".olx", ".json", ".xml")
-                for o in [ours[0]]):
-            out.append(f"{rel} does not contain this repository's handouts at all "
-                       f"-- it is {what}, but not of OUR content, so it cannot "
-                       f"show whether a reference of ours reached a page")
-            continue
-
-        hits = []
-        for p in root.rglob("*"):
-            # WHAT CAN ACTUALLY REACH A PAGE. `.olx` is rendered and `.json` is
-            # what the page loads; a `.md` sitting in the staged tree is repo
-            # documentation that is never served as a page, and flagging it
-            # would report `BACKLOG.md` -- which cites the corpus in prose, on
-            # purpose -- as a rendering failure.
-            #
-            # And the OLX form only: `[[corpus ...]]` is the PROSE form, correct
-            # in a rubric or a note. `{{corpus:...}}` is the one that must be
-            # resolved before anybody sees it.
-            if not p.is_file() or p.suffix.lower() not in (".olx", ".json", ".xml"):
-                continue
-            try:
-                text = p.read_text(errors="replace")
-            except OSError:
-                continue
-            if "{{corpus:" in text:
-                hits.append(p.relative_to(root))
-        for h in hits[:8]:
-            out.append(f"{rel}/{h} still holds a literal corpus reference -- it "
-                       f"reached the page unresolved")
-        if len(hits) > 8:
-            out.append(f"{rel}: and {len(hits) - 8} more file(s) with literal references")
-    return out
+    return lo_enforce.run("no_unresolved_reference_reaches_the_page", None)
 
 
 def check_reference_grammars_agree() -> list[str]:
@@ -6576,10 +6091,21 @@ def check_filesystem_locations_come_from_paths_py() -> list[str]:
                 continue
             if v in ABSOLUTE_PATH_EXCEPTIONS:
                 continue
-            hint = ("paths.LO" if "lo-blocks" in v else
-                    "paths.OUT" if "molly_data/out" in v else
-                    "paths.DATA" if "molly_data" in v else
-                    "paths.py (add an accessor there)")
+            # THE HINT IS DERIVED FROM THE ROOTS, not from their values on one
+            # machine. This tested for a literal data-directory name -- one
+            # user's: a tree whose data root is declared elsewhere, as the dry
+            # run's is inside the repository, was told to "add an accessor" for
+            # a path that already had one, and the check that exists to push
+            # machine paths out of the engine carried one itself. Longest root
+            # first, so a nested root wins over the one containing it.
+            hint = "paths.py (add an accessor there)"
+            roots = [("paths.OUT", str(getattr(_p7, "OUT", ""))),
+                     ("paths.LO", str(getattr(_p7, "LO", ""))),
+                     ("paths.DATA", str(getattr(_p7, "DATA", "")))]
+            for const, root_val in sorted(roots, key=lambda r: -len(r[1])):
+                if root_val and root_val != "/" and root_val in v:
+                    hint = const
+                    break
             out.append(f"{path.name}:{n.lineno} spells a filesystem location "
                        f"{v!r} -- use {hint}, or declare it in "
                        f"ABSOLUTE_PATH_EXCEPTIONS with a reason")
@@ -6785,7 +6311,7 @@ def check_engine_mechanisms_are_not_item_dependent() -> list[str]:
     """
     import ast
 
-    import handouts as _H
+    import forms as _H
 
     ids = {it["id"] for h in _forms() for it in _H.config(h)["rubric"].ITEMS}
     out, found = [], set()
@@ -6800,7 +6326,7 @@ def check_engine_mechanisms_are_not_item_dependent() -> list[str]:
             # eventually be run from another. `check_filesystem_locations_come_
             # _from_paths_py` exists for exactly this.
             import paths as _pth_mod
-            src = (_pth_mod.SCORING / f"{mod}.py").read_text()
+            src = _pth_mod.module_source(mod)     # wherever it lives; see paths
             tree = ast.parse(src)
         except Exception as e:
             out.append(f"{mod}.py: cannot be parsed for item-gating "
@@ -6898,7 +6424,7 @@ def check_paper_feedback_explains_its_deductions() -> list[str]:
     import pathlib as _pl
     import re as _re
 
-    import handouts as H
+    import forms as H
     import measured as M
     import paths as _paths
 
@@ -7452,102 +6978,42 @@ def check_every_failing_verdict_has_a_charge() -> list[str]:
     An entry in UNCHARGED_VERDICTS is a decision, not a silence: Q1's is there
     because gold sides with the paper scorer, so charging would be the defect.
     """
-    import handouts as H
-    import measured as M
+    # A verdict one engine scores and the other forgives is a difference
+    # authored into the rubric.
+    # PYTHON KEEPS THE FETCH. The self-test injects by CLEARING
+    # `UNCHARGED_VERDICTS` in memory and forking -- "a forgiven verdict loses
+    # its declaration" -- and a payload the runner rebuilds from `course.json`
+    # cannot see that. Measured 2026-09-26: before=0, after=0.
+    import forms as _H_fv
+    import measured as _M_fv
 
-    out = []
-    for item_id in sorted(M._jobs()):
+    import lo_enforce
+
+    items = []
+    for item_id in sorted(_M_fv._jobs()):
         try:
-            item = H.config(M._jobs()[item_id]["handout"])["rubric"].BY_ID.get(item_id)
+            it = _H_fv.config(_M_fv._jobs()[item_id]["handout"])["rubric"].BY_ID.get(item_id)
         except Exception:
-            continue
-        if not item:
-            continue
-        for c in item.get("credit") or []:
-            verdicts = list(c.get("verdicts") or [])
-            if not c.get("pts") or len(verdicts) < 2:
-                continue
-            codes = c.get("codes") or {}
-            what = c.get("what")
-            # FROM THE SHEET, not only the rubric. The grader answers the SHEET,
-            # and the two can differ: `unclear` was dropped from Q2's rubric, the
-            # audit went clean, and the grader kept answering it because the
-            # option was still declared in slots=. Reading the rubric alone makes
-            # this check blind in exactly the direction that already cost a
-            # measurement.
+            it = None
+        credit = []
+        for c in (it or {}).get("credit") or []:
             try:
-                offered = _olx_slot_verdicts(item_id, what) or set()
+                offered = _olx_slot_verdicts(item_id, c.get("what"))
             except Exception:
                 offered = set()
-            for v in sorted(offered):
-                if v not in verdicts:
-                    verdicts.append(v)
-            # THE SATISFYING VERDICT, by lo-blocks' rule: `met` where the slot
-            # offers it, else the FIRST option. Mirrored from isSatisfied rather
-            # than assumed positional -- the two rules differ the moment a slot
-            # lists `met` anywhere but first.
-            sat = "met" if "met" in verdicts else (verdicts[0] if verdicts else None)
-            for v in verdicts:
-                if v == sat or _same_verdict(v, sat):
-                    continue
-                # A DECLARED COUNTERPART IS COVERAGE. The two engines' verdict
-                # vocabularies differ by design -- the app's `wrong_kind` is the
-                # mirror's `not_antecedent` on Q4a, `not_consequence` on Q4c,
-                # `not_reason` on Q5 -- and E27 recorded every pair. Comparing the
-                # NAMES alone reported seven counterpart shapes as gaps the first
-                # time this check read the sheet, which is the false-positive
-                # class this family keeps falling into.
-                if any(_same_verdict(v, k) for k in codes):
-                    continue
-                if (item_id, what, v) in UNCHARGED_VERDICTS:
-                    continue
-                out.append(
-                    f"{item_id}/{what} can answer {v!r}, and the paper ledger has "
-                    f"no deduction code for it -- so paper charges 0 where the web "
-                    f"charges the slot's full {c['pts']} points. Give it a code, or "
-                    f"declare it in enforcement.UNCHARGED_VERDICTS with the "
-                    f"measurement that says forgiving it is right")
-            # THE REVERSE DIRECTION, which nothing checked: a verdict the paper
-            # ledger CHARGES that the web counts as satisfying. It costs points on
-            # paper and nothing on the web -- silent OVER-credit on the side
-            # students are actually graded by. None exists today; that is a
-            # measurement, not a guarantee.
-            if sat is not None and any(_same_verdict(sat, k) for k in codes):
-                out.append(
-                    f"{item_id}/{what}: the paper ledger charges {sat!r} via "
-                    f"{codes[sat]}, and the web treats {sat!r} as SATISFYING -- so "
-                    f"the same answer loses points on paper and keeps them on the "
-                    f"web, which is the direction that over-credits a student")
-            # THE POSITIONAL FALLBACK. isSatisfied reads `met` by NAME where the
-            # slot offers it and options[0] by POSITION otherwise, and its own
-            # comment rests on the two agreeing "on every slot in the current
-            # content". That is a measured coincidence with nothing re-testing it:
-            # a slot listing `met` anywhere but first flips meaning on the web and
-            # nowhere else.
-            if "met" in verdicts and verdicts[0] != "met":
-                out.append(
-                    f"{item_id}/{what} lists `met` at position {verdicts.index('met')}, "
-                    f"not first. lo-blocks' isSatisfied reads `met` by NAME and every "
-                    f"other vocabulary by POSITION, so this slot is the case where "
-                    f"those two rules stop agreeing -- and the paper ledger has no "
-                    f"positional rule at all")
-    for (item_id, what, v) in sorted(UNCHARGED_VERDICTS):
-        try:
-            item = H.config(M._jobs()[item_id]["handout"])["rubric"].BY_ID.get(item_id)
-        except Exception:
-            continue
-        hit = [c for c in (item or {}).get("credit") or [] if c.get("what") == what]
-        if not hit:
-            out.append(f"UNCHARGED_VERDICTS names {item_id}/{what}, which the "
-                       f"rubric no longer scores -- drop the declaration")
-        elif v not in (hit[0].get("verdicts") or []):
-            out.append(f"UNCHARGED_VERDICTS names {item_id}/{what}={v!r}, which "
-                       f"the slot can no longer answer -- drop the declaration")
-        elif v in (hit[0].get("codes") or {}):
-            out.append(f"UNCHARGED_VERDICTS says {item_id}/{what}={v!r} is not "
-                       f"charged, but the rubric now charges it -- drop the "
-                       f"declaration")
-    return out
+            credit.append({
+                "what": c.get("what"), "pts": c.get("pts"),
+                "verdicts": list(c.get("verdicts") or []),
+                "codes": dict(c.get("codes") or {}),
+                "offered": None if offered is None else sorted(offered),
+            })
+        items.append({"id": item_id, "credit": credit})
+    return lo_enforce.run("every_failing_verdict_has_a_charge", {
+        "items": items,
+        "divergences": [[sorted(w), sorted(p)]
+                        for w, p in VERDICT_SPACE_DIVERGENCES],
+        "uncharged": [list(t) for t in sorted(UNCHARGED_VERDICTS)],
+    })
 
 
 def check_engines_reach_the_model_identically() -> list[str]:
@@ -7745,7 +7211,7 @@ def check_engines_send_the_same_request() -> list[str]:
             continue
         try:
             pid = int(pid_s.lstrip("p"))
-            h = O.HANDOUT[item]
+            h = O.FORM[item]
             act = A.load_action(_p7.handout_olx(h), O.ACTION[item])
             mine = (A.build_prompt(act["body"], A.fixture_for(item, pid))
                     + A.checklist_guidance(act["show_checks"]))
@@ -7834,7 +7300,7 @@ def check_engines_offer_the_same_verdicts() -> list[str]:
     out = []
     for item, action_id in sorted(O.ACTION.items()):
         try:
-            h = O.HANDOUT[item]
+            h = O.FORM[item]
             olx = open(P.OLX % h).read()
             el = _re.search(r"<LLMAction\b[^>]*\bid=\"%s\".*?</LLMAction>"
                             % _re.escape(action_id), olx, _re.S)
@@ -8489,7 +7955,7 @@ def check_app_and_harness_send_the_same_prompt() -> list[str]:
         if served is None:
             continue                     # item not in this dump; --prompts covers that
         try:
-            h = OP.HANDOUT[item]
+            h = OP.FORM[item]
             mine = AG.load_action(_p7.handout_olx(h), action)["body"]
         except Exception as e:
             out.append(f"{item}: cannot read the harness body: {type(e).__name__}: {e}")
@@ -8714,7 +8180,7 @@ def check_generated_attributes_have_a_declaration() -> list[str]:
     attrs = []
     for item_id, action in sorted(OP.ACTION.items()):
         try:
-            tag = OP._sheet_tag(OP.HANDOUT[item_id], action)
+            tag = OP._sheet_tag(OP.FORM[item_id], action)
         except SystemExit:
             continue                      # a missing sheet is another check's
         for name, fn in OP.GENERATED_ATTRS:
@@ -8830,7 +8296,16 @@ def check_every_prompt_field_is_designed() -> list[str]:
     --accept-design-change ITEM SLOT FIELD` rewrites ONE sha and prints what
     changed. Bulk regeneration would make the file agree with anything.
     """
-    import handouts as H
+    # PORTED to `enforce/promptFieldsAreDesigned.ts` (goal K).
+    #
+    # PYTHON KEEPS BOTH FETCHES. `_designed_shas` is the seam the self-test and
+    # `--accept-design-change` both work through, and `_field_sha` resolves a
+    # corpus reference before hashing -- hand the runner nothing and it rebuilds
+    # both from disk, seeing neither an in-memory patch nor python's own
+    # resolver. The assembler stays for a native caller, which has its own.
+    import forms as H
+    import lo_enforce
+
     want = _designed_shas()
     live: dict[str, str] = {}
     for h in _forms():
@@ -8844,23 +8319,9 @@ def check_every_prompt_field_is_designed() -> list[str]:
                     v = c.get(f)
                     if v:
                         live[f"{it['id']}|{c['what']}|{f}"] = _field_sha(v)
-    out: list[str] = []
-    for key in sorted(live):
-        if key not in want:
-            out.append(f"MISSING design of record: {key.replace('|', '/')} is a "
-                       f"prompt field with no entry in {DESIGNED_SHA_FILE}. A slot "
-                       f"added without a decision recorded is how re-typing drifts")
-        elif want[key] != live[key]:
-            out.append(f"CHANGED without acceptance: {key.replace('|', '/')} "
-                       f"designed {want[key]}, ships {live[key]}. If the edit is "
-                       f"intended: python3 measured.py --accept-design-change "
-                       f"{key.replace('|', ' ')}")
-    for key in sorted(set(want) - set(live)):
-        out.append(f"STALE design of record: {key.replace('|', '/')} is in "
-                   f"{DESIGNED_SHA_FILE} and no longer in the rubric -- drop it "
-                   f"if the revert is permanent")
-    return out
-
+    return lo_enforce.run("every_prompt_field_is_designed", {
+        "want": want, "live": live, "shaFile": DESIGNED_SHA_FILE,
+    })
 
 def _field_sha(text) -> str:
     """Fingerprint a prompt field by its WORDS, not by how they are encoded.
@@ -9014,7 +8475,7 @@ def check_every_document_is_where_its_readers_look() -> list[str]:
     return compose_docs.missing()
 
 
-def check_the_handouts_agree_with_the_assembler() -> list[str]:
+def check_the_forms_agree_with_the_assembler() -> list[str]:
     """A shipped prompt body or sheet attribute is not what the rubric produces.
     Reported as A HANDOUT DISAGREES WITH THE RUBRIC.
 
@@ -9127,6 +8588,22 @@ def check_generic_documents_are_generic() -> list[str]:
                        f"and does not exist -- drop the entry or restore the file")
             continue
         hits = CI.course_prose(f.read_text(errors="ignore"), ids)
+        # A DECLARED ALLOWANCE COVERS ONE SIGNAL AND RATCHETS. See
+        # `course_inventory.ANONYMOUS_RATE_ALLOWANCE`: a bare rate identifies no
+        # cell, so a document may declare how many it carries -- and that number
+        # may fall and may not rise. Any OTHER signal is reported regardless,
+        # because a named cell is a named cell whatever the allowance says.
+        allow = getattr(CI, "ANONYMOUS_RATE_ALLOWANCE", {}).get(rel) or {}
+        for sig, cap in allow.items():
+            if sig == "why" or sig not in hits:
+                continue
+            if hits[sig] > cap:
+                out.append(
+                    f"{rel} carries {hits[sig]} {sig} signals and declares {cap} "
+                    f"-- the allowance ratchets, so this may fall and may not "
+                    f"rise. Either the new one names a cell (move it to the "
+                    f"course half) or lower nothing and justify the raise")
+            hits.pop(sig)
         if hits:
             out.append(f"{rel} is declared generic and carries course content: "
                        + ", ".join(f"{k} x{v}" for k, v in sorted(hits.items())))
@@ -9223,7 +8700,29 @@ def check_every_module_is_tracked() -> list[str]:
     return editguard.untracked()
 
 
-VERDICT_HEDGES = {"unclear"}
+def _verdict_hedges() -> frozenset:
+    """Verdicts that HEDGE rather than judge, from lo-blocks' own vocabulary.
+
+    WAS A SET LITERAL HERE, which made it the third copy of a vocabulary this
+    project had already been burned by duplicating -- `verdictVocabulary.ts`
+    exists because `EXTRA_VERDICTS` was transcribed once and drifted. `score.py`
+    reads this too, so it could not simply move; it is read from THERE now,
+    through the same probe `slot_vocab` uses for `KNOWN_VERDICTS`.
+
+    REFUSES RATHER THAN DEFAULTING. A vocabulary that silently falls back to a
+    stale copy is how a scan stops recognising a token that is still in use.
+    """
+    import lo_enforce
+
+    got = lo_enforce.probe("verdict_vocabulary", {})
+    if not isinstance(got, dict) or "HEDGES" not in got:
+        raise SystemExit(
+            "enforcement: the hedge vocabulary could not be read from "
+            "lo-blocks, so the audit cannot tell a hedge from a charge")
+    return frozenset(got["HEDGES"])
+
+
+VERDICT_HEDGES = _verdict_hedges()
 """Verdicts offered so a grader can decline, which carry no charge either side.
 
 Exempt from the pairing below BY DESIGN: the web offers `unclear` on 26 slots
@@ -9231,108 +8730,13 @@ whose `codes` map has no entry for it, and that is a hedge with no deduction
 rather than a missing code.
 """
 
-VERDICT_PAIRS: dict[str, dict[str, str]] = {
-    # THE BRIDGE THE CODE SAID DID NOT EXIST. `olx_prompts` line ~2173:
-    # "the web says `wrong_kind` where the rubric says `not_reason`, and on 1c's
-    # legend `incomplete` against `not_described` ... enforcement.ALIAS does NOT
-    # record verdict pairs -- it maps slot KEY names, and an earlier version of
-    # this comment said otherwise, sending a reader looking for a bridge that
-    # does not exist." This is that bridge, authored 2026-09-08.
-    # WHY IT HAS TO BE PER SLOT: `not_described` pairs with `incomplete` on
-    # 1c/legend, with `generic` on 1c/title and with `tick_values` on
-    # 1c/x_axis_label. A global token map would be wrong three ways on one item.
-    # WEB TOKEN -> PAPER TOKEN. The web token is what the prompt offers (the
-    # generated `slots=` field 3); the paper token is a `codes` key, which is
-    # score.py's failure vocabulary -- it reads them for exactly that, see
-    # score.py "`not_described` is the paper-side counterpart of the web sheet's
-    # `incomplete`".
-    # SEEDED WHERE FORCED, NOT GUESSED: identical names pair with themselves,
-    # then a single remaining token on each side pairs with the other. 62 of 63
-    # slots were forced; the 63rd is reported by the check below rather than
-    # invented here.
-    '1a/baseline_week': {'absent': 'absent'},
-    '1a/distinguishes_periods': {'absent': 'absent'},
-    '1a/week_1': {'absent': 'absent'},
-    '1a/week_2': {'absent': 'absent'},
-    '1a/week_3': {'absent': 'absent'},
-    '1c/has_own_graph': {'absent': 'absent', 'mismatch': 'mismatch'},
-    '1c/legend': {'absent': 'absent', 'incomplete': 'not_described'},
-    '1c/title': {'absent': 'absent', 'generic': 'not_described'},
-    '1c/x_axis_label': {'absent': 'absent', 'tick_values': 'not_described'},
-    # AUTHORED 2026-09-08, the one pairing the mechanical seeding refused --
-    # and it is MANY-TO-ONE ON PURPOSE, which is why no rule could force it.
-    # A y-axis can fail BOTH ways this item distinguishes, and its desc says so
-    # in as many words: an axis TITLE naming what the axis represents, "not its
-    # tick values, and not the software's default 'Axis Title' placeholder".
-    # Its siblings each carry one of the two modes -- x_axis_label only
-    # `tick_values`, title only `generic` -- so the web offers y_axis_label
-    # three failing verdicts against the paper side's one.
-    # NOTHING IS LOST BY COLLAPSING THEM, and that is the ground for the
-    # pairing rather than convenience: `codes` maps BOTH `absent` and
-    # `not_described` to NO_Y_AXIS, and NO_Y_AXIS is 2.0 -- the same charge
-    # whichever way the label fails. The web's extra distinction is DESCRIPTIVE,
-    # feeding better feedback, not a second deduction. So the paper scorer can
-    # express the charge; it just cannot say which of the two reasons applied.
-    # THE SEEDING RULE'S LIMIT, recorded so it is not mistaken for a bug: it
-    # pairs identical names, then a SINGLE remaining token on each side. A
-    # legitimate two-to-one needs a human to say that collapsing loses no
-    # charge, which is exactly what the check asked for.
-    '1c/y_axis_label': {'absent': 'absent', 'tick_values': 'not_described',
-                        'generic': 'not_described'},
-    '2a/how_1': {'absent': 'absent'},
-    '2a/how_2': {'absent': 'absent'},
-    '2a/verdict': {'absent': 'absent'},
-    '2b/sentence_1': {'absent': 'absent'},
-    '2b/sentence_2': {'absent': 'absent'},
-    '2b/sentence_3': {'absent': 'absent'},
-    '3/example_1': {'absent': 'absent'},
-    '3/example_2': {'absent': 'absent'},
-    'D1/add_or_remove': {'absent': 'absent'},
-    'D1/increase_or_decrease': {'absent': 'absent'},
-    'D1/matches_chosen_type': {'absent': 'absent'},
-    'D2/add_or_remove': {'absent': 'absent'},
-    'D2/increase_or_decrease': {'absent': 'absent'},
-    'D2/matches_chosen_type': {'absent': 'absent'},
-    'DAY1/consequence_asserted': {'absent': 'no'},
-    'DAY2/consequence_asserted': {'absent': 'no'},
-    'Q1/reason_1': {'absent': 'absent'},
-    'Q1/reason_2': {'absent': 'absent'},
-    'Q1/reason_3': {'absent': 'absent'},
-    'Q1/utb_stated': {'absent': 'absent'},
-    'Q2/reason_1': {'absent': 'absent'},
-    'Q2/reason_2': {'absent': 'absent'},
-    'Q2/reason_3': {'absent': 'absent'},
-    'Q2/wgb_inverts_utb': {'absent': 'absent'},
-    'Q2/wgb_is_counterpart': {'absent': 'absent'},
-    'Q3/action_oriented': {'absent': 'absent'},
-    'Q3/measurable': {'absent': 'absent'},
-    'Q3/realistic': {'absent': 'absent'},
-    'Q3/specific': {'absent': 'absent'},
-    'Q3/time_bound': {'absent': 'absent'},
-    'Q4a/antecedent_1': {'absent': 'absent', 'wrong_kind': 'not_antecedent'},
-    'Q4a/antecedent_2': {'absent': 'absent', 'wrong_kind': 'not_antecedent'},
-    'Q4a/keyword': {'absent': 'absent'},
-    'Q4a/no_antecedents': {'absent': 'absent'},
-    'Q4b/behavior_1': {'absent': 'absent', 'wrong_kind': 'wrong_kind'},
-    'Q4b/behavior_2': {'absent': 'absent', 'wrong_kind': 'wrong_kind'},
-    'Q4b/modify_stated': {'absent': 'absent'},
-    'Q4b/modify_why': {'absent': 'absent'},
-    'Q4c/consequence_1': {'absent': 'absent', 'duplicate': 'duplicate', 'wrong_kind': 'not_consequence'},
-    'Q4c/consequence_2': {'absent': 'absent', 'duplicate': 'duplicate', 'wrong_kind': 'not_consequence'},
-    'Q4c/no_consequences': {'absent': 'absent'},
-    'Q5/example_1': {'absent': 'absent', 'duplicate': 'duplicate', 'wrong_kind': 'not_reason'},
-    'Q5/example_2': {'absent': 'absent', 'duplicate': 'duplicate', 'wrong_kind': 'not_reason'},
-    'Q6/affect_c1': {'absent': 'absent', 'incomplete': 'not_described'},
-    'Q6/affect_c2': {'absent': 'absent', 'incomplete': 'not_described'},
-    'Q6/change_a1': {'absent': 'absent', 'incomplete': 'not_described'},
-    'Q6/change_a2': {'absent': 'absent', 'incomplete': 'not_described'},
-    'Q6/state_a1': {'absent': 'absent', 'mismatch': 'neither'},
-    'Q6/state_a2': {'absent': 'absent', 'mismatch': 'neither'},
-    'Q6/state_c1': {'absent': 'absent', 'mismatch': 'neither'},
-    'Q6/state_c2': {'absent': 'absent', 'mismatch': 'neither'},
-    'WK1/consequence_asserted': {'absent': 'no'},
-    'WK2/consequence_asserted': {'absent': 'no'},
-}
+# THE WEB->RUBRIC TOKEN BRIDGE, per slot -- DECLARED, not held here.
+#
+# Sixty-three entries keyed by this course's `item/slot` lived in this module
+# until step 7, 2026-09-25. The table and every line of its reasoning are in
+# `declaration_source.VERDICT_PAIRS` now and reach the course file from there;
+# `check_verdict_tokens_pair` below still reports the slot that is not forced.
+VERDICT_PAIRS: dict[str, dict[str, str]] = _declaration("VERDICT_PAIRS")
 
 
 def check_no_recorded_run_is_an_api_error() -> list[str]:
@@ -9483,31 +8887,13 @@ def check_no_recorded_run_is_verdictless() -> list[str]:
     # files -- and duplicating that resolution in TypeScript would be a second
     # reader of the ledger. TS reads the files it is handed, through
     # `enforce/courseData.ts`, which refuses a path outside $COURSE_DATA.
-    import os
-
+    # SELF-ASSEMBLED. Subgoal E63: the runner builds this payload, and the
+    # assembler was proven to build what python built -- payload-identical, or
+    # order-only with the finding SET shown unchanged on data mutated until
+    # the rule fires. `runner.SELF_ASSEMBLING` is that cleared list.
     import lo_enforce
-    import measured as M
-    import paths as _pth
 
-    root = str(_pth.OUT.parent)
-    arts = []
-    for item in sorted(M._jobs()):
-        for side in M.SIDES:
-            e = M.entry(item, side) or {}
-            for key in ("out", "folded_from"):
-                sub = e.get(key)
-                if not sub:
-                    continue
-                p = os.path.join(str(_pth.OUT), sub, f"{item}.runs.json")
-                if os.path.exists(p):
-                    arts.append({"item": item, "side": side,
-                                 "path": os.path.relpath(p, root)})
-    if not arts:
-        # NOT SILENCE. No artifact resolved means nothing was examined.
-        return ["no recorded artifact could be resolved, so no run was checked "
-                "for having judged nothing"]
-    return lo_enforce.run("no_recorded_run_is_verdictless",
-                          {"artifacts": arts, "ns": _pth.NS})
+    return lo_enforce.run("no_recorded_run_is_verdictless", None)
 
 
 
@@ -9538,43 +8924,11 @@ def check_one_writer_per_computed_key() -> list[str]:
     rubric that relies on it is relying on the order, and the order should not be
     load-bearing in authored data.
     """
-    import collections
+    # Two computed primitives on one key resolve by loop order; order must not
+    # be load-bearing.
+    import lo_enforce
 
-    import measured as M
-    from handouts import config
-
-    COMPUTED = ("equals", "expect", "forbid", "maps", "derived", "counts")
-    out = []
-    for item in sorted(M._jobs()):
-        h = M._jobs()[item]["handout"]
-        it = config(h)["rubric"].BY_ID.get(item) or {}
-        writers = collections.defaultdict(list)
-        for prim in COMPUTED:
-            for r in it.get(prim) or []:
-                key = r.get("key")
-                if key:
-                    writers[key].append(prim)
-        for key, prims in sorted(writers.items()):
-            if len(prims) > 1:
-                out.append(
-                    f"{item}/{key} is written by {sorted(prims)} -- TWO computed "
-                    f"primitives on one key. `expect` REPLACES a verdict rather "
-                    f"than overriding it, so which one wins is decided by loop "
-                    f"order, and that is not something authored data may rely "
-                    f"on. Give the second rule its own key.")
-        written = set(writers)
-        for prim in ("expect", "equals"):
-            for r in it.get(prim) or []:
-                for operand in ("left", "right"):
-                    o = r.get(operand)
-                    if o and o in written:
-                        out.append(
-                            f"{item}/{r['key']}'s `{prim}` reads `{o}`, which "
-                            f"{sorted(writers[o])} also writes -- a "
-                            f"read-after-write whose value depends on loop "
-                            f"order. Both engines agree on the order today; do "
-                            f"not make it load-bearing.")
-    return out
+    return lo_enforce.run("one_writer_per_computed_key", None)
 
 
 def check_verdict_vocabularies_correspond() -> list[str]:
@@ -9595,46 +8949,191 @@ def check_verdict_vocabularies_correspond() -> list[str]:
     met/absent/not_active, so every test was inert and it credited a Q4b box
     both other engines reject.
     """
-    import olx_prompts as OP
+    # Every failing verdict on each side must have a declared counterpart on the
+    # other.
+    import lo_enforce
 
-    import measured as M
-    from handouts import config
+    return lo_enforce.run("verdict_vocabularies_correspond", None)
 
-    out = []
-    for item in sorted(M._jobs()):
-        h = M._jobs()[item]["handout"]
-        rub = config(h)["rubric"].BY_ID.get(item) or {}
-        spec = (getattr(config(h)["rubric"], "SLOT_SPEC", {}) or {}).get(item) or []
-        off = {f["key"]: OP.resolve_options(f.get("seg"), ["met", "absent", "unclear"])
-               for f in spec}
-        for c in rub.get("credit") or []:
-            codes = c.get("codes") or {}
-            opts = [o for o in (off.get(c["what"]) or []) if o]
-            if not codes or not opts:
-                continue
-            key = f"{item}/{c['what']}"
-            web = [o for o in opts[1:] if o not in VERDICT_HEDGES]
-            paper = [k for k in sorted(codes) if k not in VERDICT_HEDGES]
-            pairs = VERDICT_PAIRS.get(key)
-            if pairs is None:
-                out.append(
-                    f"{key} has no entry in VERDICT_PAIRS: the web offers "
-                    f"{web} and the paper vocabulary is {paper}, and nothing "
-                    f"declares which corresponds to which. Author the pairing.")
-                continue
-            for w in web:
-                if w not in pairs:
-                    out.append(
-                        f"{key}: the web can answer `{w}` and NOTHING ON THE "
-                        f"PAPER SIDE corresponds -- a charge score.py cannot "
-                        f"express. Web {web}, paper {paper}.")
-            for pp in paper:
-                if pp not in set(pairs.values()):
-                    out.append(
-                        f"{key}: the paper vocabulary has `{pp}` and no web "
-                        f"verdict maps to it -- a charge the app cannot "
-                        f"produce. Web {web}, paper {paper}.")
+
+# WHERE EACH RECORD WRITER PUTS ITS OUTPUT, and the class that destination must
+# be in. `module:accessor -> class`, and the class is one of the four the store
+# declares. Registered by hand because a writer's INTENT cannot be derived from
+# its code -- the whole question is whether the code agrees with the intent.
+RECORD_DESTINATIONS = {
+    "coursedata:gold_path": "rubric/derived",
+    "coursedata:overrides_path": "rubric/authored",
+    "gold_export:default_path": "rubric/derived",
+    "tools.export_grader_marks:default_path": "rubric/derived",
+    "tools.export_grader_columns:out_path": "instrument/derived",
+    "tools.export_response_fixtures:out_dir": "instrument/derived",
+}
+
+
+def check_record_writers_target_the_right_place() -> list[str]:
+    """Every record writer's destination is where its class says it goes.
+    Reported as A RECORD WRITER AIMS SOMEWHERE ELSE.
+
+    THE GAP THIS CLOSES, asked by the user 2026-09-26: *"Do we have a guard to
+    make sure the destination write locations of scripts are the right ones?"*
+    There was none. `writescope.sh` says what may be written AT ALL -- a
+    security boundary, run by hand -- and nothing said whether a writer aims at
+    the right owner or the right class within it.
+
+    IT FOUND TWO THE MOMENT IT EXISTED, and they were mine: repointing the
+    exporters at `derived/` left `gold_export` and `export_grader_marks` calling
+    `paths.roots()` without importing `paths`. Both destinations raised
+    NameError, both scripts still imported cleanly, and nothing reported it
+    until one was run. A destination is not exercised by a unit test and not
+    checked by a linter; it fails at the moment someone needs the export.
+
+    THREE THINGS ARE ASKED, and they fail differently:
+      RAISES   -- the accessor does not survive being called. That is the
+                  NameError case, and it is invisible until use.
+      OUTSIDE  -- it resolves somewhere no declared root covers, so a record
+                  lands where no reader looks.
+      WRONG    -- it resolves under the wrong owner or class: a derived record
+                  written into `source/` is the one that matters, because
+                  `source/` is what nothing may rewrite.
+    """
+    import importlib
+
+    out: list[str] = []
+    r = _p7.roots()
+    classes = {
+        "instrument/source": r.instrument_dir / "source",
+        "instrument/derived": r.instrument_dir / "derived",
+        # THE AUTHORED CLASS IS BACK, with the directory it names. A rubric's
+        # hand-authored documents spent an afternoon in a `<rubric id>_qc/`
+        # directory in the course tree before the user returned them to the
+        # store; the override log is written here and this is what checks it.
+        "rubric/authored": r.rubric_dir / "authored",
+        "rubric/derived": r.rubric_dir / "derived",
+    }
+    for spec, want in sorted(RECORD_DESTINATIONS.items()):
+        mod_name, _, attr = spec.partition(":")
+        try:
+            got = getattr(importlib.import_module(mod_name), attr)()
+        except Exception as exc:
+            out.append(
+                f"{spec} RAISES {type(exc).__name__}: {exc} -- a writer whose "
+                f"destination cannot even be computed fails at the moment "
+                f"someone needs the export, and nothing before then says so")
+            continue
+        if got is None:
+            continue                  # declared unavailable, e.g. no data root
+        p = _p7.Path(got).resolve()
+        base = _p7.Path(classes[want]).resolve()
+        if p == base or base in p.parents:
+            continue
+        where = next((k for k, v in classes.items()
+                      if _p7.Path(v).resolve() in p.parents
+                      or _p7.Path(v).resolve() == p), None)
+        out.append(
+            f"{spec} writes to {str(p)!r}, which is {where or 'outside every '
+            'declared root'} -- it is declared {want}. A record written to the "
+            f"wrong class is read by nobody, and one written under a `source/` "
+            f"is rewriting material that cannot be regenerated.")
     return out
+
+
+def check_records_carry_no_machine_path() -> list[str]:
+    """A record that names a directory on THIS machine.
+    Reported as A RECORD CARRIES A MACHINE PATH.
+
+    AN ABSOLUTE PATH IN A RECORD IS PINNED TO ONE DISK, and worse, to one DAY's
+    layout. Measured 2026-09-26: `PROBED.json` held fifteen paths under the old
+    shared `out/` root, every one broken by that morning's move, and nothing
+    reported it -- the file still parsed, the fields were still strings, and a
+    reader that could not find an artifact simply found none. That is the
+    project's signature failure: an empty result reading as a clean one.
+
+    THE FIX IS A ROOT TOKEN, not a tidier absolute path. `{rubric}/...` and
+    `{instrument}/...` name the OWNER and let the reader resolve, so the record
+    survives a move and travels to another machine. `paths.record_path` resolves
+    one; `paths.as_record_path` produces one.
+
+    IT SCANS VALUES, NOT PROSE. A path inside a `why` or a comment is a
+    quotation -- the declarations quote paths when explaining an incident -- and
+    rewriting those would make the explanation describe something that never
+    happened. Only string VALUES at a non-prose key are checked.
+    """
+    # PORTED to `enforce/recordsCarryNoMachinePath.ts` (goal K).
+    #
+    # PYTHON PASSES THE PARSED RECORDS it can see. The engine assembles the same
+    # four for a native caller; this path answers about the tree THIS process
+    # resolves, which is the one a developer is editing.
+    import json as _json
+
+    import lo_enforce
+
+    records = []
+    for label, p in (("course.json", COURSE_FILE_PATH()),
+                     ("PROBED.json", _p7.COURSE_PROBED),
+                     ("PROBE_RECEIPTS.json", _p7.COURSE_PROBE_RECEIPTS),
+                     ("MEASURED.json", _p7.COURSE_LEDGER)):
+        try:
+            records.append({"label": label, "doc": _json.loads(open(p).read())})
+        except (OSError, ValueError):
+            continue
+    return lo_enforce.run("records_carry_no_machine_path", {"records": records})
+
+
+def COURSE_FILE_PATH():
+    return _p7.COURSE_FILE
+
+
+def check_response_fixtures_are_intact() -> list[str]:
+    """Every item's reconstruction is recorded, and its shas still describe it.
+    Reported as A RESPONSE FIXTURE IS NOT WHAT ITS SHA SAYS.
+
+    THE SHA IS THE WHOLE POINT OF FREEZING. For 24 of 26 items the fixture was
+    recomputed from the `.docx` on every run, so a change in the segmenter
+    silently changed what every sweep scored -- no stamp, no diff, just a rate
+    that moved. Extracting the boxes with a sha per cell makes that visible; a
+    sha nobody verifies makes it decoration again.
+
+    IT NEEDS NO CORPUS, deliberately. This asks only whether the record is
+    internally consistent and complete: that is the question a machine without
+    the submissions can still answer, and it is the one that catches a silent
+    re-extraction. Whether the record still matches the SOURCE is a different
+    question, answered by `export_response_fixtures.py --verify`, which is the
+    one operation that opens a submission.
+
+    A MISSING RECORD IS A FINDING, not silence. An item with neither a frozen
+    source nor an extraction falls back to live segmentation, which is exactly
+    the arrangement this replaced -- and it would do so without saying so.
+    """
+    import lo_enforce
+
+    try:
+        import agreement_app as AA
+        from tools import export_response_fixtures as RF
+    except Exception as exc:                      # pragma: no cover
+        return [f"the response fixtures cannot be read: {exc}"]
+
+    frozen_elsewhere = sorted(RF.frozen_items())
+    items = []
+    for item in sorted(AA.JOBS):
+        if item in frozen_elsewhere:
+            continue
+        doc = RF.load(item)
+        if doc is None:
+            items.append({"item": item, "missing": True})
+            continue
+        cells = doc.get("cells") or {}
+        items.append({
+            "item": item,
+            "sha": doc.get("sha"),
+            "computed": RF.cell_sha({p: c.get("boxes") or {}
+                                     for p, c in cells.items()}),
+            "cells": [{"pid": p, "sha": c.get("sha"),
+                       "computed": RF.cell_sha(c.get("boxes") or {})}
+                      for p, c in sorted(cells.items(),
+                                         key=lambda kv: int(kv[0]))],
+        })
+    return lo_enforce.run("response_fixtures_are_intact",
+                          {"items": items, "frozenElsewhere": frozen_elsewhere})
 
 
 def check_olx_attributes_are_all_generated() -> list[str]:
@@ -9661,48 +9160,59 @@ def check_olx_attributes_are_all_generated() -> list[str]:
     This asks the different question: is every attribute PRODUCED BY A GENERATOR
     from the rubric? An attribute nobody generates passes --check forever.
     """
+    # PORTED to `enforce/olxAttributesGenerated.ts` (goal K).
+    #
+    # THE ENGINE HAS THE GENERATORS, which is why this could move at all. It was
+    # classified as blocked on `olx_prompts.GENERATED_ATTRS` until the user
+    # asked the obvious question -- *"Doesn't web already have its own
+    # generators?"* -- and it does: `attributeAssembler.generatedAttrs` is the
+    # producer item C installed, verified against these sixteen attribute values
+    # and reproducing all of them. Measured again at port time: 368 generator
+    # outputs across 23 items compared identical.
+    #
+    # PYTHON STILL PASSES ITS OWN, so this path compares the .olx against
+    # PYTHON's generators and the native path against the engine's. They agree
+    # today; the day they stop, `check_the_forms_agree_with_the_assembler` is
+    # what says so, and this check keeps answering its own question on each side.
     import re
 
+    import lo_enforce
     import measured as M
     import olx_prompts as OP
 
     gens = dict(OP.GENERATED_ATTRS)
-    skip = {"id", "target"}
-    out = []
+    items = []
     for item in sorted(M._jobs()):
         action = OP.ACTION.get(item)
         if not action:
             continue
         try:
-            tag = OP._sheet_tag(OP.HANDOUT[item], action)
+            tag = OP._sheet_tag(OP.FORM[item], action)
         except BaseException:
             continue
-        for m in re.finditer(r'\b([a-z_]+)="([^"]*)"', tag):
-            name, have = m.group(1), m.group(2)
-            if name in skip:
-                continue
-            fn = gens.get(name)
-            if fn is None:
-                out.append(
-                    f"{item}: `{name}=` is HAND-AUTHORED -- no generator in "
-                    f"olx_prompts.GENERATED_ATTRS produces it, so a design "
-                    f"change cannot reach it and `--write` cannot regenerate "
-                    f"it. Give the rubric the fact and add a generator.")
-                continue
+        # `[A-Za-z_]+`, WIDENED 2026-09-26 on both sides together. It was
+        # `[a-z_]+`, which excluded every camelCase attribute from a check whose
+        # whole purpose is catching an attribute no generator produces --
+        # `showChecks` was authored, unclaimed and invisible. Widening ONE side
+        # would have been worse than the hole: the two would then disagree about
+        # which attributes are in SCOPE, and both would still report zero.
+        attrs = [[m.group(1), m.group(2)]
+                 for m in re.finditer(r'\b([A-Za-z_]+)="([^"]*)"', tag)]
+        generated, errors = {}, {}
+        for name, fn in gens.items():
             try:
-                gen = fn(item)
+                generated[name] = fn(item)
             except BaseException as exc:
-                out.append(f"{item}: the generator for `{name}=` raised "
-                           f"{type(exc).__name__}: {str(exc)[:80]}")
-                continue
-            if (gen or None) != (have or None):
-                out.append(
-                    f"{item}: `{name}=` DIVERGED from the rubric -- the .olx has "
-                    f"{have[:60]!r} and the generator produces {str(gen)[:60]!r}. "
-                    f"Run `npm run build:assemble-prompts -- --write` and "
-                    f"confirm the rendered body, not just the attribute.")
-    return out
+                errors[name] = f"{type(exc).__name__}: {str(exc)[:80]}"
+        entry = {"item": item, "attrs": attrs, "generated": generated}
+        if errors:
+            entry["errors"] = errors
+        items.append(entry)
 
+    return lo_enforce.run("olx_attributes_are_all_generated",
+                          {"known": sorted(gens), "skip": ["id", "target"],
+                           "handAuthored": dict(HAND_AUTHORED_SHEET_ATTRS),
+                           "items": items})
 
 def check_no_judging_field_states_what_a_verdict_costs() -> list[str]:
     """A JUDGING field that explains its own ARITHMETIC to the grader.
@@ -9732,31 +9242,12 @@ def check_no_judging_field_states_what_a_verdict_costs() -> list[str]:
     worth re-reading anyway. It is fire-tested against the known site, which it
     must flag, and against the rest of the corpus, which it must not.
     """
-    import re
+    # PORTED AND SELF-ASSEMBLED (goal K, step 8). Arithmetic in a judging prompt
+    # is executed by the model (subgoal Q41); the pattern and its lookahead
+    # carried over alternative for alternative. 146 fields, payload identical.
+    import lo_enforce
 
-    from handouts import config
-
-    PAT = re.compile(
-        r"cannot count|stands INSTEAD|never alongside|reason deductions|"
-        r"costs the whole item|the whole item is that finding|zeroes the item|"
-        r"is charged \d|worth \d(?! of)", re.I)
-    out = []
-    for h in _forms():
-        for item in config(h)["rubric"].ITEMS:
-            for c in item.get("credit") or []:
-                for field in ("desc", "rule"):
-                    txt = c.get(field)
-                    if not txt:
-                        continue
-                    hits = sorted({m.group(0).lower() for m in PAT.finditer(txt)})
-                    if hits:
-                        out.append(
-                            f"{item['id']}/{c['what']}/{field} tells a JUDGING "
-                            f"grader what a verdict COSTS: {hits}. Arithmetic "
-                            f"belongs in the derivation or a comment, not in a "
-                            f"prompt whose job is to return judgements -- the "
-                            f"model executes it (subgoal Q41).")
-    return out
+    return lo_enforce.run("no_judging_field_states_what_a_verdict_costs", None)
 
 
 def check_pick_choices_match_rubric() -> list[str]:
@@ -9778,42 +9269,11 @@ def check_pick_choices_match_rubric() -> list[str]:
     generator preserves rather than deletes. Silence about those is deliberate;
     the day one gains a rubric home, this check starts comparing it.
     """
-    import re
+    # A pick menu that has drifted from the rubric is a question the grader
+    # cannot answer.
+    import lo_enforce
 
-    import measured as M
-    import olx_prompts as OP
-
-    out = []
-    for item in sorted(M._jobs()):
-        action = OP.ACTION.get(item)
-        if not action:
-            continue
-        try:
-            tag = OP._sheet_tag(OP.HANDOUT[item], action)
-        except BaseException:
-            continue
-        ms = re.search(r'\bslots="([^"]*)"', tag)
-        mc = re.search(r'\bchoices="([^"]*)"', tag)
-        if not ms:
-            continue
-        sets = OP.parse_choices(mc.group(1) if mc else "")
-        for part in ms.group(1).split("|"):
-            m = re.search(r"pick\(([^)]+)\)", part)
-            if not m:
-                continue
-            slot, setname = part.split(":")[0], m.group(1)
-            want = OP._pick_verdicts(item, slot)
-            if want is None:
-                continue                    # no rubric source: preserved, not a finding
-            have = sets.get(setname) or []
-            if sorted(want) != sorted(have):
-                out.append(
-                    f"{item}/{slot} picks from '{setname}': the rubric declares "
-                    f"{sorted(want)} but the .olx offers {sorted(have)}. The "
-                    f"grader cannot answer what it is not offered -- run "
-                    f"`npm run build:assemble-prompts -- --write` and confirm the checklist head "
-                    f"lists it.")
-    return out
+    return lo_enforce.run("pick_choices_match_rubric", None)
 
 
 def check_no_module_shadow_in_scratchpad() -> list[str]:
@@ -9898,7 +9358,7 @@ def check_closure_ceilings_are_declared() -> list[str]:
     import re
 
     import goals as GO
-    import handouts as H
+    import forms as H
     import measured as M
 
     declared = set(getattr(M, "DECLARED_CEILING_CELLS", {}))
@@ -9963,20 +9423,13 @@ def check_probed_fields_keep_their_text() -> list[str]:
     -- which is the honest state, not a passing grade. It speaks the moment a
     probe is run and its wording is not written down.
     """
-    import probe as PR
+    # PORTED AND SELF-ASSEMBLED (goal K, step 8). A sha detects drift but cannot
+    # reproduce the string a result belongs to. The port also DERIVES the sha-
+    # only count that this body hardcoded as 145, a literal that had drifted
+    # from the file's 146 fields.
+    import lo_enforce
 
-    out = []
-    for r in PR.receipts():
-        key = (r.get("item"), r.get("slot"), "desc")
-        if key not in DESIGNED_TEXT:
-            out.append(
-                f"{r['item']}/{r['slot']}: a probe measured this wording "
-                f"({r['sha']}, verdict {r.get('verdict') or 'none'}) and only its "
-                f"sha is recorded. A sha detects drift; it cannot reproduce the "
-                f"string the result belongs to. Put the text in DESIGNED_TEXT "
-                f"(full text is for fields with evidence; the other 145 stay "
-                f"sha-only by decision)")
-    return out
+    return lo_enforce.run("probed_fields_keep_their_text", None)
 
 
 def check_no_slot_is_both_asked_and_computed() -> list[str]:
@@ -10038,25 +9491,12 @@ def check_every_designed_entry_ships() -> list[str]:
     # prompt -- that is `olx_prompts`' job -- and `enforce/designedText.ts`
     # decides whether the designed wording is in it. An item whose prompt cannot
     # be built is REPORTED there, not skipped.
+    # SELF-ASSEMBLED. E63: python REBUILDS the prompt and the assembler reads
+    # the SHIPPED body, so the payloads differ in reference rendering and
+    # whitespace. Proven immaterial on firing data, not on a clean tree.
     import lo_enforce
-    import olx_prompts as OP
 
-    entries, prompts = [], {}
-    for key in sorted(DESIGNED_TEXT):
-        item, slot, field = key
-        entries.append({"item": item, "slot": slot, "field": field,
-                        "want": DESIGNED_TEXT[key]})
-        if item in prompts:
-            continue
-        try:
-            prompts[item] = OP.build_web_prompt(item)
-        except Exception:
-            pass                          # absent -> reported by the rule
-    if not entries:
-        return ["DESIGNED_TEXT is empty, so no designed wording was checked "
-                "against what ships"]
-    return lo_enforce.run("every_designed_entry_ships",
-                          {"entries": entries, "prompts": prompts})
+    return lo_enforce.run("every_designed_entry_ships", None)
 
 
 
@@ -10141,57 +9581,48 @@ def check_new_slots_were_probed() -> list[str]:
     first time. That is the Q19 shape precisely, and it is the one case where the
     probe is nearly free and the sweep is ~230 calls.
     """
+    # PORTED to `enforce/newSlotsProbed.ts` (goal K).
+    #
+    # WEB SIDE ONLY, which is what made it portable: it reads the `olx` column
+    # and no other. A ledger check is not unportable for being a ledger check;
+    # it is unportable if it touches the PAPER side, which the engine has no
+    # counterpart for -- see `measured.web_sides`.
+    #
+    # PYTHON PASSES WHAT IT READS. The self-test hides the RECEIPTS to prove
+    # this still fires, and a payload the runner rebuilt from disk would not
+    # see that.
     import agreement_app as _A
     import measured as M
     import probe as PR
+    import olx_prompts as O
+    import lo_enforce
 
-    out = []
-    # `agreement_app.JOBS` is the item list every other check in this file uses
-    # (see the `_A.JOBS` sites above); the first cut called a `_jobs()` that does
-    # not exist here and the check died inside its own iteration.
+    asked, seen, probed = {}, {}, {}
     for item in sorted(_A.JOBS):
+        if item not in O.ACTION:
+            continue              # no judging prompt: no answerable slot to probe
         try:
-            import olx_prompts as O
-
-            if item not in O.ACTION:
-                continue          # no judging prompt: no answerable slot to probe
-            asked = set(PR._entries(O.build_web_prompt(item)))
+            asked[item] = sorted(PR._entries(O.build_web_prompt(item)))
         except Exception:
             continue
-        # WHICH SLOTS THE LAST RECORDING ACTUALLY SAW, read from the artifact.
-        # The first cut read `rec["cells"][pid]["slots"]`, and a `cells` entry is
-        # an INT -- the run count -- so the set was always empty and the check
-        # was inert while reporting clean. A check that has never fired is worth
-        # nothing; this one is fire-tested by hiding the receipts.
-        seen = set()
-        # THE WEB SIDE IS `olx`. This read ("python", "olx") when there were
-        # two web columns; the python one was eliminated in goal O.
-        for side in ("olx",):
+        names = set()
+        # THE WEB SIDE IS `olx`, taken from the contract rather than spelled.
+        for side in M.web_sides():
             try:
                 doc = M._runs_doc(item, side)
             except Exception:
                 continue
-            # `_runs_doc` RETURNS None for an item with nothing recorded on this
-            # side rather than raising, so the except above never sees it and
-            # `.get` raised AttributeError -- which the runner reports as "the
-            # check itself raised", i.e. as coverage that is not there.
             if not doc:
-                continue
+                continue          # nothing recorded on this side
             for run in doc.get("runs") or []:
                 for c in run.get("results") or []:
-                    seen |= set(c.get("checks") or c.get("verdicts") or {})
-                    seen |= set(c.get("answers") or c.get("refers_to") or {})
-        if not seen:
-            continue                      # never recorded: nothing to compare
-        probed = {r["slot"] for r in PR.receipts(item)}
-        for slot in sorted(asked - seen - probed):
-            out.append(
-                f"{item}/{slot} is an answerable slot the last recording never "
-                f"saw and no probe has ever asked. A new question costs ~30 calls "
-                f"to probe standalone and ~230 to learn from a sweep: "
-                f"`python3 probe.py {item} {slot}` (QUALITY_CONTROL.md 2a)")
-    return out
+                    names |= set(c.get("checks") or c.get("verdicts") or {})
+                    names |= set(c.get("answers") or c.get("refers_to") or {})
+        seen[item] = sorted(names)
+        probed[item] = sorted({r["slot"] for r in PR.receipts(item)})
 
+    return lo_enforce.run("new_slots_were_probed",
+                          {"asked": asked, "seen": seen, "probed": probed})
 
 def check_probe_receipts_match_shipping() -> list[str]:
     """A probe was run, read, and acted on -- and the string it asked no longer
@@ -10216,33 +9647,46 @@ def check_probe_receipts_match_shipping() -> list[str]:
     a reverted slot's probe is stale by definition, and the entry should be
     dropped rather than left to look like evidence for the next attempt.
     """
+    # PORTED to `enforce/probeReceiptsShipping.ts` (goal K), together with
+    # `probe.question_for` and `_derivation` as `enforce/probeQuestion.ts` --
+    # measured identical on all 116 credit slots, asked, derived and composite.
+    #
+    # PYTHON PASSES ITS OWN REFUSALS. `question_for` RAISES for a slot nothing
+    # asks, and the message is the finding: it distinguishes "no grader of any
+    # kind for a scored criterion" from "not on this sheet at all". Recomputing
+    # that text on the other side would be a second copy of a judgement, so it
+    # travels with the payload.
     import probe as PR
+    import olx_prompts as O
+    import lo_enforce
 
-    out = []
-    for r in PR.receipts():
-        item, slot, was = r.get("item"), r.get("slot"), r.get("sha")
+    receipts, refusals = [], {}
+    prompts = {i: O.build_web_prompt(i) for i in sorted(O.ACTION)}
+    tags = {}
+    for i in sorted({**O.ACTION, **O.SHEET_ONLY}):
         try:
-            now = PR.question_for(item, slot)
+            tags[i] = O._sheet_tag(O.FORM[i], O.sheet_id(i))
+        except BaseException:
+            continue
+    aliases = {}
+    for r in PR.receipts():
+        item, slot = r.get("item"), r.get("slot")
+        receipts.append({"item": item, "slot": slot, "sha": r.get("sha"),
+                         "verdict": r.get("verdict") or "(none)"})
+        aliases[slot] = PR._slot_aliases(slot)
+        try:
+            PR.question_for(item, slot)
         except LookupError as e:
-            out.append(
-                f"{item}/{slot}: a probe recorded verdict "
-                f"{r.get('verdict') or '(none)'} on a slot that is no longer "
-                f"asked -- {str(e).splitlines()[0]}. Drop the receipt or rebuild "
-                f"the slot; it is not evidence for the next attempt")
-            continue
+            refusals[f"{item}|{slot}"] = str(e).splitlines()[0]
         except Exception as e:
-            out.append(f"{item}/{slot}: the receipt could not be checked -- "
-                       f"{type(e).__name__}: {e}")
-            continue
-        if now["sha"] != was:
-            out.append(
-                f"{item}/{slot}: PROBED {was}, SHIPS {now['sha']} -- the probe "
-                f"answered a different question from the one the sweep will ask, "
-                f"which is what cost the Q19 sweep. Re-probe the shipping string "
-                f"(`python3 probe.py {item} {slot}`) before spending calls, or "
-                f"restore the text that was probed")
-    return out
+            refusals[f"{item}|{slot}"] = f"{type(e).__name__}: {e}"
 
+    return lo_enforce.run("probe_receipts_match_shipping", {
+        "prompts": prompts, "tags": tags, "aliases": aliases,
+        "answeredUnder": {f"{k[0]}|{k[1]}": list(v)
+                          for k, v in PR.ANSWERED_UNDER.items()},
+        "receipts": receipts, "refusals": refusals,
+    })
 
 def check_shipped_text_matches_design() -> list[str]:
     """A slot whose live text differs from the wording its subgoal designed.
@@ -10256,35 +9700,40 @@ def check_shipped_text_matches_design() -> list[str]:
     rather than from memory. What is refused is a slot that EXISTS and says
     something else.
     """
-    import handouts as H
-    out: list[str] = []
-    for (item, slot, field), want in sorted(DESIGNED_TEXT.items()):
-        spec = None
-        for h in _forms():
-            try:
-                spec = H.config(h)["rubric"].BY_ID.get(item)
-            except Exception:
-                continue
-            if spec:
-                break
-        if not spec:
-            continue
-        got = next((c.get(field) for c in (spec.get("credit") or [])
-                    if c.get("what") == slot), None)
-        if got is None:
-            continue                      # designed, not yet built -- not a fault
-        norm = lambda x: re.sub(r"\s+", " ", str(x)).strip()
-        if norm(got) == norm(want):
-            continue
-        w, g = norm(want), norm(got)
-        i = next((n for n, (a, b) in enumerate(zip(w, g)) if a != b), min(len(w), len(g)))
-        out.append(
-            f"{item}/{slot}.{field} SHIPS text its subgoal did not design. "
-            f"First divergence at char {i}:\n"
-            f"        designed: ...{w[max(0, i - 40):i + 60]!r}\n"
-            f"        shipped : ...{g[max(0, i - 40):i + 60]!r}")
-    return out
+    # PORTED to `enforce/shippedTextMatchesDesign.ts` (goal K).
+    #
+    # PYTHON PASSES WHAT IT READS rather than letting the runner assemble from
+    # `course.json`. The record is exported FROM `DESIGNED_TEXT`, so the two
+    # agree until somebody registers a design and does not re-export -- and the
+    # one moment this check most needs to be right is the moment a design is
+    # being registered. The assembler stays for a native caller, which has no
+    # python table to read and no such window.
+    import forms as H
+    import lo_enforce
 
+    credit: dict[str, list[dict]] = {}
+    for h in _forms():
+        try:
+            by_id = H.config(h)["rubric"].BY_ID
+        except Exception:
+            continue
+        for item, spec in by_id.items():
+            if item in credit:
+                continue                  # the FIRST form that carries it wins
+            credit[item] = [
+                {"what": c.get("what"),
+                 # EVERY FIELD BY NAME. `DESIGNED_TEXT` is keyed by (item, slot,
+                 # field) and `field` is whatever the design named, so narrowing
+                 # this to the fields this function happens to know about would
+                 # make an unrecognised one read as "designed, not yet built".
+                 "attrs": {k: v for k, v in c.items() if isinstance(v, str)}}
+                for c in (spec.get("credit") or [])]
+
+    return lo_enforce.run("shipped_text_matches_design", {
+        "designed": [{"item": it, "slot": slot, "field": field, "want": want}
+                     for (it, slot, field), want in sorted(DESIGNED_TEXT.items())],
+        "credit": credit,
+    })
 
 def check_verdict_paths_drop_excluded_cells() -> list[str]:
     """A cell excluded from the RATE must not appear in a REVERT decision.
@@ -10314,7 +9763,7 @@ def check_verdict_paths_drop_excluded_cells() -> list[str]:
     """
     import contextlib
     import io
-    import handouts as H
+    import forms as H
     out: list[str] = []
     try:
         import sweep_readout as SR
@@ -10377,18 +9826,13 @@ def check_maps_tables_are_attached() -> list[str]:
     # returned [] for the only reason that never counts: it was incapable of
     # returning anything else. Found by writing the fire test the port requires.
     # The rubric is identified by its HANDOUT now, which the view order gives.
+    # SELF-ASSEMBLED. Subgoal E63: the runner builds this payload, and the
+    # assembler was proven to build what python built -- payload-identical, or
+    # order-only with the finding SET shown unchanged on data mutated until
+    # the rule fires. `runner.SELF_ASSEMBLING` is that cleared list.
     import lo_enforce
 
-    entries = []
-    for h, mod in zip(_forms(), _rubric_views()):
-        maps = getattr(mod, "MAPS", None) or {}
-        by_id = getattr(mod, "BY_ID", None) or {}
-        for item in sorted(maps):
-            spec = by_id.get(item)
-            entries.append({"handout": h, "item": item,
-                            "inSpec": spec is not None,
-                            "attached": bool(spec and "maps" in spec)})
-    return lo_enforce.run("maps_tables_are_attached", {"entries": entries})
+    return lo_enforce.run("maps_tables_are_attached", None)
 
 
 
@@ -10426,60 +9870,21 @@ def check_mapped_slots_have_no_unreachable_verdict() -> list[str]:
     `WGB_NOT_OPPOSITE` with `absent`, is never named in the slot's rule or desc,
     and cannot be reached from the pick. It is a duplicate the app can still pick.
     """
-    out: list[str] = []
-    for item, mod, spec in _maps_specs():
-        slot = next((c for c in (mod.BY_ID.get(item, {}).get("credit") or [])
-                     if c.get("what") == spec["key"]), None)
-        if not slot:
-            continue
-        # THE SHEET IS THE AUTHORITY ON WHAT THE GRADER MAY ANSWER, not the
-        # rubric. Subgoal E52: this line read `slot["verdicts"]` and that hole
-        # let the exact fault it was built for survive a whole sweep. On
-        # 2026-09-06 `unclear` was dropped from Q2's RUBRIC list, this check went
-        # clean, and the SHEET still declared `wgb_inverts_utb:...:unclear@2`, so
-        # the grader kept answering it -- five divergences, at an IDENTICAL
-        # prompt_sha, with the audit reporting nothing. A check that reads the
-        # side the grader does not see is checking the wrong document.
-        # E27's helper, not a second copy. `_olx_slot_verdicts` returns only the
-        # EXTRA verdict the sheet spells out (met/absent are implicit), so the
-        # offered set is that plus the two. A duplicate reader was written here
-        # first and deleted: two functions answering "what does the sheet offer"
-        # is how the rubric and the sheet came to disagree in the first place.
-        extra = _olx_slot_verdicts(item, spec["key"])
-        offered = ({"met", "absent"} | set(extra)) if extra else None
-        emits = _maps_emits(spec)
-        # A DECLARED COUNTERPART IS NOT AN ORPHAN. Subgoal E27 established that
-        # the two engines' verdict vocabularies differ BY DESIGN and recorded
-        # every pair in VERDICT_SPACE_DIVERGENCES. Q4a's sheet offers
-        # `wrong_kind` where its map emits `not_antecedent`, and the table says
-        # in as many words: "Counterparts on Q4a's antecedent_1/antecedent_2".
-        # The engines charge at nearly the same rate -- 39 against 44 over the
-        # same runs -- so they agree on the judgement and differ on the name.
-        # The first version of this line reported that as a fault, which is the
-        # false-positive class this whole family keeps falling into: a naive
-        # rubric-vs-sheet comparison reports 39 mismatches of which about 37 are
-        # E27's design.
-        for web, paper in VERDICT_SPACE_DIVERGENCES:
-            if emits & set(paper):
-                emits = emits | set(web)
-            if emits & set(web):
-                emits = emits | set(paper)
-        orphan = (offered if offered is not None
-                  else set(slot.get("verdicts") or [])) - emits
-        if not orphan:
-            continue
-        codes = slot.get("codes") or {}
-        dup = [v for v in sorted(orphan)
-               if v in codes and list(codes.values()).count(codes[v]) > 1]
-        out.append(
-            f"{item}/{spec['key']} offers verdict(s) {sorted(orphan)} that "
-            f"MAPS cannot emit (it produces {sorted(_maps_emits(spec))} from "
-            f"`{spec['pick']}`). The grader can answer that and the map has no "
-            f"rule for it. "
-            + (f"{dup} duplicate(s) another verdict's deduction code, so removing "
-               f"them is score-neutral by construction. " if dup else "")
-            + "Give the map a pair or fallback for it, or drop it from the slot")
-    return out
+    # THE RULE LIVES IN LO-BLOCKS NOW. Goal K: python reads the slot, what the
+    # SHEET offers and what the map emits; `enforce/mappedVerdicts.ts` decides.
+    # The sheet is the authority on what the grader may answer -- subgoal E52,
+    # where reading the RUBRIC's list instead let the exact fault this check was
+    # built for survive a whole sweep.
+    #
+    # PROVEN WITH A CONTROL: with the counterpart declarations stripped, both
+    # sides reported the SAME 2 findings in the same order.
+    # SELF-ASSEMBLED. E63: identical once python stopped conflating "the
+    # sheet was not found" with "the sheet offers nothing extra" -- see
+    # `_olx_slot_verdicts`, and subgoal E52 for why the distinction matters.
+    import lo_enforce
+
+    return lo_enforce.run("mapped_slots_have_no_unreachable_verdict", None)
+
 
 
 def _same_verdict(a, b) -> bool:
@@ -10802,7 +10207,7 @@ def check_mapped_slots_agree_with_their_map() -> list[str]:
 # mirror, since the mirror does not produce feedback at all.
 # Keep this table small, and require the two facts that make the claim checkable:
 # the slot carries NO points, and something in the generator consumes it.
-ONE_SIDED_SCORED_SLOTS_BUDGET = 0
+ONE_SIDED_SCORED_SLOTS_BUDGET = _budget("ONE_SIDED_SCORED_SLOTS_BUDGET")
 
 # Subgoal E53. Slots where the two engines score the SAME judgement through a
 # different DECOMPOSITION -- one enumerates per item, the other counts -- so
@@ -10903,42 +10308,11 @@ def check_sheet_slots_reach_the_rubric() -> list[str]:
     defines. Whether that is dead weight in the prompt or a check the mirror is
     missing is a disposition this check does not make -- it reports.
     """
-    import re
-    import olx_prompts as O
+    # A slot the sheet asks and no rubric element defines is a question the
+    # scorer never reads.
+    import lo_enforce
 
-    out: list[str] = []
-    for item_id, action in sorted(O.ACTION.items()):
-        if item_id in _criteria_derived():
-            continue
-        try:
-            src = O._src(O.HANDOUT[item_id])
-        except Exception:
-            continue
-        m = re.search(O._ACTION_RE % re.escape(action), src, re.S)
-        if not m:
-            continue
-        spec = re.search(r'\bslots="([^"]*)"', m.group(1))
-        if not spec:
-            continue
-        have = [s.split(":")[0].lstrip("!").strip()
-                for s in spec.group(1).split("|") if s.strip()]
-        mod = _rubric_module(item_id)
-        if mod is None:
-            continue
-        rubric = {c.get("what") for c in (mod.BY_ID.get(item_id, {}).get("credit") or [])}
-        for key in have:
-            if key == "confident" or key in rubric:
-                continue
-            if (item_id, key) in APP_ONLY_SLOTS:
-                continue
-            if any(web_name(r, set(have)) == key for r in rubric):
-                continue
-            out.append(
-                f"{item_id}/{key} is asked by the SHEET and defined by no rubric "
-                f"element, so the app puts a question to the grader that the "
-                f"python scorer never reads. Wire it into the rubric, remove it "
-                f"from the sheet, or declare it as deliberately app-only")
-    return out
+    return lo_enforce.run("sheet_slots_reach_the_rubric", None)
 
 
 def check_rubric_slots_reach_the_sheet() -> list[str]:
@@ -10969,62 +10343,11 @@ def check_rubric_slots_reach_the_sheet() -> list[str]:
     in the SLOT LIST, and a guard that cannot tell them apart certifies the fault
     it exists to stop.
     """
-    import re
-    import olx_prompts as O
+    # A rubric slot the sheet never asks for is a rule pointing at an answer
+    # that cannot exist.
+    import lo_enforce
 
-    out: list[str] = []
-    # ALL TWENTY-SIX ITEMS, AND THE PREPARED READER. This iterated `O.ACTION`,
-    # which is 23 -- so 1b, T1 and T2, the SHEET_ONLY items that carry a slot
-    # sheet without an LLMAction, were never reconciled in either direction.
-    # equivalence.py has always used `{**ACTION, **SHEET_ONLY}` for exactly this
-    # reason. Checked by hand when the gap was found on 2026-09-09: all three
-    # match exactly (1b's four `*_data` slots, T1/T2's `type_stated`), so nothing
-    # was hiding there -- the gap was latent, and closing it keeps it that way.
-    #
-    # `_slots_attr` + `parse_slots` rather than a local regex over the source:
-    # it is the reader `build_web_prompt` uses, it resolves an action id and a
-    # sheet id alike, and a hand-rolled `slots="..."` search cannot read the
-    # sheet-only form at all.
-    for item_id, action in sorted({**O.ACTION, **O.SHEET_ONLY}.items()):
-        try:
-            have = {s["key"] for s in O.parse_slots(
-                *O._slots_attr(O.HANDOUT[item_id], action))}
-        except Exception:
-            continue
-        if not have:
-            continue
-        mod = _rubric_module(item_id)
-        if mod is None:
-            continue
-        for c in (mod.BY_ID.get(item_id, {}).get("credit") or []):
-            key = c.get("what")
-            if not key or key in have:
-                continue
-            # A SLOT WITH NO VERDICT LIST IS NOT ANSWERED, IT IS COMPUTED.
-            # `is_operant_conditioning`, `is_nr` and their kin carry `pts` and no
-            # `verdicts`: the engine derives them from the sub-checks and no
-            # grader ever sees them, so their absence from `slots=` is the
-            # design. Only a slot the model must ANSWER can be missing from the
-            # list in the sense this check means.
-            if not c.get("verdicts"):
-                continue
-            # A CLI SLOT NEED NOT CARRY ITS WEB NAME. `is_operant_conditioning`,
-            # `is_nr` and their kin are rubric-side composites that reach the
-            # sheet under other names, and ALIAS is the authority on which. A
-            # first version of this check skipped that and reported twelve
-            # findings, ten of them slots that DO reach the sheet -- a check
-            # whose false positives outnumber its true ones gets suppressed, and
-            # then the one real finding goes with it.
-            if web_name(key, have):
-                continue
-            out.append(
-                f"{item_id}/{key} is a rubric slot with NO entry in the sheet's "
-                f"`slots=` list, so the grader is never asked to answer it. Any "
-                f"rule naming it -- and the generator will write those rules into "
-                f"the prompt -- points at an answer that cannot exist. Add it to "
-                f"`slots=` (with its label, and a `pick(group)` if it takes one), "
-                f"or remove it from the rubric")
-    return out
+    return lo_enforce.run("rubric_slots_reach_the_sheet", None)
 
 
 def _rubric_views():
@@ -11040,7 +10363,7 @@ def _rubric_views():
     There were FIVE paths to the rubric in this codebase and I found them one
     failure at a time. This is the fourth; `_rubric_module` was the third.
     """
-    import handouts as _H
+    import forms as _H
 
     return tuple(_H.config(h)["rubric"] for h in _forms())
 
@@ -11050,17 +10373,17 @@ def _rubric_module(item_id: str):
 
     A VIEW ONTO THE COURSE FILE, not the `rubric_h*` module. This imported the
     modules directly, which made it a THIRD path to the rubric alongside the
-    `import` statements and `handouts.config(h)["rubric"]` -- and the one that
+    `import` statements and `forms.config(h)["rubric"]` -- and the one that
     kept the self-test's injections working after the other two moved. Popping
     `cover` through the view changed nothing the checks using this function
     could see, so the case would have reported VACUOUS: an injection that lands
     somewhere nothing reads.
     """
-    import handouts as _H
+    import forms as _H
 
-    for handout in _forms():
+    for form in _forms():
         try:
-            view = _H.config(handout)["rubric"]
+            view = _H.config(form)["rubric"]
         except Exception:
             continue
         if item_id in getattr(view, "BY_ID", {}):
@@ -11106,25 +10429,12 @@ def check_no_case_names_in_prompts() -> list[str]:
     # six fixtures -- including the two details the python regex got right and
     # a naive port gets wrong: a `p10` inside a corpus-reference PATH, and a
     # three-digit run no cohort of twenty can contain.
+    # SELF-ASSEMBLED. E63: python REBUILDS the prompt and the assembler reads
+    # the SHIPPED body, so the payloads differ in reference rendering and
+    # whitespace. Proven immaterial on firing data, not on a clean tree.
     import lo_enforce
 
-    try:
-        import olx_prompts as _O
-    except Exception:
-        return []
-    prompts = []
-    for item_id in sorted(getattr(_O, "ACTION", {})):
-        try:
-            prompts.append({"item": item_id,
-                            "text": _O.build_web_prompt(item_id, {})})
-        except Exception:
-            continue
-    if not prompts:
-        # NOT SILENCE. No prompt assembled means the check did not look at
-        # anything, which is the one answer it must never render as clean.
-        return ["no shipped prompt could be assembled, so no prompt was "
-                "checked for cohort case names"]
-    return lo_enforce.run("no_case_names_in_prompts", {"prompts": prompts})
+    return lo_enforce.run("no_case_names_in_prompts", None)
 
 
 def check_count_scaffolds_are_arithmetic() -> list[str]:
@@ -11655,40 +10965,34 @@ def check_written_rules_reach_the_shipped_prompt() -> list[str]:
     a long line either matches exactly or has drifted. Only the lower bound is
     kept, to skip markup.
     """
+    # PORTED to `enforce/writtenRulesShipped.ts` (goal K).
+    #
+    # NARROWED TO THE WEB SIDES, which is the split applied at this call site
+    # rather than a new idea: a PAPER recording is not invalidated by the web
+    # prompt drifting, because the paper scorer never sees it. Measured before
+    # changing it -- 26 items recorded on any side, 26 on the web, none on
+    # paper alone -- so the set is the same today and the intent is now stated
+    # instead of inferred.
     import olx_prompts as _OP
     import measured as _M
+    import lo_enforce
 
-    out: list[str] = []
     try:
-        recorded = {it for side in _M.SIDES for it in _M.records(side)}
+        recorded = sorted({it for side in _M.web_sides() for it in _M.records(side)})
     except Exception as exc:                      # pragma: no cover
         return [f"cannot read the ledger to find recorded items ({type(exc).__name__}: {exc})"]
 
+    prompts, shipped = {}, {}
     for item in sorted(_OP.ACTION):
-        if item not in recorded:
-            continue                              # no number to invalidate
         try:
-            h = _M._jobs()[item]["handout"]
-            want = _OP.build_web_prompt(item)
-            shipped = _OP._src(h)
+            prompts[item] = _OP.build_web_prompt(item)
+            shipped[item] = _OP._src(_M._jobs()[item]["handout"])
         except Exception:
-            continue                              # SHEET_ONLY items and the like
-        # Long enough to be prose rather than markup, and never a <Ref>, whose
-        # text the server substitutes per student. NO UPPER BOUND -- see the note
-        # in the docstring; a rule is one line and capping at 130 silenced this.
-        lines = [ln.strip() for ln in want.split("\n")
-                 if len(ln.strip()) > 40
-                 and "REF:" not in ln and "<Ref" not in ln]
-        missing = [ln for ln in lines if ln not in shipped]
-        if missing:
-            out.append(
-                f"{item}: the rubric generates {len(missing)} prompt line(s) the "
-                f"shipped .olx does not carry, so its recorded number describes a "
-                f"prompt the rubric has moved past. Deliver it with "
-                f"`npm run build:assemble-prompts -- --write`, re-dump the idmap, and sweep. "
-                f"First missing line: {missing[0][:90]!r}")
-    return out
-
+            prompts.pop(item, None)               # SHEET_ONLY items and the like
+            continue
+    return lo_enforce.run("written_rules_reach_the_shipped_prompt",
+                          {"prompts": prompts, "shipped": shipped,
+                           "recorded": recorded})
 
 def check_gold_is_read_by_item() -> list[str]:
     """Reading gold for an ITEM must derive the handout, not name it.
@@ -11710,7 +11014,7 @@ def check_gold_is_read_by_item() -> list[str]:
          by asking for an item no sheet grades.
 
     And the hand-rolled `{1: load_h1, 2: load_h2, 3: load_h3}[h]` sites are held
-    to HANDOUT_KEYED_GOLD_READERS, so a new one has to say why it is not using
+    to FORM_KEYED_GOLD_READERS, so a new one has to say why it is not using
     the accessor. Several existing sites are legitimate -- they are handed a
     handout, or sweep all three -- which is why this is a declared allowlist and
     not a ban.
@@ -11729,7 +11033,7 @@ def check_gold_is_read_by_item() -> list[str]:
     for item in sorted(jobs):
         h = jobs[item].get("handout")
         try:
-            graded = M._handout_gold_items(h)
+            graded = M._form_gold_items(h)
         except Exception as e:
             bad.append(f"handout {h} (item {item}): gold sheet unreadable: "
                        f"{type(e).__name__}: {e}")
@@ -11772,14 +11076,14 @@ def check_gold_is_read_by_item() -> list[str]:
             continue          # gold.py, which DEFINES them
         if len(set(pat.findall(src))) < 2:
             continue          # single-handout reference; nothing to pick
-        if mod in HANDOUT_KEYED_GOLD_READERS:
+        if mod in FORM_KEYED_GOLD_READERS:
             continue
-        if any(k.startswith(mod + ".") for k in HANDOUT_KEYED_GOLD_READERS):
+        if any(k.startswith(mod + ".") for k in FORM_KEYED_GOLD_READERS):
             continue
         bad.append(
             f"{mod} picks a gold loader by handout number. Use "
             f"measured.gold_cell(item, pid), which derives the handout, or "
-            f"declare {mod} in HANDOUT_KEYED_GOLD_READERS with why the handout "
+            f"declare {mod} in FORM_KEYED_GOLD_READERS with why the form "
             f"is not coming from an item")
     return bad
 
@@ -11812,22 +11116,32 @@ def check_no_cell_is_both_corrected_and_declared() -> list[str]:
     # THE RULE LIVES IN LO-BLOCKS NOW. Goal K. The two tables are course data;
     # the rule that one cell may not be both corrected and diverged-from is
     # generic. Python reads the tables, `enforce/goldTables.ts` judges.
+    # SELF-ASSEMBLED. Subgoal E63: the runner builds this payload, and the
+    # assembler was proven to build what python built -- payload-identical, or
+    # order-only with the finding SET shown unchanged on data mutated until
+    # the rule fires. `runner.SELF_ASSEMBLING` is that cleared list.
     import lo_enforce
-    import handouts as H
 
-    corrected = [{"item": c[0], "pid": c[1],
-                  "was": (H.CORRECTED_GOLD[c] or {}).get("was"),
-                  "score": (H.CORRECTED_GOLD[c] or {}).get("score")}
-                 for c in sorted(getattr(H, "CORRECTED_GOLD", {}) or {})]
-    divergences = [{"code": (d or {}).get("code"),
-                    "cells": [list(c) for c in ((d or {}).get("cells") or ())]}
-                   for d in (getattr(H, "GOLD_DIVERGENCES", []) or [])]
-    if not corrected and not divergences:
-        # NOT SILENCE. Both tables empty means nothing was compared.
-        return ["neither CORRECTED_GOLD nor GOLD_DIVERGENCES could be read, so "
-                "no cell was checked for being booked in both"]
-    return lo_enforce.run("no_cell_is_both_corrected_and_declared",
-                          {"corrected": corrected, "divergences": divergences})
+    # PYTHON KEEPS THE FETCH. Self-assembly reads this from DISK; the
+    # self-test injects into the IN-MEMORY table and forks, so a rebuilt
+    # payload cannot see it and the case goes silent. Measured 2026-09-26.
+    import forms as _H_gold
+    import lo_enforce
+
+    # READ THROUGH THE MODULE, not through a name bound at import time: the
+    # self-test mutates `forms.GOLD_DIVERGENCES`, and a local alias captured
+    # earlier would be a different object on the day one of these is reassigned
+    # rather than mutated in place.
+    return lo_enforce.run("no_cell_is_both_corrected_and_declared", {
+        "corrected": sorted(
+            [{"item": c[0], "pid": c[1],
+              "was": v.get("was"), "score": v.get("score")}
+             for c, v in _H_gold.CORRECTED_GOLD.items()],
+            key=lambda e: f"{e['item']}{e['pid']}"),
+        "divergences": [{"code": d.get("code"),
+                         "cells": [list(c) for c in d.get("cells") or []]}
+                        for d in _H_gold.GOLD_DIVERGENCES],
+    })
 
 
 
@@ -11859,8 +11173,15 @@ def check_no_declaration_cites_a_suspect_cell() -> list[str]:
     the cell as suspect or excluded is allowed -- that is an entry recording the
     rule rather than breaking it, which this very entry now does.
     """
-    import handouts as H
+    # PORTED to `enforce/suspectCellCitation.ts` (goal K).
+    #
+    # PYTHON KEEPS THE FETCH. The self-test injects by appending a citation to a
+    # live `CORRECTED_GOLD` entry IN MEMORY and forking; a payload the runner
+    # rebuilt from `gold.json` on disk would not see it, and the check would
+    # report clean while the condition it exists for was present.
+    import forms as H
     import measured as M
+    import lo_enforce
 
     home_of: dict[str, int] = {}
     for hnd in _forms():
@@ -11874,51 +11195,28 @@ def check_no_declaration_cites_a_suspect_cell() -> list[str]:
                     home_of.setdefault(str(iid), hnd)
         except Exception:
             continue
-    suspect = {hnd: set(H.suspect(hnd)) for hnd in _forms()}
 
-    def cited(why: str, home: str) -> set[tuple[str, int]]:
-        out: set[tuple[str, int]] = set()
-        for sent in re.split(r"(?<=[.!?;])\s+", str(why or "")):
-            if re.search(r"suspect|exclud", sent, re.I):
-                continue           # naming the rule, not leaning on the cell
-            for it, pid in re.findall(r"\b([A-Za-z][\w]*)\s*/\s*p(\d+)\b", sent):
-                out.add((it, int(pid)))
-            bare = re.sub(r"\b[A-Za-z][\w]*\s*/\s*p\d+\b", " ", sent)
-            for pid in re.findall(r"\bp(\d+)\b", bare):
-                out.add((home, int(pid)))
-        return out
-
-    entries: list[tuple[str, str, str, str]] = []      # table, label, home, why
+    entries: list[dict] = []
     for (it, pid), v in getattr(H, "CORRECTED_GOLD", {}).items():
-        entries.append(("handouts.CORRECTED_GOLD", f"{it}/p{pid}", it,
-                        (v or {}).get("why", "")))
+        entries.append({"table": "forms.CORRECTED_GOLD", "label": f"{it}/p{pid}",
+                        "home": str(it), "why": (v or {}).get("why", "")})
     for d in getattr(H, "GOLD_DIVERGENCES", []):
         cells = list((d or {}).get("cells") or [])
         home = str(cells[0][0]) if cells else ""
-        label = (d or {}).get("code") or (home or "?")
-        entries.append(("handouts.GOLD_DIVERGENCES", str(label), home,
-                        (d or {}).get("why", "")))
+        entries.append({"table": "forms.GOLD_DIVERGENCES",
+                        "label": str((d or {}).get("code") or (home or "?")),
+                        "home": home, "why": (d or {}).get("why", "")})
     for name in ("GOLD_SLOT_DISAGREEMENTS_KNOWN", "GOLD_SLOT_BOUNDS_KNOWN",
                  "GOLD_CODE_KNOWN"):
         for (it, pid), why in (getattr(M, name, {}) or {}).items():
-            entries.append((f"measured.{name}", f"{it}/p{pid}", it, why))
+            entries.append({"table": f"measured.{name}", "label": f"{it}/p{pid}",
+                            "home": str(it), "why": why})
 
-    out: list[str] = []
-    for table, label, home, why in entries:
-        for it, pid in sorted(cited(why, home)):
-            hnd = home_of.get(it)
-            if hnd is None or pid not in suspect.get(hnd, ()):
-                continue
-            out.append(
-                f"{table} `{label}` argues from {it}/p{pid}, which "
-                f"`handouts.suspect({hnd})` drops because its transcription "
-                f"cannot be trusted. A suspect cell is evidence for nothing in "
-                f"either direction, so this reasoning has a hole in it: either "
-                f"find the argument that does not need it, or say inside the "
-                f"citing sentence that the cell is suspect and why it is being "
-                f"named anyway.")
-    return out
-
+    return lo_enforce.run("no_declaration_cites_a_suspect_cell", {
+        "entries": entries,
+        "homeOf": home_of,
+        "suspect": {str(hnd): sorted(H.suspect(hnd)) for hnd in _forms()},
+    })
 
 def check_every_wrong_cell_has_an_owner() -> list[str]:
     """A cell we score wrong that no open subgoal and no declaration accounts for.
@@ -11961,14 +11259,14 @@ def check_every_wrong_cell_has_an_owner() -> list[str]:
 
 
 def check_gold_tables_have_no_duplicate_keys(src: str | None = None) -> list[str]:
-    """A key written twice in one of handouts.py's declaration tables.
+    """A key written twice in one of forms.py's declaration tables.
 
     Same failure as `check_consensus_fixes_have_no_duplicate_cells`, on the
     tables that decide what a cell is measured against: GOLD_CEILINGS,
     CORRECTED_GOLD and PER_ITEM_EXCLUDE.
 
     THE HAZARD MOVED WITH THE TABLES AND DID NOT GO AWAY. They were dict
-    LITERALS in handouts.py, so Python resolved a repeated key before any check
+    LITERALS in forms.py, so Python resolved a repeated key before any check
     ran — the later entry won and the earlier vanished, invisible in the loaded
     dict and findable only in the source. Since C1b they live in the gold file
     as `{"__dict__": [[key, value], ...]}` pair-lists, and a pair-list carries
@@ -11988,76 +11286,11 @@ def check_gold_tables_have_no_duplicate_keys(src: str | None = None) -> list[str
     real ceiling, so nothing looked wrong: the file simply carried two accounts
     of one phenomenon and served whichever came last.
     """
-    import json
-    import os
+    # A duplicate key is one account silently doing nothing; only the raw text
+    # sees it.
+    import lo_enforce
 
-    # `src` is overridable for the same reason `_CONSENSUS_SOURCE` is: a check
-    # that cannot be pointed at a deliberately broken copy has never been shown
-    # to detect anything.
-    import coursedata
-
-    src = src or coursedata.gold_path()
-
-    # CAUGHT DURING THE PARSE, because afterwards there is nothing to catch.
-    # Two of these three are tuple-keyed and reach the file as `__dict__`
-    # pair-lists, where a repeat is still visible in the list. The third,
-    # PER_ITEM_EXCLUDE, has plain string keys and is written as a JSON OBJECT --
-    # and `json.load` resolves a repeated key exactly as a dict literal does,
-    # last-one-wins, before any check can look. An `object_pairs_hook` is the
-    # only place the duplicate still exists, so the detection has to happen
-    # there. This is the same defect the check was written for, one encoding
-    # further down; moving the tables to JSON did not fix it, it hid it.
-    dupes = []
-
-    def _hook(pairs):
-        seen = set()
-        for k, _v in pairs:
-            if k in seen:
-                dupes.append(k)
-            seen.add(k)
-        return dict(pairs)
-
-    try:
-        doc = json.load(open(src), object_pairs_hook=_hook)
-    except Exception as exc:                    # pragma: no cover
-        return [f"cannot read the gold file at {src}: {exc}"]
-
-    WANT = ("GOLD_CEILINGS", "CORRECTED_GOLD", "PER_ITEM_EXCLUDE")
-    problems = []
-    for key in sorted(set(dupes)):
-        problems.append(
-            f"the gold file has TWO entries keyed {key!r} in one object. "
-            f"`json.load` keeps only the last, so the other is silently doing "
-            f"nothing — merge them, because two accounts of one ceiling read as "
-            f"two ceilings")
-    for name in WANT:
-        raw = doc.get("declarations", {}).get(name)
-        if raw is None:
-            problems.append(f"{name} is not in the gold file at all")
-            continue
-        pairs = (raw["__dict__"] if isinstance(raw, dict) and set(raw) == {"__dict__"}
-                 else raw if isinstance(raw, list)
-                 and all(isinstance(p, list) and len(p) == 2 for p in raw)
-                 else None)
-        if pairs is None:
-            continue                # a plain object; the parse hook covered it
-        seen = set()
-        for k, _v in pairs:
-            # THE KEY IS TAGGED TOO. Inside a `__dict__` pair-list a tuple key is
-            # `{"__tuple__": [...]}`, not a bare list, so eyeballing it gives an
-            # unhashable dict. `_detag` is the one decoder.
-            kk = coursedata._detag(k)
-            if isinstance(kk, list):
-                kk = tuple(kk)
-            if kk in seen:
-                problems.append(
-                    f"{name} has TWO entries for {kk}. Only the last survives "
-                    f"decoding, so the other is silently doing nothing — merge "
-                    f"them, because two accounts of one ceiling read as two "
-                    f"ceilings")
-            seen.add(kk)
-
-    return problems
+    return lo_enforce.run("gold_tables_have_no_duplicate_keys", None)
 
 
 def check_corrected_gold_matches_the_sheet() -> list[str]:
@@ -12073,47 +11306,41 @@ def check_corrected_gold_matches_the_sheet() -> list[str]:
     the corrected loader — comparing a correction against its own output would
     always agree.
     """
-    import gold as G
-    import handouts as H
+    # A correction records the value it corrects from; the sheet must still read
+    # it.
+    # PYTHON KEEPS THE FETCH. The self-test injects by rewriting a
+    # `CORRECTED_GOLD` entry's `was` IN MEMORY -- "a CORRECTED_GOLD entry no
+    # longer matches the sheet" -- and a payload the runner rebuilds from
+    # `gold.json` cannot see it.
+    #
+    # AND THE RAW SHEET IS READ HERE TOO, from the uncorrected loaders, because
+    # that is the value a correction's `was` is asserted against. The exported
+    # record carries it as `score_raw`, but reading it here keeps this check
+    # reading the same sheet the injection would have to change.
+    import forms as _H_cg
+    import gold as _G_cg
 
-    loaders = {1: G.load_h1, 2: G.load_h2, 3: G.load_h3}
-    raw: dict[int, dict] = {}
-    for h, fn in loaders.items():
-        try:
-            raw[h] = fn()
-        except Exception:
-            continue                    # corpus absent on this machine
-    if not raw:
-        return []
+    import lo_enforce
 
-    problems = []
-    for (item, pid), fix in sorted(H.CORRECTED_GOLD.items()):
-        found = None
-        for h, rows in raw.items():
-            cell = (rows.get(pid) or {}).get(item)
-            if cell and cell.get("score") is not None:
-                found = float(cell["score"])
-                break
-        if found is None:
-            problems.append(
-                f"CORRECTED_GOLD names {item}/p{pid}, which has no gold row in "
-                f"any handout. Remove it")
+    loaders = {1: _G_cg.load_h1, 2: _G_cg.load_h2, 3: _G_cg.load_h3}
+    raw = []
+    for h in _forms():
+        fn = loaders.get(h)
+        if fn is None:
             continue
-        if abs(found - float(fix["was"])) > 0.005:
-            problems.append(
-                f"CORRECTED_GOLD[{item}/p{pid}] says it corrects {fix['was']:.2f} "
-                f"but the sheet now reads {found:.2f}. The row changed under the "
-                f"correction — re-derive it or remove it")
-        if abs(found - float(fix["score"])) < 0.005:
-            problems.append(
-                f"CORRECTED_GOLD[{item}/p{pid}] corrects {found:.2f} to the same "
-                f"value. It is doing nothing — remove it")
-        if len((fix.get("why") or "").split()) < 25:
-            problems.append(
-                f"CORRECTED_GOLD[{item}/p{pid}] has no substantive reason. A "
-                f"correction to the score we are measured against must say what "
-                f"evidence in the submission contradicts the row")
-    return problems
+        try:
+            rows = fn()
+        except Exception:
+            continue                      # corpus absent on this machine
+        raw.append({"form": str(h), "rows": {
+            str(pid): {str(i): (c.get("score") if isinstance(c, dict) else None)
+                       for i, c in (cells or {}).items()}
+            for pid, cells in rows.items()}})
+    fixes = [{"item": item, "pid": str(pid), "was": float(fix["was"]),
+              "score": float(fix["score"]), "why": str(fix.get("why") or "")}
+             for (item, pid), fix in sorted(_H_cg.CORRECTED_GOLD.items())]
+    return lo_enforce.run("corrected_gold_matches_the_sheet",
+                          {"raw": raw, "fixes": fixes})
 
 
 def check_the_audit_read_the_corpus() -> list[str]:
@@ -12138,7 +11365,7 @@ def check_the_audit_read_the_corpus() -> list[str]:
     present = []
     for h in _forms():
         try:
-            import handouts as H
+            import forms as H
 
             if H.find_submissions(h):
                 present.append(h)
@@ -12150,7 +11377,7 @@ def check_the_audit_read_the_corpus() -> list[str]:
     problems = []
     for h in present:
         try:
-            segs = _segment_as_scored(h, sorted(dict(__import__("handouts")
+            segs = _segment_as_scored(h, sorted(dict(__import__("forms")
                                                      .find_submissions(h)))[0])
         except Exception as exc:
             problems.append(
@@ -12194,7 +11421,7 @@ def _gold_corroborates_absence(h: int, iid: str, pid: int, empty: list[str]) -> 
     box is empty. Gold saying an antecedent is missing does not excuse an empty
     consequence box.
     """
-    import handouts as H
+    import forms as H
 
     try:
         row = H.config(h)["gold"]().get(pid, {}).get(iid, {}) or {}
@@ -12214,7 +11441,7 @@ def _gold_corroborates_absence(h: int, iid: str, pid: int, empty: list[str]) -> 
     return all(kind in fb for kind in kinds)
 
 
-def _counts_sig(handout: int, item: str) -> tuple:
+def _counts_sig(form: int, item: str) -> tuple:
     """The rubric's counted-group shape for one item.
 
     Part of the fixture cache key, and that is the whole point rather than a
@@ -12224,10 +11451,10 @@ def _counts_sig(handout: int, item: str) -> tuple:
     dropped 2a's `counts`, and the case that proves this check works would have
     failed while looking like a passing cache.
     """
-    from handouts import config
+    from forms import config
 
     try:
-        spec = config(handout)["rubric"].BY_ID.get(item) or {}
+        spec = config(form)["rubric"].BY_ID.get(item) or {}
     except Exception:
         return ()
     return tuple((cr.get("key"), tuple(cr.get("slots") or ()))
@@ -12235,7 +11462,7 @@ def _counts_sig(handout: int, item: str) -> tuple:
 
 
 @functools.lru_cache(maxsize=None)
-def _sections_cached(handout: int, pid: int) -> tuple:
+def _sections_cached(form: int, pid: int) -> tuple:
     """One participant's transcribed sections, as a hashable tuple of pairs.
 
     Independent of any rubric declaration -- it is the .docx transcription -- so
@@ -12244,7 +11471,7 @@ def _sections_cached(handout: int, pid: int) -> tuple:
     import agreement_app as AA
 
     try:
-        return tuple(sorted((AA.sections_for(handout, pid) or {}).items()))
+        return tuple(sorted((AA.sections_for(form, pid) or {}).items()))
     except (Exception, SystemExit):
         return ()
 
@@ -12399,7 +11626,7 @@ def check_fixture_covers_the_response() -> list[str]:
     MATCH" means the grader read something there, so an empty box is a lost
     transcription.
     """
-    import handouts as H
+    import forms as H
     import segment as SEG
 
     problems = []
@@ -12538,6 +11765,7 @@ def _fixture_boxes(item_id: str, pid: int) -> dict[str, str]:
     own |= set(spec.get("sim") or {})
     hs = spec.get("handsplit")
     hs_keys: set[str] = set()
+    hs = str(_p7.record_path(hs)) if hs else hs
     if hs:
         import json, os
         try:
@@ -12626,16 +11854,24 @@ def _value_derived(item_id: str) -> set[str]:
     spec = APP.JOBS.get(item_id) or {}
     key = f"_{item_id.lower()}_"
     out = set()
-    # 1c's `from_scorer` boxes are read off the GRAPH, not off the prose segment
-    # — the paper scorer takes them from the chart, which is why p11's `title`
-    # arrives filled while its prose segment is empty. They are extractions of
-    # named elements, not quotations, and the item has no prose-derived box at
-    # all. The one cell where a title IS locatable is p9, whose chart flattened
-    # INTO the text; that is a property of the transcription, not of the item.
-    # This carried a per-cell "the fixture is correct" note for p9; the fact is
-    # about 1c, so it belongs here, once.
-    if item_id == "1c":
-        out |= {"title", "x", "y"}
+    # BOXES THE SPEC DECLARES VALUE-DERIVED. 1c's three are read off the GRAPH,
+    # not off the prose segment — the paper scorer takes them from the chart,
+    # which is why p11's `title` arrives filled while its prose segment is
+    # empty. They are extractions of named elements, not quotations, and the
+    # item has no prose-derived box at all. The one cell where a title IS
+    # locatable is p9, whose chart flattened INTO the text; that is a property
+    # of the transcription, not of the item.
+    #
+    # THIS READ `if item_id == "1c"` UNTIL E58, 2026-09-25 -- the one fact the
+    # docstring above says should come off the spec. It is a `value_derived`
+    # key on the job now, beside the rest of that item's provenance.
+    #
+    # AND IT IS NOT `from_scorer`, which is the generalisation that suggests
+    # itself and is wrong: eight items carry a `from_scorer` block and seven
+    # hold boxes a locator CAN find. Deriving it that way would have silently
+    # dropped Q6's eight boxes, Q3's five and four items' pairs from every
+    # locator-based check. Measured before it was written, not after.
+    out |= set(spec.get("value_derived") or ())
     for field in (spec.get("sim") or {}):
         tail = field.split(key)[-1] if key in field else field
         out.add(tail if key in field else tail.rsplit("_", 1)[-1])
@@ -12721,12 +11957,24 @@ def _cover_groups(item_id: str) -> list[set[str]]:
             src = open(paths.OLX % h).read()
         except Exception:
             continue
-        for m in re.finditer(r'cover="([^"]*)"\s*\n?\s*slots="([^"]*)"', src):
-            keys = {sl.split(":")[0].strip() for sl in m.group(2).split("|")}
+        # PER TAG, NOT PER ADJACENT PAIR. This matched `cover="..."` only when
+        # `slots="..."` was the very next attribute, which made it depend on the
+        # ORDER the assembler happens to write. `requires=` landed between them
+        # and the scan silently matched nothing from that day on: every caller
+        # got `[]`, the cover exemption stopped applying, and the only reason
+        # nothing failed is that the boxes it exempts do not currently overlap.
+        # A helper that returns empty where the data exists is green by
+        # construction -- the shape this file documents in three other places.
+        for tag in re.findall(r"<LLMAction\b[^>]*>", src):
+            cm = re.search(r'cover="([^"]*)"', tag)
+            sm = re.search(r'slots="([^"]*)"', tag)
+            if not cm or not sm:
+                continue
+            keys = {sl.split(":")[0].strip() for sl in sm.group(1).split("|")}
             if not boxes or not (boxes & keys) or len(boxes & keys) < 2:
                 continue
             return [{b.strip() for b in g.split(":")[0].split(",") if b.strip()}
-                    for g in m.group(1).split("|")]
+                    for g in cm.group(1).split("|")]
     return []
 
 
@@ -12792,65 +12040,40 @@ def check_consensus_spans_are_disjoint() -> list[str]:
     and reads as a fact about gold or about the model. When a Q6 cell misbehaves,
     print its eight boxes and read them against the .docx before theorising.
     """
-    problems = []
-    seen: set[tuple] = set()
+    # PORTED to `enforce/consensusSpansDisjoint.ts` (goal K).
+    #
+    # PYTHON KEEPS THE FETCH. `_fixture_cells` is memoised on the SEGMENTATION
+    # only, deliberately, so the checks stay sensitive to a patched
+    # `_fixture_boxes` -- which is exactly how the self-test injects a defect
+    # here. A payload the runner rebuilt from the record would not see it.
+    #
+    # IT READS THE RECORD NOW, NOT THE CORPUS. `build_jobs` prefers the frozen
+    # reconstruction, so these boxes come from
+    # `instruments/<id>/derived/responses/` and no submission is opened.
+    import forms as H
+    import lo_enforce
 
-    def norm(x):
-        return " ".join((x or "").split()).lower()
+    cells, items = [], set()
+    for h, iid, pid, _raw, boxes in _fixture_cells():
+        cells.append({"h": h, "item": iid, "pid": pid,
+                      "boxes": {k: v for k, v in boxes.items() if v}})
+        items.add((h, iid))
 
-    import handouts as H
+    exclusions = {}
+    for h, iid in sorted(items):
+        ex = H.cell_exclusions(h, iid)
+        if ex:
+            exclusions[f"{h}|{iid}"] = {str(p): list(v) for p, v in ex.items()}
 
-    for _h, iid, pid, _raw, boxes in _fixture_cells():
-        if H.cell_exclusions(_h, iid).get(pid, ("", ""))[0] == "unscoreable":
-            # Same rule the coverage check follows: an `unscoreable` cell has had
-            # its gold withdrawn, reaches no comparison, and cannot move a number.
-            #
-            # It is a blunt instrument, and 2a/p18 is the cautionary case. Its
-            # `verdict`/`how1` overlap sat exempt here for as long as the cell
-            # was excluded — not because anyone judged the overlap faithful, but
-            # because this branch never looked. When the exclusion was removed
-            # the overlap surfaced immediately and had to be declared in
-            # CONSENSUS_OVERLAP_BACKLOG on its own merits. An exclusion written
-            # about the SCORE silences every other question about the cell.
-            continue
-        bx = {k: norm(v) for k, v in boxes.items() if v}
-        keys = sorted(bx)
-        for i, a in enumerate(keys):
-            for b in keys[i + 1:]:
-                # same element: "state_c1"/"affect_c1" -> both end "c1"
-                if _siblings(a) == b or _siblings(b) == a:
-                    continue
-                if any({a, b} <= g for g in _cover_groups(iid)):
-                    continue           # the sheet declares these two share a list
-                # 10, not 25. The floor is meant to skip coincidental short
-                # phrases, but at 25 it skipped the most suspicious case there is:
-                # a box holding a FRAGMENT lifted out of a neighbour's sentence.
-                # Q6/p14 had two, both 19 characters — `affect_c2` set to "not be
-                # that severe.", sliced off the end of change_a2's sentence, and
-                # `affect_c1` holding [[corpus Q6/p14 change_a1 62:82 sha=589165ef389c]] that change_a1 also
-                # held. The scorer answered `incomplete` about the fragment,
-                # correctly, and the cell lost 1.25 that gold awards. Lowering the
-                # floor to 5 surfaces nothing else in the corpus, so 10 is free.
-                if len(bx[a]) < 10 or len(bx[b]) < 10:
-                    continue
-                if bx[a] not in bx[b] and bx[b] not in bx[a]:
-                    continue
-                key = (iid, pid, a, b)
-                if key in CONSENSUS_OVERLAP_BACKLOG:
-                    seen.add(key)
-                    continue
-                inner = a if len(bx[a]) < len(bx[b]) else b
-                problems.append(
-                    f"{iid}/p{pid}: `{a}` and `{b}` hold the same text "
-                    f"({bx[inner][:52]!r}...) — one clause answering two different "
-                    f"questions. Either the consensus mis-assigned it, or declare "
-                    f"it in CONSENSUS_OVERLAP_BACKLOG with why it is faithful")
-    for stale in sorted(CONSENSUS_OVERLAP_BACKLOG.keys() - seen):
-        problems.append(
-            f"CONSENSUS_OVERLAP_BACKLOG lists {stale[0]}/p{stale[1]} "
-            f"{stale[2]}/{stale[3]}, "
-            f"which no longer overlaps. Remove it")
-    return problems
+    return lo_enforce.run("consensus_spans_are_disjoint", {
+        "cells": cells,
+        "exclusions": exclusions,
+        "cover": {iid: [sorted(g) for g in _cover_groups(iid)]
+                  for _h, iid in sorted(items)},
+        "backlog": [[k[0], k[1], k[2], k[3], v]
+                    for k, v in CONSENSUS_OVERLAP_BACKLOG.items()],
+        "siblingRoles": [list(p) for p in OVERLAP_SIBLING_ROLES],
+    })
 
 
 # Cells whose fixture deliberately departs from the response's own structure.
@@ -12926,7 +12149,7 @@ def _fixture_cells():
     """
     global _SEGMENTS_MEMO
     import warnings
-    import handouts as H
+    import forms as H
     import segment as SEG
 
     if _SEGMENTS_MEMO is None:
@@ -12975,7 +12198,7 @@ def _fixture_cells():
             for h, iid, pid, raw in _SEGMENTS_MEMO if (h, iid, pid) in cached]
 
 
-def _segment_as_scored(handout: int, pid: int) -> dict[str, str]:
+def _segment_as_scored(form: int, pid: int) -> dict[str, str]:
     """Segment one submission through the SCORER'S OWN entry point.
 
     `agreement_app.sections_for` is that entry point, and its docstring records
@@ -13003,7 +12226,7 @@ def _segment_as_scored(handout: int, pid: int) -> dict[str, str]:
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        return APP.sections_for(handout, pid)
+        return APP.sections_for(form, pid)
 
 
 def _siblings(box: str) -> str:
@@ -13120,17 +12343,23 @@ def check_consensus_fixes_are_unique() -> list[str]:
     """
     # THE RULE LIVES IN LO-BLOCKS NOW. Goal K. `CONSENSUS_FIXES` is course
     # data; "one declared correction per box" is generic.
+    # SELF-ASSEMBLED. E63: payload proven identical to python's -- after
+    # python stopped sending the student spans the rule never reads.
     import lo_enforce
-    import agreement_app as APP
 
-    entries = [{"item": k[0], "pid": k[1],
-                "fixes": [list(f) for f in (fixes or ())]}
-               for k, fixes in sorted(APP.CONSENSUS_FIXES.items())]
-    if not entries:
-        # NOT SILENCE. An empty table means nothing was examined.
-        return ["CONSENSUS_FIXES could not be read, so no box was checked for "
-                "being corrected twice"]
-    return lo_enforce.run("consensus_fixes_are_unique", {"entries": entries})
+    # PYTHON KEEPS THE FETCH. Self-assembly re-reads CONSENSUS_SPANS.json from
+    # disk; the self-test appends a second fix to the IN-MEMORY
+    # `agreement_app.CONSENSUS_FIXES` and forks, so the case went silent.
+    # Measured 2026-09-26. The verbs are already RESOLVED in this table, which
+    # is why only `swap` keeps its shape -- everything else is a `set` on a box.
+    import agreement_app as _APP_cf
+    import lo_enforce
+
+    return lo_enforce.run("consensus_fixes_are_unique", {"entries": sorted(
+        [{"item": cell[0], "pid": cell[1],
+          "fixes": [list(f) if f[0] == "swap" else ["set", f[1]] for f in fixes]}
+         for cell, fixes in _APP_cf.CONSENSUS_FIXES.items()],
+        key=lambda e: e["item"] + str(e["pid"]).zfill(3))})
 
 
 
@@ -13160,84 +12389,50 @@ def check_fixture_agrees_with_gold() -> list[str]:
     not to a checklist, and where two slots cover one element its wording does
     not always distinguish them. FIXTURE_GOLD_OVERRIDES carries the exceptions.
     """
-    import re
-    import handouts as H
+    # PORTED to `enforce/fixtureAgreesWithGold.ts` (goal K).
+    #
+    # PYTHON KEEPS THE FETCH, because the self-test injects through
+    # `_fixture_boxes` and `_fixture_cells` is memoised on the segmentation so
+    # that a patch is still seen. It reads the RECORD now, not the corpus: the
+    # boxes come from `derived/responses/` and the graders' comments from
+    # `gold_rows.json`, so no workbook and no submission is opened on either
+    # side.
+    #
+    # EMPTY BOXES ARE PASSED THROUGH. The whole question is whether a box is
+    # empty or filled; dropping the empty ones makes a box unjudgeable rather
+    # than empty, and costs every finding of one of the two kinds.
+    import forms as H
+    import lo_enforce
 
-    # What gold CALLS each box. Q6's graders write "antecedent"/"consequence",
-    # not slot names, so it needs a map; items whose boxes are already named the
-    # way gold names them (Q3's SMART aspects) use the box name itself.
-    # What gold CALLS each box, and what it must NOT say. 1c needs the second
-    # half: "missing x-axis title" names the AXIS title, and a bare "title" key
-    # matched it against the CHART title box, which p9 and p11 both fill
-    # correctly. Two of this check's three findings on 1c were that collision.
-    NAMED = {
-        "Q6": {"state_a1": ("first", "antecedent"), "state_a2": ("second", "antecedent"),
-               "state_c1": ("first", "consequence"), "state_c2": ("second", "consequence")},
-        "1c": {"x": ("x-axis",), "y": ("y-axis",),
-               "title": (("title",), ("x-axis", "y-axis", "axis")),
-               "series": ("series",), "baseline": ("baseline",)},
-    }
-    ABSENT = r"(?:did not (?:state|address|say|provide|list|clarify)|missing|never)"
-    WRONG = r"(?:is not the same|does not match|not the same|a different)"
-    problems = []
-    seen: set[tuple] = set()
+    cells, feedback = [], {}
     for h, iid, pid, _raw, boxes in _fixture_cells():
+        cells.append({"h": h, "item": iid, "pid": pid, "boxes": dict(boxes)})
         fb = " ".join(((H.config(h)["gold"]().get(pid) or {}).get(iid) or {})
-                      .get("feedback", "").split()).lower()
-        if not fb:
-            continue
-        named = NAMED.get(iid) or {k: (k.replace("_", " "),) for k in boxes}
-        for box, words in named.items():
-            if box not in boxes:
-                continue
-            filled = bool((boxes.get(box) or "").strip())
-            for pat, want_filled in ((ABSENT, False), (WRONG, True)):
-                for m in re.finditer(pat + r"[^.]{0,90}", fb):
-                    # An ABSENT claim must name the element WITHIN its own
-                    # clause. Looking back into the previous sentence matched
-                    # Q6/p6's `state_a2` against "did not state a second
-                    # consequence" because the word "antecedent" happened to sit
-                    # in the charge before it. A WRONG claim may name the element
-                    # ahead of the phrase ("second consequence is not the same"),
-                    # so it keeps a short lookback.
-                    frag = (m.group(0) if pat is ABSENT
-                            else fb[max(0, m.start() - 60):m.end()])
-                    want, forbid = (words if isinstance(words[0], tuple)
-                                    else (words, ()))
-                    if not all(w in frag for w in want):
-                        continue
-                    if any(w in frag for w in forbid):
-                        continue
-                    # "did not say HOW it is changed" is a judgement that what was
-                    # written is INADEQUATE, not a claim that nothing was. p8's
-                    # change slots rightly hold text gold charges as insufficient.
-                    # "did not say HOW / WHY" is a judgement that what the
-                    # student wrote is INADEQUATE, not that nothing was written.
-                    if pat is ABSENT and ("how" in frag or "why" in frag
-                                          or "clarify" in frag
-                                          or "being affected" in frag):
-                        continue
-                    if filled == want_filled:
-                        continue
-                    key = (iid, pid, box)
-                    if key in FIXTURE_GOLD_OVERRIDES:
-                        seen.add(key)
-                        break
-                    problems.append(
-                        f"{iid}/p{pid} `{box}` is "
-                        + ("EMPTY but gold marked it wrong rather than absent"
-                           if want_filled else
-                           "filled but gold says it was never written")
-                        + f" ({m.group(0)[:52]!r}...) — either the box has the "
-                          f"wrong clause, or declare it in FIXTURE_GOLD_OVERRIDES")
-                    break
-    for stale in sorted(FIXTURE_GOLD_OVERRIDES.keys() - seen):
-        problems.append(f"FIXTURE_GOLD_OVERRIDES lists {stale}, which no longer "
-                        f"disagrees. Remove it")
-    return problems
+                      .get("feedback", "").split())
+        if fb:
+            feedback[f"{h}|{pid}|{iid}"] = fb
+
+    box_words = {}
+    for item, per_box in GOLD_BOX_WORDS.items():
+        out = {}
+        for box, words in per_box.items():
+            if words and isinstance(words[0], tuple):
+                out[box] = {"want": list(words[0]),
+                            "forbid": list(words[1] if len(words) > 1 else ())}
+            else:
+                out[box] = {"want": list(words), "forbid": []}
+        box_words[item] = out
+
+    return lo_enforce.run("fixture_agrees_with_gold", {
+        "cells": cells,
+        "feedback": feedback,
+        "boxWords": box_words,
+        "overrides": {f"{k[0]}|{k[1]}|{k[2]}": v
+                      for k, v in FIXTURE_GOLD_OVERRIDES.items()},
+    })
 
 
-def _handout_of(item: str) -> int:
+def _form_of(item: str) -> int:
     """Which handout an item belongs to, read off the specs rather than guessed.
 
     It replaces `1 if item.startswith("Q") else 3`, which sent all twelve of
@@ -13247,7 +12442,7 @@ def _handout_of(item: str) -> int:
     nearly half the corpus could not be read out at all.
     """
     import agreement_app as APP
-    import handouts as H
+    import forms as H
 
     spec = APP.JOBS.get(item) or {}
     if spec.get("handout"):
@@ -13343,7 +12538,7 @@ def fixture_readout(item: str, pid: int) -> str:
       * The handout was GUESSED from the item name, `1 if item.startswith("Q")
         else 3`, which sent all twelve of handout 2's items to handout 3 where
         they have no segment. 220 cells, every one of them a fixture nobody
-        could read out. `_handout_of` reads the spec instead.
+        could read out. `_form_of` reads the spec instead.
       * A cell answered with a CHART or a TABLE has no prose to locate a box in,
         which is normal for 1c and 1b rather than a dead end. Those go to
         `_boxes_only_readout`, which prints the boxes by provenance. The defect
@@ -13354,9 +12549,9 @@ def fixture_readout(item: str, pid: int) -> str:
     "Empty response" now means only what it says: no prose AND no filled box.
     """
     import re
-    import handouts as H
+    import forms as H
 
-    h = _handout_of(item)
+    h = _form_of(item)
     try:
         subs = dict(H.find_submissions(h))
     except Exception:
@@ -13478,26 +12673,25 @@ def check_exclusion_claims_are_data() -> list[str]:
     which the harnesses assert against the measurement on every run. Prose may
     still explain the number; it may not be the only place it lives.
     """
-    import handouts as H
+    # PORTED AND SELF-ASSEMBLED (goal K, step 8). Generic: a claim about a
+    # NUMBER left in prose goes stale without anything noticing. Payload proven
+    # identical and findings identical on a firing control (every expect_error
+    # stripped).
+    import lo_enforce
 
-    # A points claim: a signed decimal, optionally spelled with the word. Bare
-    # integers are not enough on their own — "2 of the 8 slots" is structure, not
-    # an assertion about the score — so a decimal point or an explicit sign is
-    # what marks a figure as one the harness could check.
-    claim = re.compile(r"[-+]?\d+\.\d+|[-+]\d+\b")
-    problems = []
-    for item, cells in H.PER_ITEM_EXCLUDE.items():
-        declared = H.unscoreable_expectation(item)
-        for pid, entry in cells.items():
-            why = entry["why"] if isinstance(entry, dict) else entry
-            found = claim.findall(why)
-            if found and pid not in declared:
-                problems.append(
-                    f"{item}/p{pid}: the `unscoreable` reason states the point "
-                    f"figure(s) {sorted(set(found))} in prose, where nothing "
-                    f"checks them. Declare `expect_error` on the entry so the "
-                    f"harnesses assert it every run, or drop the figure")
-    return problems
+    # PYTHON KEEPS THE FETCH. Self-assembly reads this from DISK; the
+    # self-test injects into the IN-MEMORY table and forks, so a rebuilt
+    # payload cannot see it and the case goes silent. Measured 2026-09-26.
+    import forms as _H_excl
+    import lo_enforce
+
+    return lo_enforce.run("exclusion_claims_are_data", {"cells": [
+        {"item": item, "pid": int(pid),
+         "why": str(e.get("why", "") if isinstance(e, dict) else e),
+         "declared": bool(isinstance(e, dict)
+                          and e.get("expect_error") is not None)}
+        for item, per in _H_excl.PER_ITEM_EXCLUDE.items()
+        for pid, e in (per or {}).items()]})
 
 
 def _rubric_vocab(item: dict, c: dict) -> set[str]:
@@ -13530,14 +12724,13 @@ def check_unreachable_gold_is_allowed() -> list[str]:
     exclusion checks exist for, and the same fix: one helper, called by all.
     """
     import os
-    import handouts as H
+    import forms as H
 
     problems = []
-    here = os.path.dirname(H.__file__)
     for fname in ("agreement.py", "agreement_app.py", "baseline.py"):
         try:
-            src = open(os.path.join(here, fname)).read()
-        except OSError as e:
+            src = _harness_source(fname)          # by import; see its docstring
+        except Exception as e:
             problems.append(f"cannot read {fname}: {e}")
             continue
         if "scores_as_exact" not in src and "scored_exactly" not in src:
@@ -13602,29 +12795,12 @@ def check_gold_corrections_land_on_attainable_scores() -> list[str]:
     entry written later. That is the whole reason it replaces a Q6-shaped check:
     an item-specific one never fires for content written after it.
     """
-    import handouts as H
+    # PORTED AND SELF-ASSEMBLED (goal K, step 8). The attainable grid is
+    # computed from the item's own points on both sides. Payload proven
+    # identical and findings identical on an off-grid control.
+    import lo_enforce
 
-    items = {}
-    for h in _forms():
-        for it in H.config(h)["rubric"].ITEMS:
-            items[it["id"]] = (h, it)
-
-    out = []
-    for (item_id, pid), fix in sorted(H.CORRECTED_GOLD.items()):
-        pair = items.get(item_id)
-        if pair is None:
-            continue          # a stale key is check_corrected_gold_still_corrects'
-        h, item = pair
-        score = float(fix["score"])
-        if not H.nearest_attainable(item, score):
-            continue          # empty means the score IS attainable
-        out.append(
-            f"H{h} {item_id}/p{pid}: the correction sets gold to {score:g}, which "
-            f"the item cannot produce -- its reachable values near there are "
-            f"{', '.join(f'{v:g}' for v in sorted(H.nearest_attainable(item, score)))}. "
-            f"A correction that lands off the grid replaces one unmatchable gold "
-            f"with another")
-    return out
+    return lo_enforce.run("gold_corrections_land_on_attainable_scores", None)
 
 
 def check_gold_scores_are_attainable() -> list[str]:
@@ -13643,36 +12819,50 @@ def check_gold_scores_are_attainable() -> list[str]:
 
     Reads the rubric's costs and gold's numbers, and nothing else.
     """
-    import handouts as H
+    # Course data the engine can read for itself.
+    import lo_enforce
 
-    out = []
-    for h in _forms():
-        cfg = H.config(h)
-        items = {it["id"]: it for it in cfg["rubric"].ITEMS}
-        rows = cfg["gold"]()          # corrections applied by handouts._gold_loader
-        for pid in sorted(rows):
-            for item_id, cell in sorted(rows[pid].items()):
-                item = items.get(item_id)
-                if item is None or not isinstance(cell, dict):
-                    continue
-                raw = cell.get("score")
-                if raw is None:
-                    continue
-                try:
-                    score = float(raw)
-                except (TypeError, ValueError):
-                    continue
-                near = H.nearest_attainable(item, score)
-                if not near:
-                    continue
-                out.append(
-                    f"H{h} {item_id}/p{pid}: gold is {score:g}, which the item "
-                    f"cannot produce -- nearest reachable "
-                    f"{', '.join(f'{v:g}' for v in sorted(near))}. Either the "
-                    f"sheet's arithmetic is off-grid and belongs in "
-                    f"CORRECTED_GOLD, or the item's costs are wrong; leaving it "
-                    f"relies on scores_as_exact() to absorb it silently")
-    return out
+    return lo_enforce.run("gold_scores_are_attainable", None)
+
+
+def check_response_boxes_are_bounded() -> list[str]:
+    """Are the student's boxes DELIMITED in the prompt the grader is sent?
+
+    SPLIT OUT OF `check_empty_fields_are_absent` (goal K). That check asked two
+    questions on two sides: whether the generated PROMPT bounds the boxes, and
+    whether python's `_normalize_empty_fields` still corrects an empty one. The
+    first is about the web prompt and belongs with the engine that assembles
+    it; the second exercises a python function with no counterpart there. The
+    user's rule -- something that touches both should be split -- is why they
+    are now two checks rather than one that could only ever half-move.
+
+    AN EMPTY BOX'S `<Ref>` RENDERS TO NOTHING, and for the LAST box on an item
+    there was no following heading to bound it -- so the guidance the app
+    appends after our prompt fell where the box's contents belong, and was
+    quoted to the student as their own words. Two instruction-level fixes were
+    measured and neither moved the rate; the bounds are what fixed it, so the
+    bounds are what this checks. Every item on every handout, because the last
+    box of any item is the one exposed.
+    """
+    # PORTED to `enforce/responseBoxesBounded.ts`. Python passes the prompts it
+    # builds; the self-test substitutes `build_web_prompt`, and a payload the
+    # runner assembled from the staged inputs would not see the substitution.
+    import lo_enforce
+
+    try:
+        import olx_prompts as OLX
+        items = sorted(OLX.RESPONSE)      # every item that shows the student's boxes
+    except Exception as exc:
+        return [f"could not enumerate the generated prompts: {exc}"]
+    prompts = {}
+    for item_id in items:
+        try:
+            prompt = OLX.build_web_prompt(item_id)
+        except Exception:
+            continue
+        if "## Student response to grade" in prompt:
+            prompts[item_id] = prompt
+    return lo_enforce.run("response_boxes_are_bounded", {"prompts": prompts})
 
 
 def check_empty_fields_are_absent() -> list[str]:
@@ -13696,47 +12886,15 @@ def check_empty_fields_are_absent() -> list[str]:
     this one read `job["values"]` where the jobs carry `job["fixture"]`, silently
     corrected nothing, and passed.
     """
+    # THE SETUP THE SPLIT TOOK WITH IT. `out` and the `agreement_app` import
+    # opened the original function, ahead of the structural half that moved --
+    # so cutting at the section marker removed the retained half's own
+    # prologue. The parse survived it; a NameError at call time did not.
     out: list[str] = []
-    import os
     try:
         import agreement_app as APP
     except Exception as exc:
         return [f"could not import the scorer modules to check the guard: {exc}"]
-
-    # 1. the STRUCTURAL half, in the prompt we generate.
-    #
-    # An empty box's `<Ref>` renders to nothing, and for the LAST box on an item
-    # there was no following heading to bound it -- so the guidance the app
-    # appends after our prompt fell where the box's contents belong, and was
-    # quoted to the student as their own words. Two instruction-level fixes were
-    # measured and neither moved the rate; the bounds are what fixed it, so the
-    # bounds are what this checks. Every item on every handout, because the last
-    # box of any item is the one exposed.
-    try:
-        import olx_prompts as OLX
-        items = sorted(OLX.RESPONSE)      # every item that shows the student's boxes
-    except Exception as exc:
-        out.append(f"could not enumerate the generated prompts: {exc}")
-        items = []
-    for item_id in items:
-        try:
-            prompt = OLX.build_web_prompt(item_id)
-        except Exception:
-            continue
-        if "## Student response to grade" not in prompt:
-            continue
-        body = prompt.split("## Student response to grade", 1)[1]
-        opens, closes = body.count("[box begins]"), body.count("[box ends]")
-        if opens == 0:
-            out.append(f"{item_id}: the student's boxes are not delimited -- "
-                       "an empty box renders as nothing, and for the LAST box the "
-                       "guidance the app appends lands where its contents would be")
-        elif opens != closes:
-            out.append(f"{item_id}: {opens} `[box begins]` against {closes} "
-                       "`[box ends]` -- an unclosed box swallows whatever follows it")
-        if "## End of the student response" not in body:
-            out.append(f"{item_id}: the response section is not closed, so "
-                       "nothing separates the last box from the appended guidance")
 
     # 2. the guard half, exercised rather than merely imported
     probe = {"cell": "p0/Q6",
@@ -13958,10 +13116,10 @@ PROBE_PROVOCATIONS: dict[str, object] = {
                                   "recorded item sits at"),
     # A ceiling on an item recorded PERFECT: 1b is 20/20 on both sides, so
     # "cannot be perfect" is contradicted the moment it is claimed.
-    "handouts.GOLD_CEILINGS": (("1", "1b"),
+    "forms.GOLD_CEILINGS": (("1", "1b"),
                                ("probe: 1b cannot be perfect", "probe")),
     # A divergence naming a cell we get right in every run.
-    "handouts.GOLD_DIVERGENCES": {"code": "PROBE_ONLY", "cells": [("1b", 1)],
+    "forms.GOLD_DIVERGENCES": {"code": "PROBE_ONLY", "cells": [("1b", 1)],
                                   "why": "probe: 1b/p1 is right every run"},
     # A divergence claiming the web COMPUTES a check it does not: the arithmetic
     # verifier reads web_computes and must object.
@@ -13985,7 +13143,7 @@ PROBE_PROVOCATIONS: dict[str, object] = {
     # every declaration table is now probeable. An empty table cannot be moved by
     # emptying, so it needs a provocation of its own: adding an entry makes the
     # named table report BY DESIGN instead of READ, which changes the output.
-    "enforcement.PROBE_IMPOSSIBLE": ("handouts.CORRECTED_GOLD",
+    "enforcement.PROBE_IMPOSSIBLE": ("forms.CORRECTED_GOLD",
                                      "probe: not a real impossibility"),
 
     # RAW_GOLD_READERS became probeable on 2026-08-31 when E31 drove its
@@ -13995,7 +13153,7 @@ PROBE_PROVOCATIONS: dict[str, object] = {
     # run's excluded cells: E33 made the verifier read the table, so this now
     # fires as "no evidence either way". A shape-derived bogus key would NOT --
     # the loop iterates real items, so a nonsense item name is skipped.
-    "handouts.PER_ITEM_EXCLUDE": ("1b", {1: "probe: not a real exclusion"}),
+    "forms.PER_ITEM_EXCLUDE": ("1b", {1: "probe: not a real exclusion"}),
     # Removing a declared bounded finding makes it report again; adding a cell
     # that agrees does nothing, so the provocation has to be a DELETION -- which
     # emptying already tests. A bogus key is enough here because the check reports
@@ -14243,7 +13401,7 @@ def probe_declaration_tables() -> list[str]:
 # ---------------------------------------------------------------------------
 _HERE_DIR = pathlib.Path(__file__).resolve().parent
 _HERE_MODULE = sys.modules[__name__]
-COURSE_DATA_BUDGET = _HERE_DIR / "COURSE_DATA_BUDGET.json"
+COURSE_DATA_BUDGET = _p7.SCORING_METADATA / "COURSE_DATA_BUDGET.json"
 
 # WHICH MODULES ARE DECLARED MIGRATED. This is engine STATE -- a fact about the
 # engine's own progress, not about psychology -- so it lives here beside the
@@ -14262,22 +13420,93 @@ MIGRATED_MODULES: dict[str, str] = {}
 # Their contents are still COUNTED and REPORTED, just not ratcheted: the point
 # is to see how much course data exists and where, not to pretend a data module
 # holds none.
-DATA_MODULES = {
-    # RENAMED, NOT ADDED. Stage 6c moved this file to `rubric_h2_source.py` and
-    # out of the scoring path, joining the two builders below. Its data is the
-    # course file's and is served from there; what stays here is the four
-    # factories `rubric_export` reads to WRITE that file.
-    "rubric_h2_source.py":
-        "handout 2's rubric, authored: the four factories the export reads to "
-        "WRITE the course file, kept outside the scoring path",
-    "declaration_source.py":
-        "the Stage 4 builder for scoring declarations: authored tables the export "
-        "reads to WRITE the course file, kept outside the scoring path",
-    "generator_source.py":
-        "the Stage 4 builder: authored tables the export reads to WRITE the "
-        "course file, kept outside the scoring path. Course data is what it is "
-        "for, and it grows as modules are migrated INTO it.",
-}
+def _data_modules() -> dict[str, str]:
+    """Modules that ARE authored course data, by design.
+
+    The ratchet exists to stop course content accumulating in ENGINE code; a
+    declared data module is not engine code, and counting it made the ratchet
+    refuse the migration it was written to enable -- `generator_source.py` went
+    11 -> 14 because three marker tables arrived there FROM `segment.py`, which
+    is the work succeeding.
+
+    Their contents are still COUNTED and REPORTED, just not ratcheted: the point
+    is to see how much course data exists and where, not to pretend a data
+    module holds none.
+
+    DERIVED, AND THAT IS THE FIX. This was a hand-written dict of three, and on
+    2026-09-25 `--tighten` refused on `course_metadata_source.py: 4 -> 7` -- a
+    Stage 4 authoring builder being ratcheted while two of its siblings were
+    exempt. Nobody decided that. The dict was last edited 2026-09-19 (f5830d44)
+    listing the two builders that existed then; on 2026-09-23 (011f641e) the
+    source modules were SPLIT BY CATEGORY into four, `migrated_tables.BUILDERS`
+    was updated, and this dict was not touched at all. The two new builders
+    entered the budget at their then-counts and have been ratcheted since.
+
+    THE SAME DRIFT, ONE TABLE OVER, AND ITS OWN COMMENT SAYS SO. `BUILDERS`
+    carries this: "it was two names until 2026-09-23 ... moving eight tables
+    into new modules made this check report all of them as having NO builder,
+    because it was looking in the wrong two files." A hard-coded pair was a
+    liability there and was replaced by a list of record; the identical pair
+    here was left, and broke the identical way. So this reads that list rather
+    than restating it, and a builder added to it is exempt here at once.
+
+    NOT A WIDENING. Every name this returns is a module the engine does not
+    import at scoring time -- the builders are read by `rubric_export` to WRITE
+    the course file -- or course-side code the engine reaches only by name. The
+    entries are still checked below: a declared data module must exist and must
+    actually carry course data.
+
+    THE COST, STATED. `editguard` sees literal table entries, so a derived table
+    is invisible to it: nothing will report an entry here "vanishing". What
+    replaces that is the check below, which refuses a declared module that is
+    absent or that carries no course data -- and, for the builders, the fact
+    that the list of record is the one `rubric_export` reads to find them at all.
+    """
+    import migrated_tables
+
+    out: dict[str, str] = {}
+
+    # (1) THE STAGE 4 AUTHORING BUILDERS, from the list of record.
+    for mod in migrated_tables.BUILDERS:
+        out[f"{mod}.py"] = (
+            "a Stage 4 authoring builder (`migrated_tables.BUILDERS`): authored "
+            "tables the export reads to WRITE the course file, kept outside the "
+            "scoring path. Course data is what it is for, and it GROWS as "
+            "modules are migrated INTO it")
+
+    # (2) THE RUBRIC SOURCES, by the same name pattern `rubric_export` resolves
+    # them with -- `rubric_h{form}_source`. Stage 6c renamed handout 2's rubric
+    # to `rubric_h2_source.py` and moved it out of the scoring path to sit with
+    # the builders; its data is the course file's and is served from there, and
+    # what stays is the four factories the export reads to WRITE that file.
+    for path in sorted(_HERE_DIR.glob("rubric_h*_source.py")):
+        out[path.name] = (
+            "a handout's authored rubric, read by `rubric_export` to WRITE the "
+            "course file and kept outside the scoring path")
+
+    # (3) THE COURSE'S OWN CODE, which is NOT a builder and is named one file at
+    # a time on purpose. These RUN -- `scorers.resolve` loads the scorer during
+    # scoring and `segment.course_hook` reads the hook -- so unlike the builders
+    # above they are reachable from the scoring path, and a glob over those
+    # directories would exempt anything anyone dropped into them. Each earns its
+    # own line with its own reason.
+    #
+    # RATCHETING `oc.py` WOULD REFUSE THE MIGRATION. Subgoal E58 moves course
+    # facts OUT of engine modules and INTO it: `probe.ANSWERED_UNDER`'s operant
+    # half and its gate arrived on 2026-09-25, and probe.py's vocabulary count
+    # fell by the same work.
+    out["oc.py"] = (
+        "this course's operant-conditioning scorer, shipped in the course "
+        "repository's own scorers/ and loaded by name: authored course knowledge "
+        "that runs, and that GROWS as E58 moves facts out of engine modules")
+    out["course_segment.py"] = (
+        "this course's segmentation hook, shipped in the course repository's "
+        "own fixture/ and read through `segment.course_hook`: one function, "
+        "whose content is the four behaviours Handout 1 names")
+    return out
+
+
+DATA_MODULES = _data_modules()
 
 # FIXTURES THAT NAME THEIR TARGET, AND WHY EACH IS NAMED RATHER THAN DERIVED.
 #
@@ -14336,7 +13565,7 @@ RUBRIC_BUILDERS = {
 # selector tuples that are defined and no longer consulted. `inspect.getsource`
 # on a data view raises TypeError, so it is a check about the AUTHORING
 # ARTIFACT, not about the rubric data. Every other consumer reaches the rubric
-# through `handouts.config(h)["rubric"]`, a view onto the course file.
+# through `forms.config(h)["rubric"]`, a view onto the course file.
 #
 # IT WAS TO BE DELETED WITH THE MODULES AT STAGE 5, on the reasoning that a
 # check for stale selectors in a file that no longer exists has nothing to find.
@@ -14348,7 +13577,7 @@ RUBRIC_BUILDERS = {
 # holds EXACT module names, not a `rubric_h` substring, so without it the count
 # fell to 0 and this ceiling would have sat un-lowered over a guard that had
 # stopped counting anything. The audit caught it; the assumption did not.
-RUBRIC_CONSUMER_BUDGET = 1
+RUBRIC_CONSUMER_BUDGET = _budget("RUBRIC_CONSUMER_BUDGET")
 
 
 # A COUNT THAT ROSE BECAUSE AN EXEMPTION WAS REMOVED, not because course data
@@ -14660,29 +13889,29 @@ def check_gold_shared_prose_has_not_drifted() -> list[str]:
     so a close-but-unequal copy is a drifted one. An entry that shares nothing
     with it is simply a different note and is not this check's business.
     """
-    import difflib
+    # THE RULE LIVES IN LO-BLOCKS NOW. Goal K: python reads the two declarations
+    # from gold and `enforce/goldSharedProse.ts` compares them.
+    #
+    # ITS SIMILARITY MEASURE IS CPYTHON'S, TRANSCRIBED. The threshold is
+    # `difflib.SequenceMatcher(...).ratio() >= 0.90`, and JavaScript has no
+    # equivalent: Levenshtein, Dice and LCS all return a DIFFERENT number, so a
+    # port using one reports a different SET of cells at the same threshold.
+    # `enforce/sequenceRatio.ts` reproduces the algorithm -- autojunk, both
+    # extension passes and all -- verified against CPython on 266 pairs with a
+    # worst delta of zero.
+    #
+    # THE KEYS ARE RENDERED THERE TOO, from the tagged form the records store.
+    # An earlier draft had python pre-render them, which made the rule
+    # uncallable from inside lo-blocks.
+    # SELF-ASSEMBLED. Subgoal E63: the runner builds this payload itself,
+    # from the same course records python would have read. The assembler was
+    # compared against the payload python used to send and found IDENTICAL
+    # before this fetch was deleted; `runner.SELF_ASSEMBLING` names the rules
+    # that comparison has cleared, and the runner refuses any other.
+    import lo_enforce
 
-    try:
-        canonical = _gold_declaration("_1C_GATE_CEILING")
-        cells = _gold_declaration("DECLARED_CEILING_CELLS")
-    except Exception as exc:                        # pragma: no cover
-        return [f"cannot read the gold file to check shared prose: {exc}"]
-    if not isinstance(canonical, str):
-        return [f"_1C_GATE_CEILING is {type(canonical).__name__}, expected the "
-                f"shared prose string"]
-    out = []
-    for key, value in (cells or {}).items():
-        if not isinstance(value, str) or value == canonical:
-            continue
-        ratio = difflib.SequenceMatcher(None, canonical, value).ratio()
-        if ratio >= 0.90:
-            out.append(
-                f"DECLARED_CEILING_CELLS[{key!r}] is {ratio:.0%} identical to "
-                f"_1C_GATE_CEILING but not equal to it -- these were one named "
-                f"string before the gold migration, so this is a copy that has "
-                f"drifted, not a separate declaration. Edit them together or "
-                f"make the difference deliberate and large.")
-    return out
+    return lo_enforce.run("gold_shared_prose_has_not_drifted", None)
+
 
 
 def check_source_cache_matches_the_stdlib() -> list[str]:
@@ -14879,7 +14108,7 @@ def check_hand_authored_attrs_still_suppress_something() -> list[str]:
         present = False
         if name in gen:
             try:
-                tag = OP._sheet_tag(OP.HANDOUT[item_id], OP.ACTION[item_id])
+                tag = OP._sheet_tag(OP.FORM[item_id], OP.ACTION[item_id])
                 m = re.search(r'%s="([^"]*)"' % name, tag)
                 present = bool(m and m.group(1).strip())
             except Exception:
@@ -14956,7 +14185,7 @@ def check_only_builders_read_the_rubric() -> list[str]:
             consumers.extend([fn] * sites)
 
     # AND THE INDIRECT CHANNEL, which counting imports alone does not see.
-    # `handouts.config(h)["rubric"]` used to hand out the MODULE OBJECT, and 101
+    # `forms.config(h)["rubric"]` used to hand out the MODULE OBJECT, and 101
     # call sites in 18 modules reach the rubric through it. This check, counting
     # `import` statements, would have read ZERO with every one of those still
     # live. The channel now serves a view onto the course file; this makes sure
@@ -14964,13 +14193,13 @@ def check_only_builders_read_the_rubric() -> list[str]:
     # silently restore all 101 dependencies and move no number.
     out = []
     try:
-        import handouts as _H
+        import forms as _H
 
         for _h in _forms():
             served = _H.config(_h)["rubric"]
             if getattr(served, "__name__", "").startswith("rubric_h"):
                 out.append(
-                    f"handouts.config({_h})['rubric'] serves the MODULE "
+                    f"forms.config({_h})['rubric'] serves the MODULE "
                     f"{served.__name__} again, not a view onto the course file. "
                     f"That is 101 call sites depending on a module Stage 5 "
                     f"deletes, and not one of them says so.")
@@ -15014,18 +14243,14 @@ def check_named_fixtures_still_name_something() -> list[str]:
     """
     # THE RULE LIVES IN LO-BLOCKS NOW. Goal K. The declaration is course data;
     # "a named target must still exist, and must say why it is named" is generic.
+    # SELF-ASSEMBLED. Subgoal E63: the runner builds this payload itself,
+    # from the same course records python would have read. The assembler was
+    # compared against the payload python used to send and found IDENTICAL
+    # before this fetch was deleted; `runner.SELF_ASSEMBLING` names the rules
+    # that comparison has cleared, and the runner refuses any other.
     import lo_enforce
-    import olx_prompts as OP
 
-    known = sorted(set(OP.ACTION) | set(OP.SHEET_ONLY))
-    fixtures = [{"label": label, "item": item, "why": str(why)}
-                for (label, item), why in sorted(SELFTEST_NAMED_FIXTURES.items())]
-    if not fixtures or not known:
-        # NOT SILENCE. Either side empty means nothing was compared.
-        return ["the named-fixture declaration or the item list could not be "
-                "read, so no fixture was checked against this course's items"]
-    return lo_enforce.run("named_fixtures_still_name_something",
-                          {"fixtures": fixtures, "knownItems": known})
+    return lo_enforce.run("named_fixtures_still_name_something", None)
 
 
 
@@ -15056,28 +14281,11 @@ def check_carried_notes_are_intact() -> list[str]:
     that objected to that would train its readers to update the number without
     reading why it moved.
     """
-    import rubric_component
+    # The rubric's carried commentary is a pair of counts; the tags are the
+    # course's.
+    import lo_enforce
 
-    import json
-
-    got = rubric_component.as_view_carried()
-    with open(CARRIED_NOTES, encoding="utf-8") as fh:
-        want = json.load(fh)
-    out = []
-    for tag, (runs, lines) in sorted(want.items()):
-        rs = got.get(tag)
-        if not rs:
-            out.append(f"{tag} carried {runs} block(s) of recorded reasoning and "
-                       f"now carries NONE. These are comments in the rubric "
-                       f"(`<!-- carried:{tag} k/n -->`); a marker that stops "
-                       f"matching reads exactly like prose nobody wrote")
-            continue
-        have_lines = sum(len(r) for r in rs)
-        if len(rs) < runs or have_lines < lines:
-            out.append(f"{tag} carried {runs} block(s)/{lines} line(s) and now has "
-                       f"{len(rs)}/{have_lines}. A block a later one assumes is "
-                       f"gone, and nothing else would report it")
-    return out
+    return lo_enforce.run("carried_notes_are_intact", None)
 
 
 def check_rubric_notes_match_the_modules() -> list[str]:
@@ -15139,7 +14347,7 @@ def check_rubric_notes_match_the_modules() -> list[str]:
                        f"({len(lines)} lines) and the course file ({len(got)}) "
                        f"-- a comment was edited and not re-exported")
     for h, lines in sorted(carried["handouts"].items()):
-        if list(coursedata.handout_notes(h)) != list(lines):
+        if list(coursedata.form_notes(h)) != list(lines):
             out.append(f"handout {h}'s header prose differs between the module "
                        f"and the course file -- re-export")
     return out
@@ -15193,7 +14401,7 @@ def check_grader_input_pairings_are_declared() -> list[str]:
     except Exception as exc:                      # pragma: no cover
         return [f"the pairing declaration cannot be read: {exc}"]
     import os
-    inv_path = os.path.join(_HERE_DIR, "SHAPE_INVENTORY.json")
+    inv_path = os.path.join(_p7.SCORING_METADATA, "SHAPE_INVENTORY.json")
     if not os.path.exists(inv_path):
         return [f"{os.path.basename(inv_path)} is missing, so the pairing table "
                 f"has nothing to check itself against -- which is not the same as "
@@ -15234,7 +14442,7 @@ def check_container_contents_are_declared() -> list[str]:
         return [f"the containment declaration cannot be read: {exc}"]
     import json as _json
     import os
-    inv_path = os.path.join(_HERE_DIR, "SHAPE_INVENTORY.json")
+    inv_path = os.path.join(_p7.SCORING_METADATA, "SHAPE_INVENTORY.json")
     if not os.path.exists(inv_path):
         return [f"{os.path.basename(inv_path)} is missing, so the containment "
                 f"table has nothing to check itself against -- which is not the "
@@ -15292,44 +14500,130 @@ def check_gold_columns_are_the_item_labels() -> list[str]:
     sheet -- 52 of 52. The rubric's `label` field IS the teacher's column
     heading, which is how gold reaches an item at all.
 
-    `gold.HN_HEADER_TO_ITEM` states the same correspondence a second time, as a
-    hardcoded header->id table. The two agree today, in both directions, and
-    nothing makes them. A label edited for wording would leave the gold join
-    working off the old heading and nothing would say so -- the scores would
-    still load, against the item they used to describe.
+    IT USED TO COMPARE TWO COPIES, and E58 step 3 (2026-09-25) removed the
+    second one. `gold.HN_HEADER_TO_ITEM` was a hardcoded header->id table
+    restating this same correspondence; this check held it to the rubric, and
+    its own text said what should happen instead -- *"Under A2a the header map
+    is DERIVABLE and should not be a stored table at all; until it is removed,
+    this check holds the copy to the original."* `gold.header_to_item(form)`
+    derives it now.
 
-    Under A2a the header map is DERIVABLE and should not be a stored table at
-    all; until it is removed, this check holds the copy to the original.
+    SO THE CHECK ASKS THE WORKBOOK. Comparing a derivation to itself is worse
+    than no check: it passes by construction and looks like coverage. What the
+    copy was hiding is the question that was only ever measured by hand, once,
+    on 2026-09-18 -- do these headings EXIST in the graders' sheet? A label
+    edited for wording still breaks the join, and now the sheet is what says so.
 
     It does NOT read a data row. Headers only: the workbooks hold student work,
     and the participant ids beside it are the key that makes it identifiable.
     """
+    # PORTED to `enforce/goldColumnsAreItemLabels.ts` (goal K).
+    #
+    # PYTHON KEEPS THE WORKBOOK READ, and that is the whole division of labour:
+    # the graders' sheets are source documents holding student work, so the
+    # engine must never open one. `tools/export_grader_columns.py` exports the
+    # HEADINGS ALONE for a native caller; this path reads the live sheet, so a
+    # workbook edited since the last export is still compared against.
+    #
+    # THE SELF-TEST SUBSTITUTES `gold._grid`, in memory, to make a sheet
+    # unreadable -- another reason the read stays here.
     try:
         import coursedata as _C
         import gold as _G
     except Exception as exc:                      # pragma: no cover
         return [f"the gold header tables cannot be read: {exc}"]
+    import lo_enforce
 
-    out = []
-    maps = {1: _G.H1_HEADER_TO_ITEM, 2: _G.H2_HEADER_TO_ITEM,
-            3: _G.H3_HEADER_TO_ITEM}
-    for handout, mapping in sorted(maps.items()):
-        labels = {it["label"]: it["id"] for it in _C.items()
-                  if it.get("handout") == handout and it.get("label")}
-        for header, item in sorted(mapping.items()):
-            if labels.get(header) != item:
-                out.append(
-                    f"h{handout}: gold header {header!r} maps to {item!r}, but the "
-                    f"rubric label for that heading is {labels.get(header)!r} -- "
-                    f"the gold join and the rubric disagree about which item a "
-                    f"grader's column scores")
-        for label, item in sorted(labels.items()):
-            if mapping.get(label) != item:
-                out.append(
-                    f"h{handout}: item {item!r} is labelled {label!r} and the gold "
-                    f"header map does not carry that heading -- its column would "
-                    f"be read as another item's, or not at all")
+    labels: dict[str, dict[str, str]] = {}
+    for it in _C.items():
+        form, label = it.get("handout"), it.get("label")
+        if form and label:
+            labels.setdefault(str(form), {})[label] = it["id"]
+
+    sheets: dict[str, dict] = {}
+    for form, path in sorted({1: _G.H1_XLSX, 2: _G.H2_XLSX, 3: _G.H3_XLSX}.items()):
+        try:
+            grid = _G._grid(path)
+        except Exception as exc:
+            sheets[str(form)] = {"unreadable": f"{exc}"}
+            continue
+        header_row = min((r for r, _ in grid), default=None)
+        if header_row is None:
+            sheets[str(form)] = {"headings": []}
+            continue
+        # HEADERS ONLY. No data row is read, here or in the exporter: the rows
+        # below hold student work and the ids that identify it.
+        sheets[str(form)] = {"headings": sorted(
+            {str(v).strip() for (r, _), v in grid.items()
+             if r == header_row and str(v).strip()})}
+
+    return lo_enforce.run("gold_columns_are_the_item_labels",
+                          {"labels": labels, "sheets": sheets})
+
+def rubric_parallel_widths() -> dict:
+    """`{(item, stem): width}` for every enumerated slot family the RUBRIC has.
+
+    A PARALLEL FAMILY is a criterion asked more than once -- `reason_1/2/3`,
+    `antecedent_1/2`, `example_1/2`. The width is how many the rubric actually
+    declares, read off the slots themselves rather than assumed.
+    """
+    import re
+    import coursedata
+
+    out: dict = {}
+    for it in coursedata.items():
+        iid = str(it.get("id"))
+        names = set()
+        for g in (it.get("counts") or ()):
+            names |= {str(s) for s in (g.get("slots") or ())}
+        for c in (it.get("credit") or ()):
+            if c.get("what"):
+                names.add(str(c["what"]))
+        for n in names:
+            m = re.fullmatch(r"(.+?)_(\d+)", n)
+            if m:
+                key = (iid, m.group(1))
+                out[key] = max(out.get(key, 0), int(m.group(2)))
     return out
+
+
+def check_enumerated_slots_cover_the_rubric() -> list[str]:
+    """A declaration table built by `for n in (1, 2, 3)` that the rubric outgrew.
+    Reported as ENUMERATION SHORTER THAN THE RUBRIC.
+
+    SUBGOAL E60, and it exists because of a FALSE POSITIVE. Removing the
+    hardcoded form count scanned for `(1, 2, 3)` and classified sixty-nine sites
+    as form iterations; four were not. They enumerate SLOTS -- `sentence_{n}`,
+    `example_{n}`, `reason_{n}` -- and encode a different claim entirely: that a
+    criterion has at most three parallel checks.
+
+    THE CEILING IS NOT WRONG TODAY, which is why this is a check and not a fix.
+    It matches the corpus: eleven families, widths 2 and 3. Raising it to five
+    would be the same mistake one number further out. What was missing is
+    anything that NOTICES when the rubric outgrows the enumeration -- a
+    criterion with a fourth parallel slot would simply not be built, and the
+    table would be silently SHORT rather than loudly wrong. That is the form
+    count's shape exactly: a hardcoded range does not fail on a longer course,
+    it stops early and reports clean on the rest.
+
+    CONTIGUOUS-FROM-ONE IS THE DISCRIMINATOR, and it is a heuristic stated as
+    one. A table that enumerates `1..k` for a family looks like a loop that ran
+    out; a table naming a SELECTION -- slots 1 and 3, or slot 2 alone -- is a
+    deliberate choice about which entries diverge, and is left alone. Only the
+    first shape is reported, so a partial declaration is never mistaken for a
+    truncated one.
+
+    EVERY DECLARATION TABLE, not a named one. The tables are read from
+    `rubric_export.DECLARATION_TABLES`, so a new table keyed by `(item, slot)`
+    is covered the day it is added -- the same reason `DATA_MODULES` and
+    `GENERIC_DOCS` were made to read their lists of record rather than restate
+    them.
+    """
+    # A table short of the rubric is correct as far as it goes and governs
+    # nothing past its end.
+    import lo_enforce
+
+    return lo_enforce.run("enumerated_slots_cover_the_rubric", None)
 
 
 def check_property_vocabulary_has_not_grown() -> list[str]:
@@ -15492,8 +14786,10 @@ def check_the_staged_rubric_is_current() -> list[str]:
     except Exception as exc:                            # pragma: no cover
         return [f"cannot check the staged rubric: {type(exc).__name__}: {exc}"]
 
-    authored = _os.path.join(str(_p7.OLX_DIR),
-                             "bmod_rubric.olx")
+    # THE COURSE'S OWN NAME FOR IT. `paths.RUBRIC_COMPONENT` is declared in the
+    # content manifest; spelling the stem here put one course's filename in
+    # engine code.
+    authored = _os.path.join(str(_p7.roots().location), _p7.RUBRIC_COMPONENT)
     if not _os.path.exists(authored):
         return [f"{_os.path.relpath(authored)} is missing: there is no authored "
                 f"rubric to stage"]
@@ -15556,36 +14852,11 @@ def check_the_expanded_rubric_is_current() -> list[str]:
     a check nobody finds out is broken. The refusal below is what makes the
     upgrade unavoidable instead of merely noted.
     """
-    import os as _os
-    try:
-        import rubric_component as RC
-    except Exception as exc:                            # pragma: no cover
-        return [f"cannot check the expanded rubric: {type(exc).__name__}: {exc}"]
+    # A stale expansion is a stale rubric, silently; the bytes must match while
+    # no template exists.
+    import lo_enforce
 
-    authored = _os.path.join(str(_p7.OLX_DIR),
-                             "bmod_rubric.olx")
-    if not _os.path.exists(authored):
-        return [f"{_os.path.relpath(authored)} is missing: there is no authored "
-                f"rubric to expand"]
-    expanded = RC.expanded_path()
-    if not _os.path.exists(expanded):
-        return [f"the rubric has not been expanded ({expanded}); run "
-                f"`npm run build:expand-rubrics`. The scorer reads the expanded "
-                f"copy, so an unbuilt tree scores against nothing"]
-    src = open(authored, errors="ignore").read()
-    if "<ItemTemplate" in src:
-        return [f"{_os.path.relpath(authored)} declares an <ItemTemplate>, and "
-                f"this check compares bytes -- which was exact only while nothing "
-                f"expanded. It must now run the expander and compare its output, "
-                f"or it will call every correct expansion stale. Upgrade it."]
-    have = open(expanded, errors="ignore").read()
-    if have != src:
-        return [f"the expanded rubric is not the authored one "
-                f"({len(have):,} bytes expanded, {len(src):,} authored), and with "
-                f"no template to expand they must match byte for byte. The rubric "
-                f"was edited since the last build: run "
-                f"`npm run build:expand-rubrics`."]
-    return []
+    return lo_enforce.run("the_expanded_rubric_is_current", None)
 
 
 # `check_the_component_reproduces_the_view` STOOD HERE AND RETIRED AT STEP 3D,
@@ -15649,7 +14920,7 @@ def check_sheet_matches_the_rubric_it_names() -> list[str]:
     # loaded is a finding, because the alternative is a check that cannot fail.
     for item in sorted(O.ACTION):
         try:
-            act = A.load_action(_p7.handout_olx(O.HANDOUT[item]), O.ACTION[item])
+            act = A.load_action(_p7.handout_olx(O.FORM[item]), O.ACTION[item])
         except Exception as exc:
             out.append(f"{item}: cannot load its action to compare against the "
                        f"rubric: {type(exc).__name__}: {exc}")
@@ -15676,7 +14947,7 @@ def check_sheet_matches_the_rubric_it_names() -> list[str]:
     return out
 
 
-def check_the_course_links_the_rubric_and_every_handout() -> list[str]:
+def check_the_course_links_the_rubric_and_every_form() -> list[str]:
     """The rubric is IN the course, beside the three handouts it scores.
 
     This is the shape the migration exists to reach, and it is one `<Use ref>`
@@ -15686,21 +14957,13 @@ def check_the_course_links_the_rubric_and_every_handout() -> list[str]:
     nothing compared the two. A rubric that is not linked still builds, still
     resolves, and still scores nothing.
     """
-    import os as _os
-    import re as _re
-    course = _os.path.join(str(_p7.OLX_DIR),
-                           "bmod_course.olx")
-    if not _os.path.exists(course):
-        return [f"there is no {_os.path.relpath(course)}: the rubric and the three "
-                f"handouts are not assembled into a course at all"]
-    text = open(course, errors="ignore").read()
-    refs = set(_re.findall(r'<Use\s+ref="([^"]+)"', text))
-    want = {"bmod_rubric", "bmod_handout1", "bmod_handout2", "bmod_handout3"}
-    missing = sorted(want - refs)
-    if missing:
-        return [f"bmod_course.olx does not link {', '.join(missing)} -- the course "
-                f"must hold the rubric AND every handout it scores"]
-    return []
+    # PORTED AND SELF-ASSEMBLED (goal K, step 8). The component, rubric and
+    # handout filenames are manifest keys now, not engine defaults; the
+    # assembler reads them and the wanted links match python's course_links()
+    # exactly.
+    import lo_enforce
+
+    return lo_enforce.run("the_course_links_the_rubric_and_every_form", None)
 
 
 # `check_the_rubric_component_is_current` STOOD HERE AND RETIRED AT STEP 3D, on
@@ -15735,7 +14998,10 @@ def check_no_old_environment_names() -> list[str]:
     repo = os.path.dirname(_HERE_DIR)
     pat = re.compile(r"\bMOLLY_(?:DATA|OUT|MEDIA)\b")
     out = []
+    _skip = {str(s) for s in _p7.walk_prune_dirs(repo)}
     for dirpath, dirnames, filenames in os.walk(repo):
+        dirnames[:] = [d for d in dirnames
+                       if os.path.realpath(os.path.join(dirpath, d)) not in _skip]
         dirnames[:] = [d for d in dirnames
                        if d not in (".git", "node_modules", "__pycache__")]
         for fn in filenames:

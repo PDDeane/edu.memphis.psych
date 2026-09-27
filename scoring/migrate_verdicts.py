@@ -154,9 +154,9 @@ def main() -> int:
     ap.add_argument("--write", action="store_true", help="rewrite in place")
     args = ap.parse_args()
 
-    files = sorted((paths.OLX_DIR).glob(_p7.handout_olx_glob()))
+    files = _p7.handout_olx_paths()
     if not files:
-        print(f"no handouts under {paths.OLX_DIR}", file=sys.stderr)
+        print(f"no handouts under {paths.roots().olx_dir}", file=sys.stderr)
         return 2
 
     total_slots = changed_blocks = 0

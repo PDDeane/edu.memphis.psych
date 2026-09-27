@@ -66,26 +66,73 @@ SECTION_LINE = re.compile(r"^(?:#{1,6} |\s*(?:[-*+]|\d+\.) )")
 
 
 def generic_path(name: str) -> str:
-    """The half that states the principles: tracked, in the machinery."""
-    return os.path.join(HERE, name)
+    """The half that states the principles -- filed WITH THE MACHINERY, in `scoring/qc/`.
+
+    IT HAS BEEN IN THREE PLACES, and each move was decided by evidence rather
+    than by taste, so the reasoning is kept rather than replaced:
+
+      `scoring/`         where it began, loose among the modules
+      the engine         the user's instruction was to move the non-rubric-specific
+                         QC documents to lo-blocks. The move was REVERTED, because
+                         `check_generic_documents_are_generic` reported `run_score
+                         x37` in QUALITY_CONTROL.md the moment it arrived -- a
+                         signal matching THIS rubric's measured scores. (A
+                         hand-written scan for the course's name had reported zero,
+                         which is the prepared-classifier lesson again.)
+      the rubric         filed beside the `.olx`, on the conclusion the engine move
+                         had forced: these were not in fact course-neutral.
+
+    WHY IT MOVED AGAIN. That conclusion rested on contamination that has since
+    been REMOVED. The user's instruction to clean QUALITY_CONTROL.md moved the
+    course's measurements into the course half, and all four generic halves now
+    read clean through `course_inventory.course_prose` -- the same prepared
+    classifier that caught them. The premise for filing them with the rubric
+    expired when the evidence for it did, so they sit with the machinery whose
+    procedure they describe.
+
+    AND THEY ARE TRACKED HERE. Under the collection directory they were untracked
+    -- not ignored, merely never added -- which put the generic halves outside
+    every reader that works through history, and would have lost them in a clean
+    checkout. `scoring/` is tracked ground, and git records the move as a rename
+    back to where these files started.
+
+    The `qc/` subdirectory, not `scoring/` itself: a directory of its own says
+    what these are, and it is what `_split_generic_halves` reports to
+    `GENERIC_DOCS`, so the declared-generic set follows the files automatically.
+    """
+    return os.path.join(HERE, "qc", name)
 
 
-# SPECIFIC HALVES THAT ACCUMULATE, which is a different thing from a specific half
-# that is merely long. A guide's course half is AUTHORED: it changes when someone
-# rewrites it, and its history is worth keeping. A ledger's course half is a LOG --
-# it grows with course work, is rewritten whole on every entry, and its history is
-# the cost the override log already demonstrated at 2,838 MB, 82% of every blob this
-# repository has ever stored. A log that grows with course work cannot live in a
-# repository that must not grow with it, so these go beside `gold.json` and
-# `OVERRIDES.md` instead of into the course tree.
+# DOCUMENTS THAT ACCUMULATE -- a rule that governed nothing as of 2026-09-26,
+# kept because it states a real cost and the decision that overrode it.
 #
-# WHAT IS GIVEN UP, and what replaces it. Outside git there is no committed prior
-# state, and `goals.check()` compared against exactly that to catch a deleted entry
-# and an unapproved closure. Both now compare against `GOAL_STATES.json`, which is
-# tracked: 112 labels and their states, some 15 KB, rewritten only when a goal is
-# opened or closed rather than on every prose edit. The state stays versioned; the
-# prose stops being.
-ACCUMULATING: tuple[str, ...] = ("GOALS.md", "BACKLOG.md")
+# THE RULE. A guide's course half is AUTHORED: it changes when someone rewrites
+# it, and its history is worth keeping. A ledger's or a log's course half GROWS
+# WITH COURSE WORK, is rewritten whole on every entry, and its history is the
+# cost `coursedata.overrides_path` measured: 2,838 MB, 82% of every blob this
+# repository has ever stored, against 18 MB of tracked content. On that measure
+# GOALS.md, BACKLOG.md and OVERRIDES.md were filed outside the repository.
+#
+# THE DECISION THAT ENDED IT, the user's, 2026-09-26, with the size put to them
+# and explicitly set aside -- *"I really don't care about the size"*. These are
+# the documents of one quality-control cycle: the goals, the backlog they feed,
+# the closures approved against them, the overrides the gate wrote when a
+# finding was waived, and the guides that say how all of it is judged. They are
+# read together and decided together, and filing three of them elsewhere for a
+# storage reason made the set unreadable as a set. They are all in
+# `<course>/<rubric id>_qc/` and all tracked.
+#
+# WHAT IT COSTS, so that the next person is not surprised by it. Every commit
+# touching one of these rewrites its whole blob. OVERRIDES.md alone is 3.4 MB
+# and machine-written by `precommit_gate.py` on every waived finding. The
+# measurement above is what that grows into; nothing about it has been
+# disproved, and the trade was made with it in view.
+#
+# THE TUPLE IS EMPTY, NOT DELETED. `paths._accumulating_docs` and this module's
+# `specific_path` both read it, and an empty list of record keeps saying "none"
+# where a deleted one would make the two readers silently disagree about
+# whether the question still exists.
+ACCUMULATING: tuple[str, ...] = ()
 
 # Documents that live ENTIRELY with the course: no generic half, nothing to
 # compose. A split document has a rule in it worth keeping behind; these do not --
@@ -94,14 +141,20 @@ WHOLE_DOCS: tuple[str, ...] = ("BACKLOG.md", "Q6_MATCHING_CEILING.md")
 
 
 def specific_path(name: str) -> str:
-    """The half that carries this course's cases.
+    """The half that carries this course's cases -- in `<course>/<rubric id>_qc/`.
 
     Tracked with the course, unless it ACCUMULATES -- see above, and `coursedata.
     overrides_path` for the measurement that set this rule.
+
+    `qc/` ON BOTH SIDES, which is the whole point of the subdirectory. The generic
+    half sits in `scoring/qc/` and the course half in `<course>/<rubric id>_qc/`, so the two
+    are recognisable as the same kind of document from their paths alone and
+    neither needs a declaration to say what it is. A `WHOLE_DOCS` entry has no
+    generic half but is the same kind of thing, and is filed here too.
     """
-    if name in ACCUMULATING:
-        return os.path.join(str(paths.DATA), "courses", paths.NS, name)
-    return os.path.join(str(paths.COURSE_LOCATION), name)
+    if name in ACCUMULATING:                  # empty since 2026-09-26; see above
+        return str(paths.roots().rubric_dir / "authored" / name)
+    return str(paths.rubric_docs_dir() / name)
 
 
 def _blocks(text: str) -> dict:
@@ -306,12 +359,12 @@ def missing() -> list:
 
 def composed_path(name: str) -> str:
     """The built document: what every READER opens."""
-    return os.path.join(str(paths.COMPOSED_DOCS), name)
+    return os.path.join(str(paths.roots().composed_docs), name)
 
 
 def build() -> list:
     """Write every composed document. Returns what was written."""
-    os.makedirs(str(paths.COMPOSED_DOCS), exist_ok=True)
+    os.makedirs(str(paths.roots().composed_docs), exist_ok=True)
     out = []
     for name in SPLIT_DOCS:
         if not os.path.exists(generic_path(name)):

@@ -47,13 +47,13 @@ import json
 import os
 import sys
 import types
-import handouts as _handouts   # forms are declared by the course, not counted here
+import forms as _forms   # forms are declared by the course, not counted here
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
 
-HANDOUTS = _handouts.declared()
+FORMS = _forms.declared()
 
 # Names that need no carriage, each with the reason. Keyed by (handout, name):
 # a new private name in a new module must be examined on its own, not inherit a
@@ -104,8 +104,8 @@ DEAD: set = set()
 EXPORT_ADDED = {"handout": "synthesised by the export from the module of origin"}
 
 
-def _justification(handout, name):
-    return JUSTIFIED.get((handout, name)) or JUSTIFIED.get(("*", name))
+def _justification(form, name):
+    return JUSTIFIED.get((form, name)) or JUSTIFIED.get(("*", name))
 
 
 def _canon(x):
@@ -179,13 +179,13 @@ def _module_names(mod):
             if not n.startswith("__") and not isinstance(v, skip)}
 
 
-def verify(handout, reader):
+def verify(form, reader):
     """-> (compared, findings, accounted, ids). One handout.
 
     `compared` is COVERAGE, and a comparison over no data is not coverage --
     see the empty-pool rule below.
     """
-    mod = importlib.import_module(f"rubric_h{handout}")
+    mod = importlib.import_module(f"rubric_h{form}")
     names = _module_names(mod)
     findings, accounted, compared = [], {}, 0
 
@@ -202,19 +202,19 @@ def verify(handout, reader):
         stray = sorted(set(it) - fields)
         if stray:
             findings.append(
-                f"h{handout} item {iid}: field(s) {stray} belong to no declared "
+                f"h{form} item {iid}: field(s) {stray} belong to no declared "
                 f"group -- the reader serves neither, so they would be lost")
         if iid not in served:
-            findings.append(f"h{handout} item {iid}: IN MODULE, NOT SERVED BY THE READER")
+            findings.append(f"h{form} item {iid}: IN MODULE, NOT SERVED BY THE READER")
             continue
-        if served[iid].get("handout") != handout:
+        if served[iid].get("handout") != form:
             findings.append(
-                f"h{handout} item {iid}.handout: the export wrote "
-                f"{served[iid].get('handout')!r}, but this item is in rubric_h{handout}")
+                f"h{form} item {iid}.handout: the export wrote "
+                f"{served[iid].get('handout')!r}, but this item is in rubric_h{form}")
         want = _canon({k: v for k, v in it.items()
                        if k in reader.RUBRIC_FIELDS and k not in EXPORT_ADDED})
         got = _canon(_strip_added(served[iid]))
-        for d in _diff(want, got, f"h{handout} item {iid}"):
+        for d in _diff(want, got, f"h{form} item {iid}"):
             findings.append(d)
         compared += 1
     accounted["ITEMS"] = f"compared as {len(mod_items)} items"
@@ -226,23 +226,23 @@ def verify(handout, reader):
         if name == "ITEMS":
             continue
         if name.startswith("_") or not name.isupper():
-            why = _justification(handout, name)
+            why = _justification(form, name)
             if why is None:
                 findings.append(
-                    f"h{handout} {name}: UNACCOUNTED -- a module-level value that is "
+                    f"h{form} {name}: UNACCOUNTED -- a module-level value that is "
                     f"neither served by the reader nor justified. Add it to the "
                     f"export, or justify it in JUSTIFIED.")
             else:
-                accounted[name] = ("DEAD -- " if (handout, name) in DEAD else "") + why
+                accounted[name] = ("DEAD -- " if (form, name) in DEAD else "") + why
             continue
         try:
-            got = reader.derived(name, handout)
+            got = reader.derived(name, form)
         except KeyError:
             findings.append(
-                f"h{handout} {name}: IN MODULE, THE READER CANNOT SERVE IT. The "
+                f"h{form} {name}: IN MODULE, THE READER CANNOT SERVE IT. The "
                 f"export did not carry it and no derivation rebuilds it.")
             continue
-        for d in _diff(_canon(value), _canon(_strip_added(got)), f"h{handout} {name}"):
+        for d in _diff(_canon(value), _canon(_strip_added(got)), f"h{form} {name}"):
             findings.append(d)
         # AN EMPTY POOL IS NOT COVERAGE. `BY_ID` and `TOTAL` rebuild happily from
         # no items at all -- {} and 0 -- so counting them made coverage
@@ -263,13 +263,13 @@ def verify(handout, reader):
     # ---- the reverse direction: what the reader serves, the module lacks -----
     doc_authored = set()
     try:
-        raw = reader._load()["handouts"].get(str(handout), {})
+        raw = reader._load()["handouts"].get(str(form), {})
         doc_authored = set(raw.get("authored", {}))
     except Exception as exc:                      # pragma: no cover
-        findings.append(f"h{handout}: could not enumerate the reader's own keys: {exc}")
+        findings.append(f"h{form}: could not enumerate the reader's own keys: {exc}")
     for name in sorted((doc_authored | set(reader.DERIVATIONS)) - set(names)):
         findings.append(
-            f"h{handout} {name}: SERVED BY THE READER, ABSENT FROM THE MODULE "
+            f"h{form} {name}: SERVED BY THE READER, ABSENT FROM THE MODULE "
             f"(a migration in progress, or a value invented by the export)")
 
     return compared, findings, accounted, module_ids
@@ -280,7 +280,7 @@ def not_yet_migrated(inventory_path):
     if not inventory_path or not os.path.exists(inventory_path):
         return None
     inv = json.load(open(inventory_path))
-    rubric = {f"rubric_h{h}.py" for h in HANDOUTS}
+    rubric = {f"rubric_h{h}.py" for h in FORMS}
     return sorted(
         (m["module"], t["name"])
         for m in inv.get("modules", [])
@@ -311,7 +311,7 @@ def _mutations():
         e = copy.deepcopy(d["items"][0]); e["id"] = "ZZ9"; d["items"].append(e)
     def drop_authored(d):
         d["handouts"]["1"]["authored"].pop("MAPS")
-    def wrong_handout(d):
+    def wrong_form(d):
         for it in d["items"]:
             if it["id"] == "Q1":
                 it["handout"] = 3
@@ -323,7 +323,7 @@ def _mutations():
         ("an item dropped from export",  drop_item,     "", "NOT SERVED BY THE READER"),
         ("an item the modules lack",     extra_item,    "", "ABSENT FROM EVERY MODULE"),
         ("an authored value not carried",drop_authored, "", "CANNOT SERVE IT"),
-        ("a wrong synthesised handout",  wrong_handout, "", "but this item is in rubric_h1"),
+        ("a wrong synthesised handout",  wrong_form, "", "but this item is in rubric_h1"),
         ("a NEW public table",           None,
          "import rubric_h2 as _m;_m.NEW_TABLE={'a':1}\n", "CANNOT SERVE IT"),
         ("a NEW private table",          None,
@@ -379,7 +379,7 @@ def _modules_present() -> list:
     import os
 
     here = os.path.dirname(os.path.abspath(__file__))
-    return [h for h in _handouts.declared()
+    return [h for h in _forms.declared()
             if os.path.exists(os.path.join(here, f"rubric_h{h}.py"))]
 
 

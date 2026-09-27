@@ -53,14 +53,34 @@ def sha12(s):
 
 
 def export_path(explicit=None):
-    """Where the spans live. Explicit argument, then $CORPUS_REFS, then
-    $COURSE_DATA/corpus_refs.json. No default inside a checkout, ever: the export
-    carries student text and belongs beside the corpus."""
+    """Where the spans live. Explicit argument, then $CORPUS_REFS, then the
+    course's data root -- declared or environment.
+
+    NO DEFAULT INSIDE A CHECKOUT, EVER: the export carries student text and
+    belongs beside the corpus. That rule is unchanged.
+
+    THE DECLARED ROOT COUNTS, added 2026-09-26. This read `$COURSE_DATA`
+    directly, so a course that DECLARES its data root in the rubric -- the
+    arrangement the project is moving to, and the one the dry run adopted the
+    day it was given a data store of its own -- had no corpus at all, and the
+    audit died on the first check that resolves a reference. `paths.DATA`
+    already applies the whole precedence, so reading it is not a second rule.
+
+    IMPORTED LATE AND GUARDED, because this module is deliberately importable
+    with no course configured; if `paths` cannot answer, the refusal below is
+    still the answer.
+    """
     if explicit:
         return explicit
     if os.environ.get(ENV):
         return os.environ[ENV]
     root = os.environ.get("COURSE_DATA")
+    if not root:
+        try:
+            import paths
+            root = str(paths.DATA)
+        except Exception:
+            root = None
     if root:
         return os.path.join(root, "corpus_refs.json")
     raise SystemExit(

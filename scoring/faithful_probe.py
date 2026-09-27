@@ -83,7 +83,7 @@ def main() -> int:
     import measured as M
 
     cells = [int(x) for x in a.cells.split(",") if x.strip()]
-    handout = M._jobs()[a.item]["handout"]
+    form = M._jobs()[a.item]["handout"]
 
     # THE BASELINE MUST BE READ BEFORE THE RUN, and it is the ledger's, not a
     # fresh measurement: the ledger came through this same envelope, which is the
@@ -144,7 +144,7 @@ def main() -> int:
         import collections
 
         import enforcement as ENF
-        import handouts as _H_R
+        import forms as _H_R
 
         want = [x.strip() for x in a.slots.split(",") if x.strip()]
         # The view, not the module: see `handouts._RubricView`.
@@ -225,8 +225,9 @@ def main() -> int:
           f"because the ledger below came through it too.\n")
 
     out = pathlib.Path(tempfile.mkdtemp(prefix="faithful_")) / f"{a.item}.json"
-    cmd = [sys.executable, "-u", str(HERE / "agreement.py"),
-           "--handout", str(handout), "--items", a.item,
+    import agreement as _ag_mod   # by import, not by this file's folder
+    cmd = [sys.executable, "-u", _ag_mod.__file__,
+           "--form", str(form), "--items", a.item,
            "--participants", *[str(c) for c in cells],
            "--runs", str(a.runs), "--backend", "lo", "--out", str(out)]
     if a.force:

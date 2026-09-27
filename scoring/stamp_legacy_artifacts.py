@@ -41,7 +41,7 @@ BACKEND_LINE = re.compile(r"=\s*\d+\s+calls\s+via\s+(.+?)\s*$", re.M)
 def observed_mapping() -> dict:
     """backend -> model, learned from artifacts that carry both."""
     seen = collections.defaultdict(set)
-    for d in sorted(paths.OUT.iterdir()):
+    for d in sorted(paths.roots().out.iterdir()):
         if not d.is_dir():
             continue
         for f in d.glob("*.runs.json"):
@@ -90,8 +90,8 @@ def main(argv=None) -> int:
     for b, m in sorted(mapping.items()):
         print(f"     {b[:52]!r} -> {m}")
 
-    dirs = ([paths.OUT / n for n in a.artifacts] if a.artifacts
-            else [d for d in sorted(paths.OUT.iterdir()) if d.is_dir()])
+    dirs = ([paths.roots().out / n for n in a.artifacts] if a.artifacts
+            else [d for d in sorted(paths.roots().out.iterdir()) if d.is_dir()])
     done = skipped = 0
     for d in dirs:
         if not d.is_dir():

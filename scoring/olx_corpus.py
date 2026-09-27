@@ -107,7 +107,7 @@ def default_roots() -> list[str]:
     roots = [p for p, _why, ok in declared_roots() if ok]
     # J-7b: THIS COURSE's content directory, resolved once in `paths`.
     import paths
-    own = os.path.abspath(str(paths.OLX_DIR))
+    own = os.path.abspath(str(paths.roots().olx_dir))
     if os.path.isdir(own) and not any(own.startswith(r + os.sep) for r in roots):
         roots.append(own)
     return roots

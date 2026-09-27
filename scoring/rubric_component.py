@@ -49,11 +49,27 @@ import xml.etree.ElementTree as ET
 _COMMENT = re.compile(r"<!--.*?-->", re.S)
 
 
+def _staged_under(kind: str) -> str:
+    """One stage tree's copy of the authored rubric: `.stage/<kind>/<ns>/...`.
+
+    THE STAGE MIRRORS THE REPOSITORY, so the tail of a staged path is just the
+    authored file's path RELATIVE TO THE REPOSITORY. Both callers used to build
+    that tail by hand as `<collection>/<rubric>`, which assumed the rubric sits
+    directly in the collection -- true until 2026-09-26, when this course's
+    material moved into a course folder of its own and both paths started
+    naming a file one directory above the real one. Deriving the tail means the
+    next move needs no edit here, and the two stage trees cannot drift apart
+    from the authored file or from each other.
+    """
+    import paths
+    tail = os.path.relpath(authored_path(), str(paths.REPO))
+    return os.path.join(str(paths.LO), ".stage", kind, paths.roots().ns, tail)
+
+
 def staged_path() -> str:
     """Where the build leaves the expanded, RESOLVED rubric."""
     import paths
-    return os.path.join(str(paths.LO), ".stage", "content", paths.NS,
-                        paths.OLX_DIR.name, paths.RUBRIC_COMPONENT)
+    return _staged_under("content")
 
 
 def expanded_path() -> str:
@@ -84,8 +100,7 @@ def expanded_path() -> str:
     override = os.environ.get("COURSE_RUBRIC_OLX")
     if override:
         return override
-    return os.path.join(str(paths.LO), ".stage", "expanded", paths.NS,
-                        paths.OLX_DIR.name, paths.RUBRIC_COMPONENT)
+    return _staged_under("expanded")
 
 
 def authored_path() -> str:
@@ -111,7 +126,7 @@ def authored_path() -> str:
     piece of build work the hand-authoring step still owes.
     """
     import paths
-    return os.path.join(str(paths.OLX_DIR), paths.RUBRIC_COMPONENT)
+    return os.path.join(str(paths.roots().location), paths.RUBRIC_COMPONENT)
 
 
 def _text(el) -> str:

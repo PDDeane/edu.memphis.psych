@@ -32,12 +32,12 @@ import os
 import re
 import sys
 
-from handouts import config, cell_exclusions, gold_divergence_cells
+from forms import config, cell_exclusions, gold_divergence_cells
 import paths
-import handouts as _handouts   # forms are declared by the course, not counted here
+import forms as _forms   # forms are declared by the course, not counted here
 
 OUT = os.path.join(os.path.dirname(paths.__file__), "..")
-DATA = str(paths.OUT)
+DATA = str(paths.roots().out)
 
 # label -> (kind, path). `paper` dirs hold participant_*.json per handout;
 # `sweep` dirs hold <item>.json. Missing ones are skipped, so this runs against
@@ -64,9 +64,9 @@ def _num(x):
     return float(v) if isinstance(v, (int, float)) else None
 
 
-def gold_for(handout: int) -> dict:
-    g = config(handout)["gold"]()
-    if handout == 3:
+def gold_for(form: int) -> dict:
+    g = config(form)["gold"]()
+    if form == 3:
         try:
             from agreement import rebuild_declared_gold
             g, _ = rebuild_declared_gold(g)
@@ -78,7 +78,7 @@ def gold_for(handout: int) -> dict:
 def load_paper(root: str) -> dict[tuple[str, int], float]:
     """{(item, pid): predicted score} from a score.py output tree."""
     out = {}
-    for h in _handouts.declared():
+    for h in _forms.declared():
         d = f"{root}/h{h}"
         if not os.path.isdir(d):
             continue
@@ -124,7 +124,7 @@ def load_sweep(root: str) -> dict[tuple[str, int], float]:
 def self_graded_cells() -> dict[tuple[str, int], int]:
     """{(item, pid): handout} for every registered self-graded cell."""
     out = {}
-    for h in _handouts.declared():
+    for h in _forms.declared():
         for it in config(h)["rubric"].ITEMS:
             for pid, (kind, _why) in cell_exclusions(h, it["id"]).items():
                 if kind == "self_graded":

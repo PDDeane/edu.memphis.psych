@@ -47,7 +47,7 @@ def cited_dirs() -> dict:
     """Directories named by a ledger, through the ledger's own reference field."""
     out: dict = collections.defaultdict(set)
     # FROM `paths`, not from this file's position -- see `editguard.HERE`.
-    ledger = paths.COURSE_LEDGER
+    ledger = paths.roots().ledger
     doc = json.loads(ledger.read_text())
     for item, sides in (doc.get("items") or {}).items():
         for side, v in (sides or {}).items():
@@ -74,7 +74,7 @@ def _bytes_and_files(p: pathlib.Path) -> tuple[int, int]:
 def inventory() -> dict:
     cites = cited_dirs()
     rows = []
-    for p in sorted(pathlib.Path(paths.OUT).iterdir()):
+    for p in sorted(pathlib.Path(paths.roots().out).iterdir()):
         if p.name.startswith("."):
             continue
         size, files = _bytes_and_files(p)
@@ -99,7 +99,7 @@ def inventory() -> dict:
 
 def main(argv: list) -> int:
     doc = inventory()
-    dest = argv[1] if len(argv) > 1 else str(pathlib.Path(paths.OUT) / "OUT_INVENTORY.json")
+    dest = argv[1] if len(argv) > 1 else str(pathlib.Path(paths.roots().out) / "OUT_INVENTORY.json")
     pathlib.Path(dest).write_text(json.dumps(doc, indent=1, sort_keys=False) + "\n")
     t = doc["_totals"]
     print(f"  {t['entries']} entries, {t['bytes'] / 1e9:.2f} GB; "

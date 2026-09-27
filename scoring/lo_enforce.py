@@ -24,7 +24,12 @@ to prevent.
 from __future__ import annotations
 
 import json
+import os
+import atexit as _atexit
+import selectors as _selectors
 import subprocess
+import threading as _threading
+import time as _time
 
 
 RUNNER = "packages/shared/lib/llm/enforce/runner.ts"
@@ -50,8 +55,8 @@ def _bridge_env() -> dict:
     import paths
 
     return {**os.environ,
-            "COURSE_DATA": str(paths.DATA),
-            "COURSE_METADATA": str(paths.COURSE_METADATA),
+            "COURSE_DATA": str(paths.roots().data),
+            "COURSE_METADATA": str(paths.roots().metadata),
             "COURSE_REPO": str(paths.REPO)}
 
 
@@ -68,6 +73,142 @@ def available() -> str:
     return ""
 
 
+# ONE WARM PROCESS, because starting tsx costs ~1.6s and the audit asks one rule
+# at a time. Measured 2026-09-25 at eighteen ported checks: the SELFTEST runs the
+# whole audit once per injection case, so 18 x 19 spawns put ~9 minutes of pure
+# process startup into a single verification -- and the run was killed by a
+# ceiling set before those ports existed. The cost is LINEAR IN PORTS, so goal K
+# was making the audit's own verification more expensive with every step.
+#
+# The server is started on first use and reused. EVERY FAILURE FALLS BACK to the
+# one-shot path below rather than becoming a finding: a warm process is an
+# optimisation, and an optimisation that can report a rule as broken is worse
+# than the cost it saves.
+_SERVER = None
+_SERVER_BUF = b""
+# The pid that started `_SERVER`. See `_server`: a fork must not reuse it.
+_SERVER_PID = None
+_SERVER_LOCK = _threading.Lock()
+
+
+def _server():
+    """The live runner process, started if needed. None if it cannot be had.
+
+    FORK-AWARE, AND IT HAS TO BE. `_SERVER` is a module global holding a pipe to
+    one node process. `equivalence --selftest` FORKS its audits, so a child
+    inherits this handle and, without the pid check below, would write its
+    requests into the SAME stdin its parent and every sibling are using. The
+    replies interleave and each reader takes whichever line arrives first: not a
+    crash, just wrong findings, in the suite whose whole job is to be trusted.
+    The serial path never exposed it because nothing forked.
+
+    A CHILD STARTS ITS OWN and never touches the inherited one -- it is the
+    parent's to close, and killing it here would take the server out from under
+    the process that owns it.
+    """
+    global _SERVER, _SERVER_BUF, _SERVER_PID
+    import paths
+
+    if (_SERVER is not None and _SERVER_PID == os.getpid()
+            and _SERVER.poll() is None):
+        return _SERVER
+    # INHERITED ACROSS A FORK, or simply dead: drop the handle WITHOUT touching
+    # the process behind it. If it is the parent's, the parent will close it.
+    _SERVER, _SERVER_BUF = None, b""
+    try:
+        _SERVER = subprocess.Popen(
+            [str(paths.LO / "node_modules/.bin/tsx"), RUNNER, "--serve"],
+            cwd=str(paths.LO), stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL, env=_bridge_env(), bufsize=0)
+        # STAMPED WITH THE OWNER. Everything above turns on this being the pid
+        # that created the handle, so it is set where the handle is.
+        _SERVER_PID = os.getpid()
+    except Exception:                                       # pragma: no cover
+        _SERVER = None
+    return _SERVER
+
+
+def _stop_server() -> None:
+    """Leave no node process behind. Registered atexit.
+
+    ONLY THE PROCESS THAT STARTED IT may stop it. A forked child exits through
+    `os._exit`, which skips atexit entirely, so this is belt and braces -- but a
+    child that ever did run it would kill the PARENT's runner mid-audit.
+    """
+    global _SERVER
+    p, _SERVER = _SERVER, None
+    if p is None or p.poll() is not None:
+        return
+    if _SERVER_PID != os.getpid():
+        return
+    # CLOSE, THEN TERMINATE, THEN KILL. Closing stdin ends the serve loop and is
+    # the clean exit, but it is not guaranteed: measured 2026-09-25, one runner
+    # in three survived a stdin-close-and-wait and was still alive afterwards.
+    # A node process left holding inotify watches is how this tree exhausted the
+    # watch limit before, so the last step is not optional.
+    for step in ("close", "terminate", "kill"):
+        try:
+            if step == "close" and p.stdin:
+                p.stdin.close()
+            elif step == "terminate":
+                p.terminate()
+            elif step == "kill":
+                p.kill()
+            p.wait(timeout=2)
+            return
+        except Exception:
+            continue
+
+
+_atexit.register(_stop_server)
+
+
+def _serve_call(req: dict, timeout: float):
+    """One request through the warm process, or None to fall back.
+
+    Reads until a line PARSES, because tsx and the loader print warnings to
+    stdout before the first answer; a reader that took the first line would
+    mistake a warning for a refusal.
+    """
+    global _SERVER_BUF
+    with _SERVER_LOCK:
+        p = _server()
+        if p is None or p.stdin is None or p.stdout is None:
+            return None
+        deadline = _time.monotonic() + timeout
+        try:
+            p.stdin.write((json.dumps(req) + "\n").encode())
+            p.stdin.flush()
+        except Exception:
+            _stop_server()
+            return None
+        sel = _selectors.DefaultSelector()
+        sel.register(p.stdout, _selectors.EVENT_READ)
+        try:
+            while True:
+                while b"\n" in _SERVER_BUF:
+                    line, _SERVER_BUF = _SERVER_BUF.split(b"\n", 1)
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        return json.loads(line.decode("utf-8", "replace"))
+                    except Exception:
+                        continue          # a loader warning, not an answer
+                left = deadline - _time.monotonic()
+                if left <= 0 or not sel.select(left):
+                    _stop_server()
+                    return None
+                chunk = p.stdout.read1(65536) if hasattr(p.stdout, "read1") \
+                    else p.stdout.read(65536)
+                if not chunk:
+                    _stop_server()
+                    return None
+                _SERVER_BUF += chunk
+        finally:
+            sel.close()
+
+
 def run(check: str, payload) -> list[str]:
     """Findings from the lo-blocks rule named `check`.
 
@@ -80,6 +221,14 @@ def run(check: str, payload) -> list[str]:
     why = available()
     if why:
         return [why]
+    # THE WARM PATH FIRST, the one-shot below as the fallback. Same request,
+    # same answer shape; only the process differs.
+    doc = _serve_call({"check": check, "payload": payload}, TIMEOUT)
+    if doc is not None:
+        if "error" in doc:
+            return [f"the lo-blocks rule {check!r} refused: {doc['error']}"]
+        return list(doc.get("findings") or [])
+
     req = json.dumps({"check": check, "payload": payload})
     try:
         r = subprocess.run(

@@ -7,39 +7,71 @@ EXTRA_VERDICTS in lib/llm/slotSheet.ts, the rubric's from the `verdicts` lists o
 credit components, and a rule may legitimately mention neither.
 """
 
-WEB_EXTRAS = ("unclear", "wrong_kind", "incomplete", "duplicate",
-              "mismatch", "generic", "tick_values")
+_VOCAB: dict = {}
 
-# `not_active` is HISTORICAL and kept only so the scan still recognises it: no
-# rubric slot declares it any more. It was Q4b's failing verdict when the paper
-# scorer was told to answer `wrong_kind` while being offered met/absent/not_active
-# -- the incident every docstring here cites -- and those slots declare
-# `wrong_kind` now. Removing it would stop the audit scanning for a token that
-# could still appear in an old rule.
-#
-# `not_antecedent`, `not_consequence` and `not_described` were MISSING until
-# 2026-08-30, and missing here means invisible: KNOWN_VERDICTS is the scan
-# vocabulary, so no check looked for them anywhere. They are the paper-side
-# failing verdicts for Q4a, Q4c and 1c -- the counterparts of the web's
-# `wrong_kind` and `incomplete` -- so a shared `rule` naming one would have
-# instructed the WEB about a token it cannot emit, and passed every check.
-# `wrong_kind` is here because Q4b's behavior_1/behavior_2 declare it; see the
-# warning on SHARED_EXTRAS about what that does and does not mean.
-#
-# Identities are deliberately NOT here: `first`/`second`/`neither`, Q4b's
-# activity/consequence/goal_behaviour/not_doing, and the count values 0-3 are
-# what a slot REPORTS, not a judgement it returns, and scanning prose for
-# backticked `0` would be noise.
-RUBRIC_EXTRAS = ("not_active", "not_reason", "duplicate", "not_a_type",
-                 "not_antecedent", "not_consequence", "not_described",
-                 "wrong_kind",
-                 # `unclear` was missing here until 2026-08-30 while TWENTY-ONE
-                 # rubric slots declared it, across all three handouts -- Q1's
-                 # utb_stated, all five of Q3's, both keyword slots, D1/D2's
-                 # type slots, 1a's four week slots, 2a's verdict. It is offered
-                 # by both sides and always was; the list simply did not say so.
-                 "unclear",
-                 "PR", "NR", "PP", "NP")
+
+def _vocabulary() -> dict:
+    """The verdict lists, from lo-blocks, EVALUATED rather than scraped.
+
+    THERE WAS A SECOND COPY. `WEB_EXTRAS` was a verbatim transcription of
+    `slotSheet.EXTRA_VERDICTS` -- measured identical 2026-09-25, with the
+    docstring above naming its source and nothing checking it still matched.
+    The user's ruling: keep one copy.
+
+    AND THE FIRST REPLACEMENT WAS NO BETTER: a regex over the TypeScript SOURCE,
+    which let a `//` comment run into the token after it and yielded a garbage
+    verdict. A hand-rolled parser over someone else's syntax is the thing this
+    project keeps being burned by. The probe hands back the real value of the
+    real module, so there is nothing to parse and nothing to drift.
+
+    LAZY, so importing this module costs nothing: the bridge is asked on first
+    use and the answer cached. REFUSES rather than falling back -- a vocabulary
+    that quietly reverts to a stale copy is how the scan stopped recognising
+    `unclear` while twenty-one rubric slots declared it.
+    """
+    if not _VOCAB:
+        import lo_enforce
+
+        got = lo_enforce.probe("verdict_vocabulary", {})
+        if not isinstance(got, dict) or "KNOWN_VERDICTS" not in got:
+            raise SystemExit(
+                "slot_vocab: the verdict vocabulary could not be read from "
+                "lo-blocks, so the audit cannot tell which tokens are verdicts")
+        _VOCAB.update({k: tuple(v) for k, v in got.items()})
+    return _VOCAB
+
+
+def known_verdicts() -> tuple:
+    """Every verdict token either side may use.
+
+    A FUNCTION, NOT A MODULE `__getattr__`. The first version of this served
+    `KNOWN_VERDICTS` through one so callers could keep `from slot_vocab import
+    KNOWN_VERDICTS`. The user's ruling, 2026-09-25: no `__getattr__`. It earns
+    that -- it does not intercept a BARE NAME looked up inside its own module
+    (`agreement_app` raised NameError and took the audit down with it), and the
+    names it serves are invisible to `editguard`'s inventory, so each one has to
+    be ACCEPTED as a removal that never happened.
+
+    An explicit call says where the value comes from at the point of use, which
+    is the thing the attribute spelling was hiding.
+    """
+    return _vocabulary()["KNOWN_VERDICTS"]
+
+
+def web_extras() -> tuple:
+    """The web's extra verdicts -- `slotSheet.EXTRA_VERDICTS`, via the probe."""
+    return _vocabulary()["WEB_EXTRAS"]
+
+
+def rubric_extras() -> tuple:
+    """The rubric's extra verdicts."""
+    return _vocabulary()["RUBRIC_EXTRAS"]
+
+
+def shared_extras() -> tuple:
+    """The tokens BOTH sides declare."""
+    v = _vocabulary()
+    return tuple(sorted(set(v["WEB_EXTRAS"]) & set(v["RUBRIC_EXTRAS"])))
 
 # Tokens that appear in both lists. NOT AN EXEMPTION LIST, and it must never be
 # used as one again -- that is what this comment exists to prevent.
@@ -57,9 +89,9 @@ RUBRIC_EXTRAS = ("not_active", "not_reason", "duplicate", "not_a_type",
 # question directly, against the OLX sheet and the credit component, and needs no
 # exemption list at all. This is kept because it states something true and useful
 # -- these tokens exist on both sides SOMEWHERE -- and for no other purpose.
-SHARED_EXTRAS = tuple(sorted(set(WEB_EXTRAS) & set(RUBRIC_EXTRAS)))
 
-KNOWN_VERDICTS = ("met", "absent") + WEB_EXTRAS + RUBRIC_EXTRAS
+
+
 
 
 # WHO HAS TO KNOW THE TWO LISTS ARE SEPARATE, audited 2026-08-30 after a

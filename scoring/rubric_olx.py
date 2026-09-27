@@ -376,7 +376,7 @@ def frame_text():
     that happened before. When the prose moves out, this function is what changes.
     """
     try:
-        import handouts as _H
+        import forms as _H
         import olx_prompts as _O
         # J-3. WAS config(2) -- the frame-taking items are the criteria ones.
         _h = _H.carrying("derive_from_criteria")[0]

@@ -198,7 +198,7 @@ def main() -> int:
     args = ap.parse_args()
 
     total = 0
-    for f in sorted(paths.OLX_DIR.glob(_p7.handout_olx_glob())):
+    for f in _p7.handout_olx_paths():
         src = f.read_text()
         out, notes, problems, deferred = process(src)
         if problems:
