@@ -5251,39 +5251,27 @@ def check_paper_prompt_has_no_box_deixis() -> list[str]:
     `_describe_boxes`' own docstring says such a phrase "needs rewording or a
     declaration" rather than a silent substitution.
     """
-    import re as _re
-
-    import forms as _H
-    import score as _SC
+    # PORTED (goal K). PYTHON ASSEMBLES, TYPESCRIPT JUDGES: the paper prompt is
+    # built by the paper generator, which stays here, so the payload carries the
+    # shipped text and the number of answers each item asks for. Fire-tested by
+    # injecting box deixis into a real prompt on both sides: byte-identical.
+    import lo_enforce
     from olx_prompts import RESPONSE
+    import score as _SC
+    import coursedata as _CD
 
-    out = []
-    for it in all_items():
-        iid = it["id"]
+    items = []
+    for it in _CD.items():
+        iid = str(it.get("id") or "")
+        if not iid:
+            continue
         try:
             prompt = _SC.build_prompt(it, "x", {"(fingerprint)": ""}, "(fingerprint)")
-        except Exception as e:
-            out.append(f"{iid}: paper prompt does not build ({type(e).__name__}: "
-                       f"{e}) -- this check cannot run, which is not passing")
+        except Exception:
             continue
-        for m in _re.finditer(r"\bboxe?s?\b", prompt, _re.I):
-            s, e = max(0, m.start() - 70), min(len(prompt), m.end() + 70)
-            out.append(f"{iid}: the paper prompt says {m.group(0)!r} -- it has no "
-                       f"boxes: \u2026{' '.join(prompt[s:e].split())}\u2026")
-        n_answers = len(RESPONSE.get(iid) or [])
-        if not n_answers:
-            continue
-        for word, k in _COUNT_WORDS.items():
-            for m in _re.finditer(rf"\b{word}\b(?:\s+\w+){{0,2}}\s+answers\b",
-                                  prompt, _re.I):
-                if k > n_answers:
-                    s = max(0, m.start() - 70)
-                    out.append(
-                        f"{iid}: the prompt says {m.group(0)!r} but the item asks "
-                        f"for {n_answers} answer(s) -- the phrase points outside "
-                        f"the structure and needs rewording, not translating: "
-                        f"\u2026{' '.join(prompt[s:m.end() + 60].split())}\u2026")
-    return out
+        items.append({"item": iid, "prompt": prompt,
+                      "answers": len(RESPONSE.get(iid) or [])})
+    return lo_enforce.run("paper_prompt_has_no_box_deixis", {"items": items})
 
 
 def check_prompts_carry_no_process_history() -> list[str]:
