@@ -39,14 +39,48 @@ if HERE not in sys.path:
 
 import paths
 
-# The documents that are split, or will be. A name here is composed; anything else
-# is read as it lies.
-SPLIT_DOCS: tuple[str, ...] = (
-    "GOALS.md",
-    "QUALITY_CONTROL.md",
-    "EQUIVALENCE.md",
-    "README.md",
-)
+# THE DOCUMENTS THAT ARE SPLIT -- declared in lo-blocks, read from here.
+#
+# THE LIST OF RECORD IS `enforce/splitDocuments.ts`, on the user's instruction
+# of 2026-09-27, because the GENERIC halves live there now: the list belongs
+# with the documents it names. This reads it through the `split_documents`
+# probe and caches the answer, exactly as `slot_vocab` reads the verdict
+# vocabulary from the same bridge.
+#
+# IT REFUSES RATHER THAN FALLING BACK, for `slot_vocab`'s reason: a list that
+# quietly reverts to a stale copy is how a document stops being checked while
+# still looking checked. There is no hardcoded fallback here on purpose -- a
+# fallback IS the second copy this change exists to remove.
+#
+# LAZY, because it is read at import time by `course_inventory.GENERIC_DOCS`
+# and a probe spawns node. Nothing pays for the bridge until something actually
+# asks which documents are split. Module `__getattr__` (PEP 562) keeps
+# `compose_docs.SPLIT_DOCS` working for every existing caller unchanged.
+_SPLIT: dict = {}
+
+
+def _split_declaration() -> dict:
+    """`{SPLIT_DOCS, NO_COURSE_HALF}` from lo-blocks, cached for the process."""
+    if not _SPLIT:
+        import lo_enforce
+
+        got = lo_enforce.probe("split_documents", {})
+        if not isinstance(got, dict) or "SPLIT_DOCS" not in got:
+            raise SystemExit(
+                "compose_docs: the split-document list could not be read from "
+                "lo-blocks, so composition cannot tell which documents have two "
+                "halves")
+        _SPLIT["SPLIT_DOCS"] = tuple(got["SPLIT_DOCS"])
+        _SPLIT["NO_COURSE_HALF"] = dict(got.get("NO_COURSE_HALF") or {})
+    return _SPLIT
+
+
+def __getattr__(name: str):
+    """`SPLIT_DOCS` and `NO_COURSE_HALF` on first use. See above."""
+    if name in ("SPLIT_DOCS", "NO_COURSE_HALF"):
+        return _split_declaration()[name]
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 
 ANCHOR = re.compile(r"^<!--\s*qc:([A-Za-z0-9_.-]+)\s*-->\s*$")
 # A block in the specific half opens with the reference naming where it belongs.
@@ -319,7 +353,7 @@ def doc_path(name: str) -> str:
     -- and reported NO RECORD for every item. The composed document has 249
     mentions of Q6 alone. Nothing failed; the record just went blank.
     """
-    if name in SPLIT_DOCS:
+    if name in _split_declaration()["SPLIT_DOCS"]:
         return composed_path(name)
     if name in WHOLE_DOCS:
         return specific_path(name)
@@ -335,7 +369,8 @@ def doc_path(name: str) -> str:
 #
 # EMPTY TODAY, and that is the point: all four split documents have a course
 # half, so this is a pure ratchet. An entry may only be added with a reason.
-NO_COURSE_HALF: dict[str, str] = {}
+# NO_COURSE_HALF is declared in lo-blocks with _split_declaration()["SPLIT_DOCS"]; see the top of
+# this module. Reading it here goes through `_split_declaration`.
 
 
 def missing() -> list:
@@ -346,11 +381,11 @@ def missing() -> list:
     checkout -- reads as an empty record to every one of them.
     """
     out = []
-    for name in sorted(set(SPLIT_DOCS) | set(WHOLE_DOCS)):
-        if name in SPLIT_DOCS and not os.path.exists(generic_path(name)):
+    for name in sorted(set(_split_declaration()["SPLIT_DOCS"]) | set(WHOLE_DOCS)):
+        if name in _split_declaration()["SPLIT_DOCS"] and not os.path.exists(generic_path(name)):
             continue                     # not split here; nothing to find
-        if name in SPLIT_DOCS and not os.path.exists(specific_path(name)) \
-                and name not in NO_COURSE_HALF:
+        if name in _split_declaration()["SPLIT_DOCS"] and not os.path.exists(specific_path(name)) \
+                and name not in _split_declaration()["NO_COURSE_HALF"]:
             out.append(f"{name} is split here but has NO COURSE HALF at "
                        f"{specific_path(name)}, and its absence is not declared. "
                        f"Either the split moved nothing -- say so in "
@@ -373,7 +408,7 @@ def build() -> list:
     """Write every composed document. Returns what was written."""
     os.makedirs(str(paths.roots().composed_docs), exist_ok=True)
     out = []
-    for name in SPLIT_DOCS:
+    for name in _split_declaration()["SPLIT_DOCS"]:
         if not os.path.exists(generic_path(name)):
             continue
         bad = unplaced(name)
@@ -430,7 +465,7 @@ def duplicated() -> list:
     version of this check missed all three real cases for exactly that reason.
     """
     out = []
-    for name in SPLIT_DOCS:
+    for name in _split_declaration()["SPLIT_DOCS"]:
         sp = specific_path(name)
         if not os.path.exists(generic_path(name)) or not os.path.exists(sp):
             continue
@@ -458,7 +493,7 @@ def stale() -> list:
     editing".
     """
     out = []
-    for name in SPLIT_DOCS:
+    for name in _split_declaration()["SPLIT_DOCS"]:
         if not os.path.exists(generic_path(name)):
             continue
         dest = composed_path(name)
@@ -482,7 +517,7 @@ def main(argv: list) -> int:
         for name, n, changed in build():
             print(f"  {name:<24} {n:>6} lines  {'written' if changed else 'unchanged'}")
         return 0
-    for name in SPLIT_DOCS:
+    for name in _split_declaration()["SPLIT_DOCS"]:
         if not os.path.exists(generic_path(name)):
             print(f"  {name:<24} absent")
             continue

@@ -517,28 +517,14 @@ def check_derived_fields_resolve() -> list[str]:
     was simply wrong. The harness now raises on an unresolvable field; this makes
     the same mistake fail the audit before a sweep is spent on it.
     """
-    import agreement as AG
-    from olx_prompts import ACTION, FORM, sheet_id
+    # PORTED (goal K). `derived=` is an attribute of the action's OPENING TAG,
+    # not its body -- reading the body found nothing at all, and an assembler
+    # returning zero rules agrees with python's clean answer for entirely the
+    # wrong reason. Fire-tested by adding an unresolvable field to a real rule
+    # on both sides: byte-identical, same item, same key.
+    import lo_enforce
 
-    problems = []
-    for item, aid in sorted(ACTION.items()):
-        spec = (AG.BLOCKS.get(FORM[item]) or {}).get(aid)
-        if spec is None:
-            problems.append(f"{item}: no BLOCKS entry, so the harness cannot run it")
-            continue
-        try:
-            action = AG.load_action(spec["olx"], sheet_id(item))
-        except SystemExit as e:
-            problems.append(f"{item}: {e}")
-            continue
-        for rule in action["derived"]:
-            for f in rule["fields"]:
-                if f not in spec["refs"]:
-                    problems.append(
-                        f"{item}: derived `{rule['key']}` reads field `{f}`, which is "
-                        f"not in this item's refs — it would score unmet on every cell")
-    return problems
-
+    return lo_enforce.run("derived_fields_resolve", None)
 
 def check_ref_targets_resolve() -> list[str]:
     """Does every <Ref> in a measured prompt point at a field the harness can fill?
@@ -556,42 +542,14 @@ def check_ref_targets_resolve() -> list[str]:
     and a prose mention of <LLMAction> swallowing a real element — cost an item's
     entire score and an item's measurability respectively, and neither raised.
     """
-    import re as _re
-    import agreement as AG
-    from olx_prompts import ACTION, FORM, sheet_id
+    # PORTED (goal K). The assembler reads the FROZEN RESPONSE RECORD per item
+    # rather than the 8-item fixture summary -- reading the summary saw 8 items
+    # of 23 and reported zero refs, an empty payload wearing a clean answer's
+    # clothes. Fire-tested with an unresolvable target on both sides:
+    # byte-identical.
+    import lo_enforce
 
-    import agreement_app as AA
-    from forms import find_submissions
-
-    problems = []
-    for item, aid in sorted(ACTION.items()):
-        spec = (AG.BLOCKS.get(FORM[item]) or {}).get(aid)
-        if spec is None:
-            continue          # reported by check_derived_fields_resolve
-        try:
-            action = AG.load_action(spec["olx"], sheet_id(item))
-        except SystemExit:
-            continue
-        # Checked against the RECONSTRUCTION, which is what fills the prompt now,
-        # on a real participant rather than a declared map — the map said Q6 was
-        # fine while the sheet had grown six boxes past it.
-        pids = [p for p, _ in find_submissions(AA.JOBS[item]["handout"], None)]
-        if not pids:
-            continue
-        try:
-            fixture = AA.build_jobs(item, pids[:1])[0]["fixture"]
-        except SystemExit as e:
-            problems.append(f"{item}: cannot build a reconstruction — {e}")
-            continue
-        targets = dict.fromkeys(
-            _re.findall(r'<Ref\b[^>]*target="([^"]*)"', action["body"]))
-        for t in targets:
-            if t not in fixture:
-                problems.append(
-                    f"{item}: <Ref target=\"{t}\"> has no reconstructed value, so the "
-                    f"check scores unmet on every cell")
-    return problems
-
+    return lo_enforce.run("ref_targets_resolve", None)
 
 def all_items() -> list[dict]:
     return [it for h in _forms() for it in config(h)["rubric"].ITEMS]
@@ -8453,9 +8411,12 @@ def check_no_composed_document_repeats_itself() -> list[str]:
     if the sentence is not deleted from the record the document says it twice.
     Nothing else reports it, because the result reads as emphasis.
     """
-    import compose_docs
+    # PORTED (goal K). Fire-tested by appending one sentence to both halves:
+    # byte-identical to python's finding, including python's `repr` of the
+    # truncated quote.
+    import lo_enforce
 
-    return compose_docs.duplicated()
+    return lo_enforce.run("no_composed_document_repeats_itself", None)
 
 
 def check_every_document_is_where_its_readers_look() -> list[str]:
@@ -8470,9 +8431,13 @@ def check_every_document_is_where_its_readers_look() -> list[str]:
     and `goals`' citation check would have stopped reading BACKLOG.md, which cites
     dozens of subgoals, the moment it moved.
     """
-    import compose_docs
+    # PORTED (goal K). The generic halves moved into lo-blocks beside the rules
+    # they document, so both halves and the composed copy are readable from
+    # there and this became portable. Fire-tested against python's own answer
+    # with a course half hidden: byte-identical.
+    import lo_enforce
 
-    return compose_docs.missing()
+    return lo_enforce.run("every_document_is_where_its_readers_look", None)
 
 
 def check_the_forms_agree_with_the_assembler() -> list[str]:
@@ -8541,9 +8506,13 @@ def check_composed_documents_are_current() -> list[str]:
     failure on a fresh checkout: readers open the composed copy, so an unbuilt one
     is a document that does not exist.
     """
-    import compose_docs
+    # PORTED (goal K). The composition itself is ported too --
+    # `enforce/composeDocument.ts` reproduces `compose_docs.compose` byte for
+    # byte on all four documents, including the 1.2 MB ledger. A check that
+    # normalised whitespace would never fire, so it does not.
+    import lo_enforce
 
-    return compose_docs.stale()
+    return lo_enforce.run("composed_documents_are_current", None)
 
 
 def check_generic_documents_are_generic() -> list[str]:
@@ -8767,36 +8736,16 @@ def check_no_recorded_run_is_an_api_error() -> list[str]:
     carrying one, the way it refuses an off-contract artifact; this check is what
     catches any that are already recorded.
     """
-    import cross_path as X
-    import measured as M
+    # PORTED (goal K). `cross_path.result_cell` is ported with it, as
+    # `enforce/resultCell.ts`, and for the same reason it is one function
+    # here: the app stores `grader.score` as a FRACTION of `sheet_max` while
+    # every other writer stores absolute points. Reading `score` directly gave
+    # `None` for every app result -- which is also what an unscored cell looks
+    # like. Fire-tested by injecting a 429 into a real recorded run on both
+    # sides: byte-identical.
+    import lo_enforce
 
-    out = []
-    for item in sorted(M._jobs()):
-        for side in M.SIDES:
-            try:
-                doc = M._runs_doc(item, side)
-            except Exception:
-                continue
-            if not doc:
-                continue
-            for n, run in enumerate(doc.get("runs") or []):
-                for r in (run.get("results") or []):
-                    fb = str(r.get("feedback") or "")
-                    if not (fb.startswith("Error:") or "Azure API error" in fb):
-                        continue
-                    try:
-                        _, pid, score, _ = X.result_cell(r)
-                    except Exception:
-                        pid, score = None, None
-                    head = fb.split("(", 2)[0].strip()[:60]
-                    out.append(
-                        f"{item}/p{pid} [{side}] run {n} is recorded with score "
-                        f"{score} but its feedback is an API ERROR ({head}). An "
-                        f"error is not a measurement -- it returned no verdicts, "
-                        f"so the score is whatever the scorer produces from "
-                        f"nothing. Re-run the cell or drop the run; do not pool "
-                        f"it.")
-    return out
+    return lo_enforce.run("no_recorded_run_is_an_api_error", None)
 
 
 VERDICT_ABSENCE_ENCODING = {
