@@ -133,6 +133,10 @@ def _recover(paths_to_check) -> list:
     """
     restored = []
     for path in paths_to_check:
+        aside = path + ".assembler_reach.absent"
+        if os.path.exists(aside) and not os.path.exists(path):
+            os.rename(aside, path)
+            restored.append(path)
         bak = path + ".assembler_reach.bak"
         if os.path.exists(bak):
             st = os.stat(bak)
@@ -259,6 +263,26 @@ def _cases():
     return cases
 
 
+# NOTHING IS DECLARED UNCOVERABLE, and the empty table is the record of why.
+#
+# Two rules were declared here and the declaration was WRONG on both counts.
+# `every_document_is_where_its_readers_look` asks whether documents EXIST, and I
+# wrote that removing tracked files to test it was too risky -- but moving a
+# file aside and moving it back is the same risk class as editing and restoring
+# one, with the same backup and the same signal handlers. `no_composed_document
+# _repeats_itself` I could not move by duplicating a paragraph in
+# `derived/composed/*.md`, and concluded the repeat it detects was narrower than
+# a duplicated block. It was not: those files are the composed OUTPUT, and the
+# rule reads the two HALVES -- a generic one beside these rules and a specific
+# one at `<rubric>/authored/<name>`. I had been mutating the wrong file.
+#
+# Both were covered within the hour once they were pursued instead of excused.
+# THE LESSON IS THE SHAPE OF THE ERROR: a rule that resists a mutation is
+# telling you something about your mutation, not about itself. That has now been
+# true five times in this tool -- three while writing one case, and twice here.
+DECLARED_UNCOVERABLE: dict = {}
+
+
 def _cleared_rules() -> set:
     """The rules lo-blocks has cleared for self-assembly.
 
@@ -324,6 +348,36 @@ def _check_budget(covered: set) -> list:
     return out
 
 
+class Absence:
+    """Move a file ASIDE for the duration, then put it back.
+
+    SOME PAYLOADS ARE ABOUT EXISTENCE, NOT CONTENT. `every_document_is_where_its
+    _readers_look` calls existsSync on each document's specific and composed
+    paths; no edit can change that answer. I first declared it uncoverable on
+    the grounds that removing tracked files to test a rule was too risky -- that
+    was overstated. Moving a file aside and moving it back is the same risk
+    class as editing and restoring one, and it is protected the same way: the
+    displaced copy is the recovery record, and the signal handlers restore it.
+    """
+
+    def __init__(self, path: str):
+        self.path = _guard_path(path)
+        self.aside = self.path + ".assembler_reach.absent"
+        self.stat = None
+
+    def __enter__(self):
+        self.stat = os.stat(self.path)
+        os.rename(self.path, self.aside)
+        return self
+
+    def __exit__(self, *exc):
+        os.rename(self.aside, self.path)
+        os.utime(self.path, (self.stat.st_atime, self.stat.st_mtime))
+        if not os.path.exists(self.path):
+            raise SystemExit(f"assembler_reach: {self.path} was NOT put back")
+        return False
+
+
 def _cold() -> None:
     """Drop the bridge's node server so the next read repopulates its caches."""
     import lo_enforce
@@ -335,6 +389,14 @@ def _assemble_nocold(rule: str, ns: str):
     import lo_enforce
 
     return lo_enforce.probe("assemble", {"rule": rule, "ns": ns})
+
+
+def _absences() -> list:
+    """(name, path) -- files whose ABSENCE is what a payload would notice."""
+    import paths as _pp
+
+    rdir = _pp.roots().rubric_dir
+    return [("composed-doc:absent", str(rdir / "derived" / "composed" / "EQUIVALENCE.md"))]
 
 
 def _mutations() -> list:
@@ -373,7 +435,82 @@ def _mutations() -> list:
         d["declarations"] = {("ZZ" + k): v for k, v in decl.items()}
         return json.dumps(d, indent=1)
 
+    rdir = _pp.roots().rubric_dir
+    idir = _pp.roots().instrument_dir
+
+    def _first(pattern):
+        c = sorted(f for f in glob.glob(pattern) if os.path.isfile(f))
+        return c[0] if c else None
+
+    def _bump_json_keys(src):
+        """Rename every TOP-LEVEL key. Blunt on purpose: these tables are read
+        by key, so a rule that opens the file at all will notice."""
+        try:
+            d = json.loads(src)
+        except ValueError:
+            return src
+        if not isinstance(d, dict):
+            return src
+        return json.dumps({("ZZ" + k): v for k, v in d.items()}, indent=1)
+
+    def _bump_nested(src, key):
+        """Rename the keys one level inside `key` -- for files whose top level is
+        a wrapper (`handouts`, `declarations`) that readers index THROUGH."""
+        try:
+            d = json.loads(src)
+        except ValueError:
+            return src
+        inner = d.get(key)
+        if not isinstance(inner, dict):
+            return src
+        d[key] = {("ZZ" + k): v for k, v in inner.items()}
+        return json.dumps(d, indent=1)
+
     return [
+        # A SPLIT DOCUMENT'S COURSE HALF. `no_composed_document_repeats_itself`
+        # reads SPLIT_DOCUMENTS -- GOALS.md, QUALITY_CONTROL.md, EQUIVALENCE.md,
+        # README.md -- as a GENERIC half beside the rules and a SPECIFIC half at
+        # `<rubric>/authored/<name>`. Mutating `derived/composed/*.md` could
+        # never move it: those are the composed OUTPUT, not the halves it reads.
+        ("split-doc:specific-half",
+         str(rdir / "authored" / "EQUIVALENCE.md"),
+         lambda x: x.replace("\n", "\nZZ repeated line\n", 1)),
+        # THE APP'S OWN SOURCE. `fails_verdict_is_mirrored_in_the_app` reads
+        # slotSheet.ts and hashes what it finds; nothing in the course moves it.
+        ("app-source:slotsheet",
+         str(_pp.LO / "packages" / "shared" / "lib" / "llm" / "slotSheet.ts"),
+         lambda x: x.replace("\n", "\n// zz\n", 1)),
+        # A DUPLICATED PARAGRAPH, not a renamed heading. `no_composed_document_
+        # repeats_itself` looks for REPEATED text, so a rename leaves it exactly
+        # as happy as before -- the mutation has to create the condition the
+        # rule detects.
+        ("composed-doc:duplicate-para", composed[0] if composed else None,
+         lambda x: (lambda ps: x if len(ps) < 3 else x.replace(ps[2], ps[2] + "\n\n" + ps[2], 1))(
+             [p for p in x.split("\n\n") if len(p.strip()) > 80])),
+        ("gold-rows:handouts", str(rdir / "derived" / "gold_rows.json"),
+         lambda x: _bump_nested(x, "handouts")),
+        ("gold:declarations", str(rdir / "derived" / "gold.json"),
+         lambda x: _bump_nested(x, "declarations")),
+        ("assembler-inputs:keys",
+         str(_pp.LO / ".stage" / "assembler-inputs.json"), _bump_json_keys),
+        ("carried-notes:keys", str(rdir / "CARRIED_NOTES.json"), _bump_json_keys),
+        ("measured-ledger:keys", str(rdir / "MEASURED.json"), _bump_json_keys),
+        ("designed-text:keys", str(rdir / "DESIGNED_TEXT_SHA.json"), _bump_json_keys),
+        ("probed:keys", str(rdir / "PROBED.json"), _bump_json_keys),
+        ("leakage-reviewed:keys", str(rdir / "LEAKAGE_REVIEWED.json"), _bump_json_keys),
+        ("consensus-spans:keys",
+         str(idir / "derived" / "fixture" / "CONSENSUS_SPANS.json"), _bump_json_keys),
+        ("consensus-source:first",
+         _first(str(idir / "source" / "consensus" / "*")),
+         lambda x: ("ZZ" + x) if x[:2] != "ZZ" else x[2:]),
+        ("response-fixture:keys",
+         _first(str(idir / "derived" / "responses" / "*.json")), _bump_json_keys),
+        ("grader-columns:keys",
+         str(idir / "derived" / "grader_columns.json"), _bump_json_keys),
+        ("composed-doc:last-heading", composed[-1] if composed else None,
+         lambda x: x.replace("\n#", "\nZZ#", 1)),
+        ("course-json:top-level",
+         course, lambda x: x.replace('"items"', '"items_zz"', 1)),
         ("rubric-authored:item-id", authored,
          lambda x: re.sub(r'(<Item\b[^>]*\bscores=")([^"]+)(")', r"\1ZZ\2\3", x, count=1)),
         ("rubric-authored:drop-slot", authored,
@@ -418,6 +555,23 @@ def _sweep_all(ns: str) -> tuple:
         except Exception as exc:
             base[r] = f"<refused:{type(exc).__name__}>"
     covered, report = {}, []
+    for name, path in _absences():
+        if not path or not os.path.isfile(path):
+            report.append(f"  {name:38} no target")
+            continue
+        with Absence(path):
+            _cold()
+            moved = []
+            for r in rules:
+                try:
+                    now = json.dumps(_assemble_nocold(r, ns), sort_keys=True)
+                except Exception as exc:
+                    now = f"<refused:{type(exc).__name__}>"
+                if now != base[r]:
+                    moved.append(r)
+        for r in moved:
+            covered.setdefault(r, name)
+        report.append(f"  {name:38} moved {len(moved)}")
     for name, path, fn in _mutations():
         if not path or not os.path.isfile(path):
             report.append(f"  {name:38} no target")
@@ -464,9 +618,13 @@ def main() -> int:
         for line in report:
             print(line)
         print()
-        uncovered = sorted(set(rules) - set(covered))
+        uncovered = sorted(set(rules) - set(covered) - set(DECLARED_UNCOVERABLE))
+        declared = sorted(set(rules) & set(DECLARED_UNCOVERABLE) - set(covered))
+        for r in declared:
+            print(f"  DECLARED UNCOVERABLE  {r}: {DECLARED_UNCOVERABLE[r]}")
         _budget_path().write_text(
             json.dumps({"uncovered": len(uncovered), "rules": uncovered,
+                        "declared_uncoverable": declared,
                         "covered": {k: covered[k] for k in sorted(covered)}},
                        indent=1) + "\n", encoding="utf8")
         print(f"  coverage: {len(covered)} of {len(rules)} cleared rule(s) move "

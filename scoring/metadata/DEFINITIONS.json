@@ -176,10 +176,16 @@
    "verify"
   ],
   "assembler_reach.py": [
+   "Absence",
+   "Absence.__enter__",
+   "Absence.__exit__",
+   "Absence.__init__",
+   "DECLARED_UNCOVERABLE",
    "Mutation",
    "Mutation.__enter__",
    "Mutation.__exit__",
    "Mutation.__init__",
+   "_absences",
    "_allowed_roots",
    "_assemble",
    "_assemble_nocold",
