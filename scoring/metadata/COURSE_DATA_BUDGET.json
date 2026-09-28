@@ -50,6 +50,7 @@
   "export_grader_marks.py": 0,
   "export_response_fixtures.py": 0,
   "faithful_probe.py": 0,
+  "fill_missed_calls.py": 0,
   "fixture_edits.py": 0,
   "forms.py": 0,
   "generator_source.py": 10,

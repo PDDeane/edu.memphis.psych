@@ -147,6 +147,20 @@ else
   step walkthrough "" bash -c "cd '$LO' && SMOKE_URL='$SMOKE_URL' npm run smoke"
 fi
 
+# MISSED LLM CALLS ARE FILLED LAST, and it is last on purpose: it has to run
+# after every sweep that could leave one. A cell the provider never answered is
+# not a low score, it is an ABSENT measurement, and every number computed over
+# it is computed over a denominator that quietly shrank.
+# `check_every_sweep_is_recorded` already refuses to call such a sweep
+# recordable -- "fill them with a cell-level sweep and re-fold BEFORE
+# recording". This does the filling, so a certification either ends holding a
+# complete measurement or says plainly that it could not get one.
+if [ -z "$IDMAP" ]; then
+  step fill-missed-calls "no idmap_v*.json under the out root; a refill cannot be driven" true
+else
+  step fill-missed-calls "" python3 tools/fill_missed_calls.py "$ONE" "$IDMAP"
+fi
+
 say ""
 say "$PASS passed, $FAIL failed, $SKIP skipped."
 if [ $SKIP -ne 0 ]; then
