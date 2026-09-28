@@ -121,6 +121,44 @@ def pairs() -> list[tuple[str, str]]:
     return sorted(set(found))
 
 
+def _shape_form(v):
+    """Encode a python value so the JSON boundary keeps what `same_shape` measures.
+
+    THE POINT IS THE DISTINCTIONS, NOT THE DATA. A naive `json.dumps` carries
+    every byte and loses exactly the two things this comparison exists for: a
+    tuple arrives as a list, and a dict's keys arrive in whatever order
+    JavaScript decides to enumerate them -- integer-like keys FIRST, ascending,
+    regardless of insertion, and `agreement.BLOCKS` is keyed 1, 2, 3.
+
+    So dicts travel as ORDERED PAIRS and never as objects, and tuples keep a tag.
+    The package already moves tagged python values this way -- `decodeKey` and
+    `decodeValue` read `{__tuple__: ...}` and `{__frozenset__: ...}` -- the
+    difference here is that the tag is KEPT rather than decoded away, because
+    this rule compares types and those helpers compare values.
+
+    A `{{corpus:...}}` string carries BOTH spellings: the comparison uses the
+    expanded one (two copies substituted independently differ only in the
+    `shape=` suffix) and the message prints the raw one (that is what a reader
+    has to go and edit). Resolving needs the response records, which is why it
+    happens here and not in the rule.
+    """
+    if isinstance(v, dict):
+        return {"__dict__": [[_shape_form(k), _shape_form(x)] for k, x in v.items()]}
+    if isinstance(v, tuple):
+        return {"__tuple__": [_shape_form(x) for x in v]}
+    if isinstance(v, frozenset):
+        return {"__frozenset__": sorted((_shape_form(x) for x in v), key=repr)}
+    if isinstance(v, list):
+        return [_shape_form(x) for x in v]
+    if isinstance(v, str) and "{{corpus:" in v:
+        try:
+            import corpus_resolve as _CR
+            return {"__ref__": {"raw": v, "expanded": _CR.expand(v)}}
+        except Exception:                 # no export configured: compare raw
+            return {"__ref__": {"raw": v, "expanded": v}}
+    return v
+
+
 def same_shape(a, b, path="") -> list[str]:
     """Equal AND in the same order, at every depth.
 
@@ -133,57 +171,22 @@ def same_shape(a, b, path="") -> list[str]:
     A scoring check found it instead. This closes the hole rather than relying on
     that happening again.
     """
-    out = []
-    if type(a) is not type(b):
-        return [f"{path or '<root>'}: {type(a).__name__} vs {type(b).__name__}"]
-    if isinstance(a, dict):
-        if list(a) != list(b):
-            only_a = [k for k in a if k not in b]
-            only_b = [k for k in b if k not in a]
-            if only_a or only_b:
-                out.append(f"{path or '<root>'}: keys differ -- only-read "
-                           f"{only_a[:3]}, only-authored {only_b[:3]}")
-            else:
-                out.append(f"{path or '<root>'}: SAME KEYS, DIFFERENT ORDER -- "
-                           f"read {list(a)[:4]}, authored {list(b)[:4]}. `==` "
-                           f"calls these equal; the order is the data.")
-            return out
-        for k in a:
-            out += same_shape(a[k], b[k], f"{path}.{k}")
-        return out
-    if isinstance(a, (list, tuple)):
-        if len(a) != len(b):
-            return [f"{path}: {len(a)} entries vs {len(b)}"]
-        for i, (x, y) in enumerate(zip(a, b)):
-            out += same_shape(x, y, f"{path}[{i}]")
-        return out
-    if a != b:
-        # TWO COPIES OF ONE STRING, SUBSTITUTED INDEPENDENTLY, STOP BEING
-        # COMPARABLE. The history rewrite replaces a student's sentence with a
-        # `{{corpus:...}}` reference wherever it appears, and the reference records
-        # the WHITESPACE SHAPE of the span it replaced -- which differs between a
-        # .py dict value and a JSON string holding the same sentence at a different
-        # indent. Measured 2026-09-21: MULTI_BLOCK_DECLARED and ITEM_NOTES both
-        # reported a mismatch at the first `shape=` suffix, `:shape=R28-0-275d}}`
-        # against `}}`, with every other byte identical.
-        #
-        # Each substitution is individually correct and both expand to the same
-        # text; only the encodings differ. So compare what they MEAN -- expand both
-        # and re-test -- rather than what they spell.
-        #
-        # THE CHECK KEEPS ITS TEETH. Expansion is applied to BOTH sides and only
-        # when a reference is present, so a genuine drift between the copies still
-        # differs after expanding. This forgives a difference in encoding, not a
-        # difference in content.
-        if "{{corpus:" in f"{a}{b}":
-            try:
-                import corpus_resolve as _CR
-                if _CR.expand(str(a)) == _CR.expand(str(b)):
-                    return out
-            except Exception:
-                pass
-        out.append(f"{path}: {a!r:.50} != {b!r:.50}")
-    return out
+
+    # PORTED (goal K). THE ENCODER IS THE PORT; the comparison is a
+    # transliteration. A naive payload loses exactly the two things this
+    # function exists to catch -- a tuple arrives as a list, and JavaScript
+    # reorders integer-like object keys ascending regardless of insertion,
+    # while `agreement.BLOCKS` is keyed 1, 2, 3. `_shape_form` encodes for the
+    # DISTINCTION rather than for the data: ordered pairs, tagged tuples and
+    # frozensets, and both spellings of a corpus reference.
+    #
+    # MEASURED BEFORE IT SHIPPED: all 29 migrated pairs agree with this
+    # function's own previous answer, and one mutation per arm -- type, key
+    # order, keys, length, scalar, integer-keyed order -- is byte-identical.
+    import lo_enforce
+
+    return lo_enforce.run("same_shape", {"a": _shape_form(a), "b": _shape_form(b),
+                                         "path": path})
 
 
 # AUTHORED UNDER A NAME THE RECORDS DO NOT CARRY, deliberately. Subgoal E61.

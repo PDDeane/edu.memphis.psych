@@ -1197,34 +1197,43 @@ def web_code_sha(kind: str = "ask", item: str | None = None) -> str:
         if hit is not None:
             return hit
 
-    src = Path(paths.SLOTSHEET_TS).read_text()
-    names = _web_parts(kind, item)
-    parts = [_ts_behaviour(_ts_top_fn(src, n)) for n in names]
+    # PORTED (goal K). THE EXTRACTION AND THE HASH LIVE IN LO-BLOCKS NOW, and
+    # this is not a rule -- it is a FUNCTION THE RECORD DEPENDS ON. Every
+    # artifact carries a stamp this produced, and a check later compares that
+    # stamp against a fresh call, so the writer and the comparer have to be ONE
+    # implementation. Moving it rather than copying it is what keeps them one.
+    #
+    # IT BELONGS THERE: everything hashed is lo-blocks' own source -- this was
+    # python reading TypeScript, extracting functions by line anchor and
+    # brace-counting call sites.
+    #
+    # VERIFIED BEFORE THE SWITCH, because byte-compatibility is the contract and
+    # not an aspiration: all 81 fingerprints (3 kinds, corpus-wide and per item
+    # across 26 items) came back IDENTICAL to this function's own previous
+    # output. One character of difference in the normalisation would make every
+    # recorded artifact unattributable, and the checks that gate on attribution
+    # would report the whole corpus as uncheckable while appearing to run.
+    #
+    # NAME RESOLUTION STAYS HERE: `_web_parts` reads the item's authored
+    # primitives to decide which app functions its answer passes through.
+    import lo_enforce
+
+    payload = {"kind": kind, "names": list(_web_parts(kind, item)),
+               "slotSheet": Path(paths.SLOTSHEET_TS).read_text()}
     if kind == "score":
         # THE CALL SITES BELONG TO THE SCORER. Omitting an argument changes the
         # score without touching a single line of slotSheet.ts, which is exactly
-        # the live defect: `_ScoreTable` passes eight of eleven and loses
-        # `requires`, `forbid` and `maps`.
-        import re as _re
+        # the live defect: one call site passes eight of eleven parameters and
+        # loses `requires`, `forbid` and `maps`.
+        sites = []
         for f in (paths.LO / "packages/shared/components/blocks/grading/SlotSheetGrader.ts",
                   paths.LO / "packages/shared/components/blocks/grading/ScoreTable/_ScoreTable.tsx"):
             try:
-                text = Path(f).read_text()
+                sites.append({"name": f.name, "text": Path(f).read_text()})
             except Exception:
-                parts.append(f"<missing {f.name}>")
-                continue
-            for m in _re.finditer(r"scoreSlotSheet\(", text):
-                depth, k = 0, m.end() - 1
-                while k < len(text):
-                    if text[k] == "(":
-                        depth += 1
-                    elif text[k] == ")":
-                        depth -= 1
-                        if depth == 0:
-                            break
-                    k += 1
-                parts.append(_ts_behaviour(text[m.start():k + 1]))
-    out = hashlib.sha256("".join(parts).encode()).hexdigest()[:12]
+                sites.append({"name": f.name, "text": None})
+        payload["callSites"] = sites
+    out = lo_enforce.run("web_code_sha", payload)[0]
     if stamp is not None:
         _WEB_CODE_SHA_MEMO[(kind, item, stamp)] = out
     return out
@@ -2344,6 +2353,17 @@ def declaration_conflicts() -> list[str]:
     rate, because a declaration about a cell the model gets right half the time
     is doing exactly the job it was written for.
     """
+    # PORTED (goal K), AS A SPLIT. This function decides WHICH
+    # declarations are in question and gathers each one's per-side run
+    # counts; what those counts MEAN -- contradicted, split across paths,
+    # or too few runs to settle -- is in lo-blocks.
+    #
+    # THE EVENTS ARE RECORDED WHERE THE FINDINGS ARE APPENDED, not where
+    # they are computed. Measured while porting: instrumenting the
+    # computation logged THREE claims where only TWO reached the output --
+    # the third was computed and then suppressed by a later guard. A
+    # payload built at computation time invents a finding.
+    EV: list = []
     import forms as H
 
     # EVERY recorded side, not just the CLI. This read `records()` -- which
@@ -2370,13 +2390,11 @@ def declaration_conflicts() -> list[str]:
     out: list[str] = []
 
     def verdict(what: str, right: int, runs: int, action: str) -> str:
-        if runs >= 6:
-            return (f"{what} is contradicted by {right}/{runs} recorded runs. "
-                    f"{action}")
-        lead = action[:1].lower() + action[1:]   # not .lower(): "Q6/p5" is a name
-        return (f"{what} is contradicted by {right}/{runs} recorded runs, but "
-                f"{runs} runs cannot settle a per-cell claim (see Q2/p17). Probe "
-                f"it at six passes with controls; if it holds, {lead}")
+        """RECORDED, NOT FORMATTED. The wording and the six-run threshold are
+        the rule's; this only says which claim was made."""
+        EV.append({"kind": "verdict", "what": what, "right": right,
+                   "runs": runs, "action": action})
+        return f"@@{len(EV) - 1}@@"
 
     def _sides(item: str, read):
         """(right, runs) per side for one declaration, from every side with data.
@@ -2399,23 +2417,17 @@ def declaration_conflicts() -> list[str]:
         return got
 
     def split_verdict(what: str, action: str, got: dict) -> str | None:
-        """One message for a declaration measured on more than one side."""
-        against = {s: v for s, v in got.items() if v[0] >= v[1]}
-        if not against:
+        """One message for a declaration measured on more than one side.
+
+        THE `against` TEST STAYS HERE because its answer decides CONTROL FLOW in
+        the caller -- `if msg:` -- and a placeholder would make every call look
+        like a finding. Everything the message SAYS is the rule's.
+        """
+        if not {s: x for s, x in got.items() if x[0] >= x[1]}:
             return None
-        holds = {s: v for s, v in got.items() if v[0] < v[1]}
-        if not holds:
-            worst = min(against.values(), key=lambda v: v[1])
-            where = ", ".join(f"{s} {v[0]}/{v[1]}" for s, v in sorted(against.items()))
-            return verdict(f"{what} on EVERY measured side ({where})",
-                           worst[0], worst[1], action)
-        # Split. Not a retirement: the declaration is still true where it holds.
-        a = ", ".join(f"{s} {v[0]}/{v[1]}" for s, v in sorted(against.items()))
-        h = ", ".join(f"{s} {v[0]}/{v[1]}" for s, v in sorted(holds.items()))
-        return (f"{what} on {a}, but still holds on {h}. A declaration true on "
-                f"one path and false on another is a finding about the PATHS: "
-                f"scope the entry to the side it describes, or bring the lagging "
-                f"side up and then {action[:1].lower() + action[1:]}")
+        EV.append({"kind": "split", "what": what, "action": action,
+                   "got": {s: list(x) for s, x in got.items()}})
+        return f"@@{len(EV) - 1}@@"
 
     for entry in getattr(H, "GOLD_DIVERGENCES", []) or []:
         for item, pid in entry.get("cells", []):
@@ -2594,7 +2606,19 @@ def declaration_conflicts() -> list[str]:
                 f"Remove {item}/p{pid_s} from its exclusion and let it count", got)
             if msg:
                 out.append(msg)
-    return out
+
+    import re as _re_dc
+
+    import lo_enforce
+
+    # RESOLVE THE PLACEHOLDERS IN OUTPUT ORDER. Anything that is not one is
+    # a finding this function composed itself and is passed through.
+    events = []
+    for _entry in out:
+        _m = _re_dc.fullmatch(r"@@(\d+)@@", _entry)
+        events.append(EV[int(_m.group(1))] if _m
+                      else {"kind": "text", "text": _entry})
+    return lo_enforce.run("declaration_conflicts", {"events": events})
 
 
 # Fractions first, item names second — NOT one pattern anchored on the name.
@@ -3494,6 +3518,29 @@ def warn_if_stale(item: str, where: str = "") -> str:
     # carries the full reason.
     if item in _STALE_WARNED:
         return ""
+    # ANSWERED STALENESS IS NOT STALENESS, and this banner was the last thing
+    # still saying otherwise. `staleness_is_answered` is the judge every other
+    # caller already uses: it refuses on missing, partial or mismatched
+    # evidence, and accepts only a rescore whose CONTROL moved every cell and
+    # whose sha pair is the one recorded. Measured 2026-09-27: all 6908 cells
+    # re-scored identically, the era checks went to zero -- and this still
+    # printed 26 STALE banners telling readers to re-score.
+    #
+    # AN ADVISORY NOBODY CAN TRUST IS ONE PEOPLE LEARN TO SCROLL PAST, which
+    # costs the warnings that are real. So a side whose staleness is ANSWERED
+    # drops out here; if every side drops out there is nothing to warn about.
+    answered = {}
+    for _side, _why in list(bad.items()):
+        try:
+            _ok, _how = staleness_is_answered(item, _side, _why)
+        except Exception:                                # pragma: no cover
+            _ok, _how = False, ""
+        if _ok:
+            answered[_side] = _how
+    bad = {k: v for k, v in bad.items() if k not in answered}
+    if not bad:
+        _STALE_WARNED.add(item)
+        return ""
     _STALE_WARNED.add(item)
     # NAME WHICH KIND OF STALE. The first wording said "do NOT measure the
     # current prompt" for every case, and that is wrong for more than half of
@@ -3512,6 +3559,11 @@ def warn_if_stale(item: str, where: str = "") -> str:
              f"of the current tree{(' -- ' + where) if where else ''} ***"]
     for side, why in sorted(bad.items()):
         lines.append(f"      {side}: {why}")
+    for side, how in sorted(answered.items()):
+        # NAMED, NOT DROPPED SILENTLY. A side that was stale and is now answered
+        # is a fact worth one line: the alternative is a reader wondering why a
+        # column they know moved is not mentioned.
+        lines.append(f"      {side}: ANSWERED -- {how}")
     if kinds == {"SCORER"}:
         lines.append("      The PROMPT is unchanged -- what moved is the scoring "
                      "code. The runs' verdicts still stand; the SCORES computed "
@@ -3686,110 +3738,71 @@ def prose_claims(paths: list[str] | None = None) -> list[str]:
     fraction over the old denominator is history and is left alone, as is any
     sentence framed in the past tense.
     """
+
+    # PORTED (goal K), AS A SPLIT. Python supplies the candidate LINES and the
+    # ledger; every judgement about the sentence -- which name owns the
+    # fraction, which side cue owns it, whether the framing is historical,
+    # whether the fraction counts rather than scores -- is in lo-blocks.
+    #
+    # THE LINES ARE PRE-FILTERED, LOSSLESSLY. `_FRAC_RE` cannot match without a
+    # `/` or the word ` of `, so a line holding neither can hold no candidate.
+    # That takes the payload from every line of every scanned file to ~155.
+    # Anything cleverer would be the rule's own judgement, moved back here.
+    import datetime
+
+    import lo_enforce
     import paths as _paths
 
     # OVERRIDES.md is EXCLUDED, and the reason is a defect this check caused.
-    # That file is machine-written by precommit_gate._record: it archives the gate
-    # findings a commit waved through, VERBATIM. Those quoted findings contain
-    # fractions ("says Q2 19/20, but the recorded ... is 18/20"), so this check
-    # read its own archived output back as fresh prose claims -- and the gate then
-    # recorded THOSE findings too. Each run therefore flagged everything the
-    # previous run had written down, and the file DOUBLED per commit:
-    # 7,697 -> 15,377 -> 30,739 -> 61,470 -> 122,909 lines, reaching 246,227 of
-    # which only 606 were genuine. It is an archive of what was believed at a past
-    # moment, which is exactly what _HISTORICAL exempts elsewhere; a stale figure
-    # in it is the POINT of the record, not a staleness to report.
+    # That file is machine-written by precommit_gate._record: it archives the
+    # gate findings a commit waved through, VERBATIM. Those quoted findings
+    # contain fractions, so this check read its own archived output back as
+    # fresh prose claims -- and the gate then recorded THOSE findings too. Each
+    # run flagged everything the previous run had written down and the file
+    # DOUBLED per commit, reaching 246,227 lines of which only 606 were
+    # genuine. It is an archive of what was believed at a past moment, which is
+    # exactly what the historical framing exempts elsewhere.
     files = paths or [str(p) for p in (
         [p for p in (_paths.SCORING).glob("*.md") if p.name != "OVERRIDES.md"]
         + [_paths.SCORING / "forms.py"])]
-    led = records()
-    jobs = set(_jobs())
-    out: list[str] = []
+
     _marks = _goals_record_lines()
-    _records_lines = {x for x in _marks if isinstance(x, int)}
+    _records_lines = sorted(x for x in _marks if isinstance(x, int))
     _line_written = {x[1]: x[2] for x in _marks if not isinstance(x, int)}
 
     def _iso(ts: int) -> str:
-        import datetime
         return datetime.datetime.fromtimestamp(ts).date().isoformat()
 
+    lines = []
     for path in files:
         try:
             text = Path(path).read_text()
         except OSError:
             continue
         for lineno, line in enumerate(text.splitlines(), 1):
-            if _HISTORICAL.search(line):
-                continue
-            for m in _FRAC_RE.finditer(line):
-                window = line[max(0, m.start() - _WINDOW):m.start()]
-                # The NEAREST item name before the fraction owns it.
-                names = [t for t in _TOKEN_RE.findall(window) if t in jobs]
-                if not names:
-                    continue
-                item = names[-1]
-                # WHICH SIDE the sentence is talking about. The ledger has held
-                # two since the side dimension landed, and this check compared
-                # against the default one only -- so a correctly quoted WEB figure
-                # read as a contradiction of the CLI's. That fired on the E14
-                # closure note, which reports the seven re-measured items on the
-                # side that could not previously run them.
-                # Naming a side is what selects it; saying nothing still means the
-                # default, so no existing sentence changes meaning.
-                # The NEAREST cue owns it, exactly as the nearest item name does
-                # above. This took the last cue in ITERATION order instead, so a
-                # sentence naming both sides -- "Q6 records cli 17/20 and web
-                # 18/20" -- attributed the WEB figure to the cli, because "cli"
-                # sits later in the tuple than "web". Every such sentence read as
-                # a contradiction and the only way to quiet it was to write one
-                # side per line, which is a formatting rule invented by a bug.
-                side = DEFAULT_SIDE
-                low = window.lower()
-                best = -1
-                # BOTH VOCABULARIES are cues. The sides were renamed on
-                # 2026-09-01, and the prose this scans is years of history --
-                # dropping "web"/"cli" as cues would have made every older
-                # sentence resolve to the default side and compared its number
-                # against the wrong column.
-                # `paper` and `opus` are cues too, and their absence was a
-                # silent gap rather than a missing feature: a sentence reading
-                # "Q4a olx 17/20  python 18/20  paper 15/20" had no cue for its
-                # third figure, so the nearest known cue -- `python` -- claimed
-                # it and the check reported a contradiction that was not one.
-                # `opus` sits later in "paper_opus" than `paper` does, so the
-                # rfind-max below resolves that pair correctly.
-                for cue, s_ in (("web", "olx"), ("app", "olx"),
-                                ("olx", "olx"),
-                                ("cli", "olx"), ("harness", "olx"),
-                                ("python", "olx"),
-                                ("paper", "paper"), ("opus", "paper_opus")):
-                    at = low.rfind(cue)
-                    if at > best:
-                        best, side = at, s_
-                rec = records(side).get(item)
-                if not rec or rec.get("pending"):
-                    continue
-                num, den = int(m.group("num")), int(m.group("den"))
-                if den != rec["denominator"] or num == rec["numerator"]:
-                    continue
-                # The denominator is the same 20 whether the fraction counts
-                # cells or scores them, so the surrounding words are the only
-                # way to tell, and getting it wrong yields a confident lie.
-                if _COUNTING.search(window):
-                    continue
-                if Path(path).name == "GOALS.md":
-                    if lineno in _records_lines:
-                        continue                      # a closed entry: a record
-                    when = _line_written.get(lineno)
-                    stamped = str(rec.get("recorded") or rec.get("stamp") or "")
-                    if when and stamped[:10] and _iso(when) < stamped[:10]:
-                        continue                      # typed before the recording
-                out.append(
-                    f"{Path(path).name}:{lineno} says {item} {num}/{den}, but the "
-                    f"recorded {side} measurement is "
-                    f"{rec['numerator']}/{rec['denominator']}"
-                    f" — update the sentence, or re-record if the sweep is newer")
-    return out
+            if "/" in line or " of " in line:
+                lines.append({"file": Path(path).name, "lineno": lineno,
+                              "text": line})
+
+    return lo_enforce.run("prose_claims", {
+        "lines": lines,
+        "jobs": sorted(_jobs()),
+        # EVERY RECORDED SIDE. The ledger has held more than one since the side
+        # dimension landed, and this compared against the default only -- so a
+        # correctly quoted WEB figure read as a contradiction of the CLI's.
+        "records": {s: {k: {"numerator": v.get("numerator"),
+                            "denominator": v.get("denominator"),
+                            "pending": bool(v.get("pending")),
+                            "recorded": v.get("recorded"),
+                            "stamp": v.get("stamp")}
+                        for k, v in (records(s) or {}).items()}
+                    for s in SIDES},
+        "defaultSide": DEFAULT_SIDE,
+        "goalsFile": "GOALS.md",
+        "goalsRecordLines": _records_lines,
+        "goalsLineWritten": {str(k): _iso(v) for k, v in _line_written.items()},
+    })
+
 
 
 # The unit is OPTIONAL BEFORE A COLON. Graders write "-1.25 pts:" and also
@@ -5910,25 +5923,38 @@ def gold_slot_disagreements() -> list[str]:
     Reported even when the TOTAL agrees -- especially then, because that is the
     case nothing else can see.
     """
+    # PORTED (goal K), AS A SPLIT. Everything below GATHERS -- it reads gold,
+    # applies the corrections, splits each grader comment into charges and maps
+    # them to slots through this course's phrase table. Every JUDGEMENT about
+    # what to report -- declared, owned, over budget, a declaration that
+    # outlived its cell -- is in lo-blocks.
+    #
+    # THE CELLS TRAVEL IN ITERATION ORDER, not one list per arm. A cell's
+    # mapping errors precede its unmapped or disagreement line, and splitting by
+    # arm reproduced every finding in a DIFFERENT SEQUENCE -- which a baseline
+    # diff reads as wholesale change. Verified before the switch, with every
+    # declaration emptied so the 22 suppressed cells speak: both sides produce
+    # the same 29 findings in the same order.
     import re
-    import gold as _gold
+
     import forms as H
+    import gold as _gold
+    import lo_enforce
     import olx_prompts as O
 
-    out: list[str] = []
-    examined = skipped = declared = owned = 0
-    seen_disagreeing: set = set()
-    # AN OPEN SUBGOAL IS A DECLARATION. A cell somebody is actively working does
-    # not also owe an entry in GOLD_SLOT_DISAGREEMENTS_KNOWN: that table says
-    # "we have decided to live with this", and a live subgoal says the opposite
-    # -- that the decision has not been made yet. Demanding both makes the audit
-    # ask a cell's owner to declare it settled before they have settled it, and
-    # the honest answer (an open goal naming it) then reads as an omission.
-    # Read once, not per cell: _live_subgoal_owners re-reads GOALS.md each call.
+    p = {"cells": [], "boundsMissed": [], "boundsCount": [],
+         "codeDisagreements": [], "seenDisagreeing": [], "chargesItems": [],
+         "declared": {}, "owners": {}, "budgets": {}, "expired": []}
+
+    # AN OPEN SUBGOAL IS A DECLARATION -- read once, not per cell:
+    # `_live_subgoal_owners` re-reads the ledger on every call.
     _owners = _live_subgoal_owners()["any"]
+    p["owners"] = {k: True for k, v in _owners.items() if v}
+    seen = set()
+
     for item, table in sorted(GOLD_SLOT_CHARGES.items()):
         if _slots_are_not_comparable(item):
-            continue          # see _slots_are_not_comparable
+            continue
         h = _jobs()[item]["handout"]
         try:
             g = H.apply_corrected_gold(
@@ -5943,23 +5969,20 @@ def gold_slot_disagreements() -> list[str]:
             fb = (row.get("feedback") or "").strip()
             if not fb:
                 continue
-            # Split into deduction segments: each starts at a "-<amount>".
             segs = [s for s in re.split(r"(?=-\s*\d)", fb) if re.match(r"-\s*\d", s)]
             if not segs:
                 continue
             # SAME GUARD AS gold_charged_slots: a comment that does not reconcile
             # with the score in force is not describing it, so neither its slot
-            # set nor its amounts can be checked. Without this, Q4a/p17 reported
-            # its keyword charge as a MAPPING error -- the mapping is right, the
-            # comment simply predates CORRECTED_GOLD[("Q4a", 17)] taking that
-            # point back.
+            # set nor its amounts can be checked.
             top_score = max(((g.get(q) or {}).get(item) or {}).get("score") or 0
                             for q in g)
             if (row.get("score") is None
                     or abs((top_score - sum(deductions_named(fb)))
                            - row["score"]) > 1e-9):
                 continue
-
+            cell = {"item": item, "pid": pid, "mappingErrors": [],
+                    "unmapped": [], "disagreement": None}
             charged: set = set()
             unmapped = []
             for seg in segs:
@@ -5970,7 +5993,7 @@ def gold_slot_disagreements() -> list[str]:
                     # actually deducted for is not recoverable from the comment,
                     # and guessing would put a wrong slot set into the comparison.
                     unmapped.append(
-                        f"AMBIGUOUS between {sorted({s for h in hits for s in h})}"
+                        f"AMBIGUOUS between {sorted({s for hh in hits for s in hh})}"
                         f": {seg.strip()[:44]}")
                     continue
                 hit = hits[0] if hits else None
@@ -5979,85 +6002,54 @@ def gold_slot_disagreements() -> list[str]:
                     continue
                 charged |= set(hit)
                 # The amount says HOW MANY slots the charge covers. A mismatch is
-                # a bug in the table above, not in the scorer, and saying so here
-                # is what keeps the table honest.
+                # a bug in the table, not in the scorer.
                 want = sum(pts.get(k, 0) for k in hit)
                 if amt and abs(sum(amt[:1]) - want) > 1e-9:
-                    out.append(
-                        f"{item}/p{pid}: the table maps \"{seg.strip()[:44]}\" to "
-                        f"{sorted(hit)} worth {want:g}, but the grader charged "
-                        f"{amt[0]:g} — the MAPPING is wrong, not the score")
+                    cell["mappingErrors"].append(
+                        {"seg": seg.strip()[:44], "hit": sorted(hit),
+                         "want": want, "amt": amt[0]})
             if unmapped:
-                skipped += 1
-                if (item, pid) not in GOLD_SLOT_UNMAPPABLE:
-                    out.append(
-                        f"{item}/p{pid}: gold charges something the phrase table "
-                        f"does not map — {unmapped}. Add it to GOLD_SLOT_CHARGES, "
-                        f"or to GOLD_SLOT_UNMAPPABLE with the reason; an unread "
-                        f"charge is not a passing cell")
+                cell["unmapped"] = unmapped
+                p["cells"].append(cell)
                 continue
             stable, _counts, _n = _our_typical_failing_slots(item, pid)
-            if not _n:
+            if not _n or stable == charged:
+                if cell["mappingErrors"]:
+                    p["cells"].append(cell)
                 continue
-            examined += 1
-            if stable == charged:
-                continue
-            seen_disagreeing.add((item, pid))
-            if (item, pid) in GOLD_SLOT_DISAGREEMENTS_KNOWN:
-                declared += 1
-                continue
-            if _owners.get(f"{item}/p{pid}"):
-                owned += 1
-                continue          # an open subgoal owns it -- see above
-            # THE DISTRIBUTION, NEVER A BARE SET. The set is a majority over
-            # pooled runs, and quoting it alone rounds each slot's majority up to
-            # certainty -- the same misreading as quoting a median alone.
-            spread = ", ".join(f"{s} {_counts.get(s, 0)}/{_n}"
-                               for s in sorted(charged | stable))
-            out.append(
-                f"{item}/p{pid}: gold charges {sorted(charged)}, we typically fail "
-                f"{sorted(stable)} — differs on {sorted(charged ^ stable)} "
-                f"(pooled over {_n} runs: {spread}). The TOTAL can still agree, "
-                f"which is how this stayed invisible. Declare it in "
-                f"GOLD_SLOT_DISAGREEMENTS_KNOWN with what is wrong, or fix it")
+            seen.add((item, pid))
+            cell["disagreement"] = {
+                "charged": sorted(charged), "stable": sorted(stable),
+                "counts": {k: _counts.get(k, 0) for k in sorted(charged | stable)},
+                "n": _n}
+            p["cells"].append(cell)
 
-    # BOUNDED ACCOUNTING for the cells the exact comparison cannot read. Skipping
-    # them was not accounting: 6 of the 24 skipped cells disagree with us on the
-    # TOTAL and the check said nothing about any of them. Two statements survive
-    # ambiguity -- see gold_charge_bounds.
+    # BOUNDED ACCOUNTING for the cells the exact comparison cannot read.
+    # Skipping them was not accounting: 6 of the 24 skipped cells disagree with
+    # us on the TOTAL and the check said nothing about any of them.
     for item in sorted(_jobs()):
         if _slots_are_not_comparable(item):
             continue
         for pid in range(1, 21):
             if gold_charged_slots(item, pid) is not None:
-                continue          # the exact comparison already covered it
-            b = gold_charge_bounds(item, pid)
-            if b is None or (item, pid) in GOLD_SLOT_BOUNDS_KNOWN:
                 continue
-            if _owners.get(f"{item}/p{pid}"):
-                owned += 1
-                continue          # an open subgoal owns it -- see above
+            b = gold_charge_bounds(item, pid)
+            if b is None:
+                continue
             definite, count = b
             stable, _counts, _n = _our_typical_failing_slots(item, pid)
             if not _n:
                 continue
             missed = sorted(definite - stable)
             if missed:
-                out.append(
-                    f"{item}/p{pid}: gold definitely charges {missed}, which we "
-                    f"credit -- true on every reading of the ambiguous part of "
-                    f"its comment. Declare it in GOLD_SLOT_BOUNDS_KNOWN or fix it")
+                p["boundsMissed"].append({"item": item, "pid": pid,
+                                          "missed": missed})
             elif len(stable) != count:
-                out.append(
-                    f"{item}/p{pid}: gold charges {count} slot(s) and we fail "
-                    f"{len(stable)} ({sorted(stable)}). WHICH slots gold meant is "
-                    f"ambiguous; the COUNT is not, so the two disagree on every "
-                    f"reading. Declare it in GOLD_SLOT_BOUNDS_KNOWN or fix it")
+                p["boundsCount"].append({"item": item, "pid": pid,
+                                         "count": count, "stable": sorted(stable)})
 
-    # E35. CODE-LEVEL accounting for the eight criteria-derived items, which the
-    # slot comparison refuses. Both sides charge exactly one deduction code here,
-    # so the comparison is code against code -- and OUR code is recoverable from
-    # the score, because every one of these items has max 4 and charges once.
+    # E35. CODE-LEVEL accounting for the criteria-derived items, which the slot
+    # comparison refuses. Both sides charge exactly one code here.
     for item in sorted(_jobs()):
         if not _slots_are_not_comparable(item):
             continue
@@ -6068,7 +6060,7 @@ def gold_slot_disagreements() -> list[str]:
         codes = {d["code"]: d["pts"] for d in rub["deductions"]}
         for pid in range(1, 21):
             got = gold_charged_code(item, pid)
-            if got is None or (item, pid) in GOLD_CODE_KNOWN:
+            if got is None:
                 continue
             code, amt = got
             preds = _cell_scores(item, pid)
@@ -6078,44 +6070,28 @@ def gold_slot_disagreements() -> list[str]:
             our_amt = rub["max"] - ours
             if abs(our_amt - amt) < 1e-9:
                 continue          # same size charge; the codes agree by amount
-            # Which codes could OUR deduction be? Several share an amount, so the
-            # honest report names the candidates rather than picking one.
+            # Several codes share an amount, so the honest report names the
+            # candidates rather than picking one.
             cand = sorted(c for c, v in codes.items()
                           if abs(v - our_amt) < 1e-9) or ["nothing"]
-            out.append(
-                f"{item}/p{pid}: gold charges {code} ({amt:g}); we charge "
-                f"{our_amt:g} ({' or '.join(cand)}). Both sides charge ONE code on "
-                f"this item, so the two disagree about WHICH judgement failed, not "
-                f"just by how much. Declare it in GOLD_CODE_KNOWN or fix it")
+            p["codeDisagreements"].append(
+                {"item": item, "pid": pid, "code": code, "amt": amt,
+                 "ourAmt": our_amt, "candidates": cand})
 
-    # A declaration that outlived its cell, and the ratchet.
-    live = {k for k in GOLD_SLOT_DISAGREEMENTS_KNOWN if k[0] in GOLD_SLOT_CHARGES}
-    for item, pid in sorted(live - seen_disagreeing):
-        out.append(
-            f"GOLD_SLOT_DISAGREEMENTS_KNOWN names {item}/p{pid}, but its slot set "
-            f"now MATCHES gold — drop the entry and lower the budget")
-    n = len(GOLD_SLOT_DISAGREEMENTS_KNOWN)
-    if n != GOLD_SLOT_DISAGREEMENTS_BUDGET:
-        verb = "grew to" if n > GOLD_SLOT_DISAGREEMENTS_BUDGET else "is down to"
-        out.append(f"GOLD_SLOT_DISAGREEMENTS_KNOWN {verb} {n} against a budget of "
-                   f"{GOLD_SLOT_DISAGREEMENTS_BUDGET} -- it may only fall")
-
-    # THE SAME RATCHET FOR THE BOUNDS TABLE, which had none. That gap let three
-    # 2a entries stand asserting "gold charges one how_* slot; we charge none"
-    # on the very day the conjunction rule made us charge the box gold NAMED, in
-    # 12 of 12 runs on both sides. Nothing reported them: the disagreements table
-    # is ratcheted and this one was not, so its entries could only ever be
-    # retired by somebody remembering to look. Two of the three also said "same
-    # as 2a/p1", so the stale claim was propagating by cross-reference.
-    #
-    # A BOUNDS entry claims we disagree on EVERY reading of an ambiguous charge,
-    # so it expires when our slot set becomes CONSISTENT with the bounds: we fail
-    # as many scored slots as gold charged, and every slot gold named for certain
-    # is among them. That is weaker than the disagreements table's exact-set test
-    # on purpose, because the charge itself is weaker -- a count or a subset
-    # rather than a named slot.
-    out += bounds_declarations_that_expired()
-    return out
+    p["seenDisagreeing"] = sorted([list(x) for x in seen])
+    p["chargesItems"] = sorted(GOLD_SLOT_CHARGES)
+    p["declared"] = {
+        "disagreements": sorted([list(k) for k in GOLD_SLOT_DISAGREEMENTS_KNOWN]),
+        "unmappable": sorted([list(k) for k in GOLD_SLOT_UNMAPPABLE]),
+        "bounds": sorted([list(k) for k in GOLD_SLOT_BOUNDS_KNOWN]),
+        "codes": sorted([list(k) for k in GOLD_CODE_KNOWN]),
+    }
+    p["budgets"] = {"disagreements": GOLD_SLOT_DISAGREEMENTS_BUDGET}
+    # THE BOUNDS TABLE'S OWN RATCHET, appended verbatim. It is its own function
+    # and its own future port; a bounds entry expires on a WEAKER test than the
+    # disagreements table's exact-set one, because the charge itself is weaker.
+    p["expired"] = bounds_declarations_that_expired()
+    return lo_enforce.run("gold_slot_disagreements", p)
 
 
 def bounds_declarations_that_expired() -> list[str]:
@@ -6564,77 +6540,49 @@ def sides_recorded_but_unreadable() -> list[str]:
 
 def wrong_cells_without_an_owner(excluding: str = '', sides=None) -> list[str]:
     """Cells we get wrong that no live subgoal and no declaration accounts for."""
+
+    # PORTED (goal K), AS A SPLIT. Python resolves the wrong cells, the live
+    # subgoal owners and the declarations; the exclusions and the reporting are
+    # in lo-blocks. PYTHON ASSEMBLES AND PASSES, which is what keeps the
+    # self-test's injection visible: the case patches `_live_subgoal_owners` IN
+    # MEMORY, and a payload built from it sees the patch. A self-assembled
+    # payload would read the ledger from disk and the case would test nothing.
     import forms as H
+    import lo_enforce
 
     owned = _live_subgoal_owners(excluding)
-    owners, subjects = owned["any"], owned["title"]
     wrong = _wrong_cells()
-    # SCOPED BY SIDE, defaulting to EVERY side so the unfiltered call is exactly
-    # what it was. The split is what lets the WEB half of this question be asked
-    # by a reader that has no paper scorer -- see `web_sides`.
-    keep = set(sides) if sides is not None else set(SIDES)
-    seen: set = set()
-    out: list[str] = []
-    for item, pid, side, target, ours in wrong:
-        if side not in keep:
-            continue
-        key = f"{item}/p{pid}"
-        if key in seen:
-            continue
-        seen.add(key)
-        # PER SIDE, not per cell. A subgoal about the paper scorer is not a home
-        # for a cell we get wrong on the OLX prompt -- see _live_subgoal_owners.
-        if (owned["by_side"].get(key) or {}).get(side):
-            continue
-        # A DECLARED MISS IS NOT AN ORPHAN. GOLD_DIVERGENCES already carries the
-        # reason we miss the cell on purpose; demanding a QC subgoal too would be
-        # two names for one claim.
-        if H.gold_divergence(item, pid):
-            continue
-        # AND NEITHER IS A *SILENT* DECLARED MISS. This check read only
-        # GOLD_DIVERGENCES, so a cell declared in SILENT_GOLD_DIVERGENCES was
-        # reported as an orphan the moment its subgoal closed -- which happened
-        # to PR/p15 on 2026-09-07, minutes after E55 closed, on a cell whose
-        # disposition had been filed with a written reason earlier the same day.
-        # The two tables say the same thing about ownership: somebody decided,
-        # and the decision is findable FROM THE CELL. They differ in whether gold
-        # said anything, not in whether we owe an owner.
-        # DECLARED_CEILING_CELLS is included for the same reason (subgoal E45).
-        if (item, pid) in SILENT_GOLD_DIVERGENCES:
-            continue
-        if (item, pid) in DECLARED_CEILING_CELLS:
-            continue
-        out.append(
-            f"{key} is WRONG on {side} -- gold {target:g}, we record {ours:g} -- "
-            f"and no OPEN subgoal names it. Every cell we get wrong needs "
-            f"somewhere to live, or the next sweep buries it in a median. Name it "
-            f"in the subgoal that owns its shape, or declare it")
+    keep = sorted(set(sides) if sides is not None else set(SIDES))
 
-    # The other direction: a subgoal citing a cell that has stopped being wrong.
-    still_wrong = {f"{i}/p{p}" for i, p, *_ in wrong}
-    measured_cells = set()
+    measured_cells = []
     for item in sorted(_jobs()):
         for pid in range(1, 21):
             if _cell_scores(item, pid):
-                measured_cells.add(f"{item}/p{pid}")
-    # A CELL CAN BE RIGHT AT THE TOTAL AND STILL BE A LIVE FINDING. Q19 names
-    # 1a/p1 because we credit three week slots the grader charged, and the two
-    # errors cancel to the same total -- which is the whole point of the slot
-    # accounting. Treating "total agrees" as "problem gone" would have retired the
-    # cells that exist precisely because the total hides them.
+                measured_cells.append(f"{item}/p{pid}")
+
+    # DECLARED AT SLOT LEVEL: a cell can be RIGHT AT THE TOTAL and still be a
+    # live finding, because two slot errors can cancel. Treating "total agrees"
+    # as "problem gone" would retire the cells that exist precisely because the
+    # total hides them.
     declared_at_slot_level = (set(GOLD_SLOT_DISAGREEMENTS_KNOWN)
                               | set(GOLD_SLOT_BOUNDS_KNOWN)
                               | set(GOLD_CODE_KNOWN))
-    slot_live = {f"{i}/p{p_}" for i, p_ in declared_at_slot_level}
-    for key, who in sorted(subjects.items()):
-        if key in still_wrong or key not in measured_cells or key in slot_live:
-            continue
-        out.append(
-            f"{key} is named by OPEN subgoal(s) {sorted(set(who))} but now scores "
-            f"RIGHT at the recorded median on every side. The evidence the "
-            f"subgoal cites has gone: re-read it, and drop the cell or close the "
-            f"subgoal")
-    return out
+
+    return lo_enforce.run("wrong_cells_without_an_owner", {
+        "wrong": [{"item": i, "pid": p, "side": s, "target": t, "ours": o}
+                  for i, p, s, t, o in wrong],
+        "keep": keep,
+        "ownedBySide": {k: sorted(v) for k, v in
+                        ((k, [s for s, on in (d or {}).items() if on])
+                         for k, d in (owned["by_side"] or {}).items())},
+        "subjects": {k: list(v) for k, v in (owned["title"] or {}).items()},
+        "goldDivergence": sorted({f"{i}/p{p}" for i, p, *_ in wrong
+                                  if H.gold_divergence(i, p)}),
+        "silent": sorted(f"{i}/p{p}" for i, p in SILENT_GOLD_DIVERGENCES),
+        "ceiling": sorted(f"{i}/p{p}" for i, p in DECLARED_CEILING_CELLS),
+        "measuredCells": measured_cells,
+        "slotLive": sorted(f"{i}/p{p}" for i, p in declared_at_slot_level),
+    })
 
 # CELL-LEVEL CEILINGS, machine-readable. Subgoal E45's last unmet constraint:
 # "IT MUST NOT FIRE ON A DECLARED CELL ... It needs a way to say DECLARED-CEILING,

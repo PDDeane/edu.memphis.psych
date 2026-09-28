@@ -1318,73 +1318,30 @@ HAND_AUTHORED_ATTRS: dict[tuple[str, str], str] = {
 # fixture naming something that no longer exists is the drift D2a was written
 # to catch, and it is caught here for the nine that stayed behind.
 SELFTEST_NAMED_FIXTURES: dict[tuple[str, str], str] = {
-    # HOW EACH REASON WAS CHECKED, 2026-09-20. A reason is a claim and goes
-    # stale like any other; `check_named_fixtures_still_name_something` verifies
-    # the ID still exists, and both entries removed below named ids that DO
-    # exist. What was false was the sentence saying why.
+    # EMPTY SINCE 2026-09-27. Every fixture this table defended now selects its
+    # target BY SHAPE, so there is no named fixture left to justify. The table
+    # goes rather than standing as seven reasons for names nobody uses -- the
+    # same rule the parking lot is held to.
     #
-    #   MEASURED, and confirmed:
-    #     Q4a  antecedent_1 and antecedent_2 still carry different codes
-    #     1b   removing the FIRST job still raises KeyError inside
-    #          check_ref_targets_resolve, so the target is still not arbitrary
-    #     2b   still carries the sentence family its exemption is about
-    #     Q6/p9  gold still reports boxes empty there (affect_c2, change_a2,
-    #            state_a2, state_c2)
-    #     Q6/p1  still has a non-empty `state_a1`
+    # WHAT THE SEVEN REASONS WERE WORTH, kept because the ratio is the lesson.
+    # THREE WERE FALSE and survived only because they were re-read rather than
+    # tested. Q4a's said the case needed two slots "carrying DIFFERENT codes ...
+    # a property of Q4a's slots, not an incidental choice of item": the two slots
+    # carry IDENTICAL code maps and the injection fires on four items. 1b's said
+    # the safe targets were "not a property this fixture can state": they are --
+    # a job no corpus reference names, eleven of twenty-six -- and the crash it
+    # blamed on `check_ref_targets_resolve` is really `prompt_sha` -> `_olx` ->
+    # `corpus_ref.expand`. 1a's defended a stub idle since its case was retired.
     #
-    #   STRUCTURAL, and not mechanically checkable: the two stub filters. The id
-    #   is a discriminator inside fake code -- `if item == "1a" and side ==
-    #   "olx"` -- so there is nothing about the corpus for a check to read. They
-    #   are true by inspection or not at all, which is worth saying rather than
-    #   leaving them looking unexamined.
-    #
-    # TWO ENTRIES CAME OUT ON 2026-09-20, and both reasons were wrong rather
-    # than merely stale -- which is the argument for testing a declaration's
-    # CLAIM and not just its key.
-    #
-    # ("a cover slot's rule is hidden", "Q6") said Q6 is "the item where that
-    # pairing exists" and that shape-picking would find an item with no rule to
-    # hide. No Q6 cover slot carries a rule at all -- its cover keys are
-    # `state_*` and its ruled slots `affect_*` -- and the case INJECTS the rule
-    # itself, so it never needed one. Only one h1 item has a cover group, so
-    # there was nothing else to find either. It picks by shape now.
-    #
-    # ("web loses `counts`", "Q1") said this case "follows" the CLI-side one.
-    # It did not: the CLI side shape-picks and this named Q1, and they agreed
-    # only because sorted(['Q1','Q2'])[0] is Q1. It follows it now, which is
-    # what the reason always claimed.
-
-        ("the paper scorer's per-cell stub", "Q6"):
-        "a FILTER inside a stub, not a target: the stub answers differently for "
-        "one item so the case can tell the two paths apart. The id is a "
-        "discriminator in fake code, and deriving it would only move the "
-        "constant.",
-    ("a box holds text gold says is absent", "Q6"):
-        "GOLD-BOUND, not rubric-bound: p9 is a cell where gold reports the box "
-        "empty, which is a fact about the marked-up workbook. Deriving it means "
-        "reading gold to find such a cell -- possible, and considerably more "
-        "expensive than the fixture it would replace.",
-    ("a box holds a different student's words", "Q6"):
-        "gold-bound in the same way: p1's `state_a1` is the cell this shape was "
-        "found on. See the entry above.",
-    ("a family with two codes is counted anyway", "Q4a"):
-        "the CONTENT of the test is that `antecedent_1` and `antecedent_2` carry "
-        "DIFFERENT codes. That is a property of Q4a's slots, not an incidental "
-        "choice of item, and an item without it tests nothing.",
-        ("an item leaves JOBS", "1b"):
-        "NOT ARBITRARY, and measured: removing the first job instead raises "
-        "KeyError inside `check_ref_targets_resolve`, which indexes JOBS for "
-        "that item unconditionally. The safe targets are the ones nothing else "
-        "indexes, which is not a property this fixture can state.",
-    ("the OLX-side stub", "1a"):
-        "a FILTER inside a stub, like the paper-scorer entry: the stub answers "
-        "differently for one item and side so the case can tell the paths "
-        "apart.",
-    ("the evenness exemption is stale", "2b"):
-        "the exemption injected is `(2b, sentence)`, and 2b is the item whose "
-        "sentences are the countable family the exemption would be about. A "
-        "stale exemption for an item with no such family would be rejected for "
-        "the wrong reason.",
+    # FOUR WERE TRUE, and the answer was not a cleverer predicate. They turned on
+    # judgements the ported RULES make -- does gold's prose report this box
+    # absent, does a six-word prefix read as a fragment, is this bounds entry
+    # unjustified. Restating those here would have been a second copy of the very
+    # thing each case exists to exercise, free to drift from it. So those cases
+    # ask the rule instead: the candidate set is structural, and qualification is
+    # the rule's own verdict on the injection. A candidate that could not fire
+    # cannot be picked, and if none qualifies `_pick` returns None, the case
+    # SKIPs, and a skip is VACUOUS against SELFTEST_VACANT_MAX = 0.
 }
 
 
@@ -1396,9 +1353,48 @@ SELFTEST_NAMED_FIXTURES: dict[tuple[str, str], str] = {
 # ITS REASON TRAVELS WITH IT, as the value of the entry. A parked finding with
 # no reason is an override nobody can review, which is the whole thing
 # `check_parked_entries_still_apply` exists to prevent.
+# CORPUS REFERENCES APPROVED IN TEACHING TEXT, 2026-09-27.
+#
+# WHAT WAS APPROVED AND WHAT WAS NOT. The audit reported 43 references and the
+# headline hid the shape: they are 19 cells, and they sit in two different
+# places. 47 occurrences are inside `<LLMAction>` -- worked examples in the
+# PROMPT THE GRADER IS SENT, which no student ever sees. 16 are outside it, on
+# the page, where the class reads them. The instructor approved the second kind:
+# "they don't affect how the scorer performs and the instructor chose the
+# scoring set in part for teaching purposes."
+#
+# SO THE DECLARATION IS HONOURED ONLY OUTSIDE `<LLMAction>`, and that is not a
+# detail. The same cell occurs in both roles -- `D1/p8` is quoted once on the
+# page and TEN times inside the prompt, `NR/p1` once each way -- so an entry
+# keyed by cell alone would have silenced the instrument occurrences too, which
+# were not approved and are a different question.
+#
+# THEY STILL COST SOMETHING, and the rule still says so: an approved reference
+# keeps its page from rendering without $COURSE_DATA. The count is reported,
+# unblocking, rather than disappearing.
+_TEACHING_REF = (
+    "approved by the instructor 2026-09-27: a worked example a CLASS READS. It does not affect how the scorer performs, and the scoring set was chosen in part for teaching purposes")
+
+OLX_TEACHING_REFS: dict[tuple[str, int, str], str] = {
+    ("PR", 2, "pr"): _TEACHING_REF,
+    ("Q4b", 11, "modify"): _TEACHING_REF,
+    ("Q4b", 15, "first"): _TEACHING_REF,
+    ("Q5", 16, "first"): _TEACHING_REF,
+    ("Q6", 7, "affect_c1"): _TEACHING_REF,
+    ("D1", 8, "d1"): _TEACHING_REF,
+    ("NR", 1, "nr"): _TEACHING_REF,
+    ("PP", 1, "pp"): _TEACHING_REF,
+    ("1c", 1, "series"): _TEACHING_REF,
+    ("1c", 20, "title"): _TEACHING_REF,
+    ("Q4b", 13, "modify"): _TEACHING_REF,
+}
+
+
 PARKED_UNDECLARED: dict[tuple[str, str], str] = {
-    ('-', 'MIGRATED MODULE HOLDS COURSE DATA'):
-        "D2d's exemption was removed 2026-09-19; its 27 embeddings in `equivalence.py::enforcement_selftest` are now counted rather than excused, and D2a (shape-selected fixtures, each reporting its chosen target) is owed and scheduled. The park goes when D2a lands.",
+    ("-", "WRONG CELL WITH NO OWNER"):
+        "Q4a/p3 is named by OPEN subgoal Q67 -- \"gold charges one antecedent slot, we charge none, and the paper scorer already reaches gold\" -- and the check reports the cell as RIGHT at the recorded median on every side, so the subgoal looks stale. IT IS NOT, AND THE MEDIAN IS DOING THE WORK. The band is (7, 13, unstable_counted_right): seven runs of thirteen reach gold and six do not. `cell_bands` says why that matters -- \"a cell right in 7 runs of 12 is booked as a success and nothing distinguishes it from one right in 12\", which is the whole reason subgoal E41 exists. Closing Q67 on this would round a 7-6 margin up to a solved problem. THE STALE-SCORER ALARM WAS CHECKED AND IS HARMLESS: every item's runs are flagged because the scorer fingerprint moved, and re-scoring Q4a's recorded verdicts through the shipped scorer reproduced 260 of 260 exactly, with the +0.5 control moving all 260 -- so the numbers stand and only the fingerprint changed. Parked 2026-09-27 on the instructor's instruction, to be dealt with after the K and L work. WHAT UNPARKS IT: re-wording Q67 to the claim that is now true (a STABILITY problem, not a scoring-rule one), or declaring the cell in DECLARED_CEILING_CELLS, which this check already excludes. NOT closing the subgoal on the median.",
+    ("-", "OLX QUOTES A STUDENT THROUGH A REFERENCE"):
+        "The 29 that remain are all INSIDE `<LLMAction>` -- worked examples in the prompt the grader is sent, not on any page a student reads. The 14 on the page were approved and declared in OLX_TEACHING_REFS; these were not, and the instructor's reason does not reach them: a prompt example DOES affect how the scorer performs, so replacing one is a change to the instrument and has to be measured, not just edited. Parked 2026-09-27 on the instructor's instruction -- they are wrong and they are not being fixed yet, because the work that would let us re-measure the prompts is the rest of goal K, goal L and the sundries after them. WHAT UNPARKS IT: those landing, and then either converting the impersonal ones (`D1/p8` x10 is a student restating the textbook definition of positive punishment) or declaring the rest on the ground that a prompt is not published to students. NOT a re-baseline, and not a raised OLX_CORPUS_REF_BUDGET -- that budget ratchets down only.",
 }
 
 
@@ -1463,12 +1459,67 @@ HANDCODED_ITEM_RULES: dict[tuple[str, str], str] = {
 # the export rather than by running it.
 HANDCODED_BUDGET: int = 1
 ITEM_GATED_BUDGET: int = 0
+# MOVED FROM `enforcement.py` 2026-09-27 with the binding it explained.
+# Nothing in python read that binding: the rule that enforces this budget
+# is in lo-blocks and reads the number from THIS record. The reason has to
+# travel with the value or the next person sees a bare integer.
+# Every `{{corpus:...}}` still standing in a served .olx. The count may FALL and
+# may not RISE, like the other budgets here.
+# 0 as of 2026-09-16. Handout 2's worked non-example was a real student's
+# sentence, carried into the page through a reference -- which kept the words
+# out of the FILE but still made a student's writing the thing every reader is
+# taught from, and made the page unrenderable without $COURSE_DATA. It is now an
+# invented sentence with the same defect being taught ("Going to bed earlier
+# will reward me with feeling rested" -- the reward is just what the behaviour
+# does), checked against the whole response space for collisions.
+#
+# The budget ratchets DOWN and never up: a new reference in an .olx is a
+# finding, not a precedent.
 OLX_CORPUS_REF_BUDGET: int = 0
+# MOVED FROM `enforcement.py` 2026-09-27 with the binding it explained.
+# Nothing in python read that binding: the rule that enforces this budget
+# is in lo-blocks and reads the number from THIS record. The reason has to
+# travel with the value or the next person sees a bare integer.
+# SLOTS THE SHEET ASKS AND THE RUBRIC DELIBERATELY DOES NOT DEFINE. Subgoal E49.
+# The reverse-direction check reports a sheet slot with no rubric element,
+# because the app would otherwise be putting a question to the grader that the
+# python scorer never reads. That is usually a defect. It is not always one: an
+# UNSCORED slot whose only job is to shape FEEDBACK has nothing for the mirror to
+# mirror, since the mirror does not produce feedback at all.
+# Keep this table small, and require the two facts that make the claim checkable:
+# the slot carries NO points, and something in the generator consumes it.
 ONE_SIDED_SCORED_SLOTS_BUDGET: int = 0
-PARKED_BUDGET: int = 1
+# MOVED FROM `enforcement.py` 2026-09-27 with the binding it explained.
+# Nothing in python read that binding: the rule that enforces this budget
+# is in lo-blocks and reads the number from THIS record. The reason has to
+# travel with the value or the next person sees a bare integer.
+# Ratcheted like every other table here. A park is cheap to add and easy to
+# forget, which is the failure mode: a parking lot nobody empties becomes a
+# second declaration table with none of the review. Raise this only with the
+# entry, and lower it when one is retired.
+PARKED_BUDGET: int = 2
+# MOVED FROM `enforcement.py` 2026-09-27 with the binding it explained.
+# Nothing in python read that binding: the rule that enforces this budget
+# is in lo-blocks and reads the number from THIS record. The reason has to
+# travel with the value or the next person sees a bare integer.
+# RAISED 25 -> 27 on 2026-09-12 for two slots the audit had been reporting as
+# UNDECLARED, not for two new prose rules: `1c.series_box_holds` and
+# `DAY2.targets_own_behavior` were already judged by prose and by nothing
+# computable, and the budget moves because the DECLARATION was written, not
+# because the corpus grew. Lower it whenever one converts to a primitive.
 PROSE_ONLY_BUDGET: int = 27
 RUBRIC_CONSUMER_BUDGET: int = 1
 SLOT_RULE_BACKLOG_BUDGET: int = 1
+# MOVED FROM `enforcement.py` 2026-09-27 with the binding it explained.
+# Nothing in python read that binding: the rule that enforces this budget
+# is in lo-blocks and reads the number from THIS record. The reason has to
+# travel with the value or the next person sees a bare integer.
+# ZERO, and it is meant to stay there. The single entry was DAY1's
+# `phrased_directly`, retired 2026-09-04 by RENAMING the gated variant
+# `phrased_directly_gate` rather than exempting it: if two sheets price a
+# question differently they are not asking the same question, and the shared name
+# is what made a recorded claim about the slot wrong (subgoal Q21's precision
+# table). A new entry here now means someone chose an exemption over a name.
 SLOT_STRUCTURE_BUDGET: int = 0
 UNEXERCISED_PRIMITIVES_BUDGET: int = 0
 

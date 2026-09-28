@@ -1647,20 +1647,65 @@ def _selftest_input_fingerprint() -> dict:
 
     Everything, not just the modules the cases inject into: the checks read the
     OLX, GOALS.md, the rubric and the ledger, and an edit to any of them moves the
-    baseline. Cheap -- a few dozen small files, hashed once at each end of a
+    baseline. Cheap -- a few hundred small files, hashed once at each end of a
     fifteen-minute run.
+
+    IT MISSED 129 OF THEM until 2026-09-27, and the docstring above was already
+    promising otherwise. Two causes, and both are the same shape:
+
+      GOAL K MOVED THE LOGIC. 82 checks now delegate to `lo_enforce`, so the
+      rule they apply lives in lo-blocks TypeScript. All 94 files of it were
+      unhashed -- the detector was blindest exactly where the judgement had
+      gone, and a mid-run edit there would have voided nothing.
+
+      A SINGLE-DIRECTORY GLOB STOPPED MATCHING. `here.glob("*.py")` reads the
+      engine root only. The engine JSONs moved to `metadata/`, the authored
+      declarations to `bmod/`, the utilities to `tools/` -- and each move took
+      its files silently out of the fingerprint. That is the same failure as
+      `rubric_h2_source.py` leaving DATA_MODULES the day it changed directory,
+      found the same week.
+
+    SO IT WALKS, depth-agnostically, and the walk is the pruned one every other
+    reader uses. Keys are RELATIVE PATHS, not basenames: two `__init__.py` or
+    two `index.ts` would otherwise collide and silently hash as one.
     """
     import hashlib
     import pathlib
 
-    here = pathlib.Path(__file__).resolve().parent
+    import paths as _p_fp
+
     out = {}
-    for pat in ("*.py", "*.md", "*.json", "../psychology/*.olx"):
-        for f in sorted(here.glob(pat)):
-            try:
-                out[f.name] = hashlib.sha256(f.read_bytes()).hexdigest()[:12]
-            except OSError:
-                out[f.name] = "unreadable"
+
+    def _add(f, key):
+        try:
+            out[key] = hashlib.sha256(f.read_bytes()).hexdigest()[:12]
+        except OSError:
+            out[key] = "unreadable"
+
+    # (1) THE ENGINE AND EVERYTHING UNDER IT, pruned as every other walk is.
+    here = pathlib.Path(__file__).resolve().parent
+    for f in _p_fp.repo_files(".py", ".md", ".json", root=here):
+        _add(f, str(f.relative_to(here)))
+
+    # (2) THE COURSE MATERIAL the checks read.
+    for f in sorted(_p_fp.handout_olx_paths()):
+        _add(pathlib.Path(f), f"olx/{pathlib.Path(f).name}")
+    try:
+        cf = pathlib.Path(_p_fp.roots().course_file)
+        if cf.exists():
+            _add(cf, "course.json")
+    except Exception:                                   # pragma: no cover
+        pass
+
+    # (3) THE RULES THEMSELVES. Not optional since goal K: an edit to a ported
+    # rule changes what the audit decides just as surely as an edit here.
+    try:
+        enforce = pathlib.Path(str(_p_fp.LO)) / "packages/shared/lib/llm/enforce"
+        for f in sorted(enforce.rglob("*.ts")):
+            _add(f, f"enforce/{f.relative_to(enforce)}")
+    except Exception:                                   # pragma: no cover
+        pass
+
     return out
 
 
@@ -1978,12 +2023,20 @@ def enforcement_selftest():
     # run that detected all 71 injections. The comparison is right -- a table
     # whose order moved is not the table that was authored -- so the restore is
     # what changes.
+    # BY SHAPE (D2a, 2026-09-27). Any member of the covered set proves the guard;
+    # the case is about an item LEAVING it, not about which item.
     tsaved = dict(SHEET_ONLY)
-    SHEET_ONLY.pop("T1")
-    cases.append(("an item leaves the covered set", "SCORED ON PYTHON ONLY", "T1",
-                  _audit_async()))
-    SHEET_ONLY.clear()
-    SHEET_ONLY.update(tsaved)
+    _cov_gone = _pick("an item leaves the covered set", sorted(SHEET_ONLY),
+                      "the first item in the sheet-only covered set")
+    if _cov_gone is None:
+        _shape_skips.append(("an item leaves the covered set",
+                             "the covered set is empty, so nothing can leave it"))
+    else:
+        SHEET_ONLY.pop(_cov_gone)
+        cases.append(("an item leaves the covered set", "SCORED ON PYTHON ONLY",
+                      _cov_gone, _audit_async()))
+        SHEET_ONLY.clear()
+        SHEET_ONLY.update(tsaved)
 
     # The equals comparison, now that both sides declare it on the credit path.
     _eq_item = _pick("CLI equals loses `unclear`",
@@ -2301,21 +2354,48 @@ def enforcement_selftest():
     # cell, so the probe exercises the corpus comparison rather than a stub.
     import enforcement as _E2
     import forms as H_MOD
+    #
+    # BY SHAPE (D2a, 2026-09-27). Q6 was where the leak HAPPENED, which is a fact
+    # about the incident and not about what the case needs. The case needs an
+    # item carrying a slot rule to host the quote, and one of its own counted
+    # cells long enough to quote from. EIGHT items qualify, measured by running
+    # the check under this injection on each: all eight fire. So the pick moves
+    # to the first, and `_PICKED` reports which -- if a rule is added or a cell
+    # excluded, the case follows rather than testing the same item forever.
     _corp = _E2._corpus_cells()
-    _leak = None
-    for (_iid, _pid), _body in sorted(_corp.items()):
-        if (_iid == "Q6" and _pid not in H_MOD.cell_exclusions(1, "Q6")
-                and ("Q6", _pid) not in _E2.CORPUS_QUOTE_BACKLOG
-                and len(_body.split()) > 40):
-            # A run from the MIDDLE of the answer: the opening words are the
-            # template sentence many students share, and a shared run is
-            # filtered as the assignment's own language.
-            _leak = (_pid, " ".join(_body.split()[12:26]))
-            break
-    if _leak is not None:
-        _a1 = [x for x in _R1.BY_ID["Q6"]["credit"] if x["what"] == "affect_c1"][0]
+
+    def _quotable_rule_sites():
+        for _qid in sorted(_R1.BY_ID):
+            _rules = [_c for _c in (_R1.BY_ID[_qid].get("credit") or [])
+                      if _c.get("rule")]
+            if not _rules:
+                continue
+            for (_iid, _pid), _body in sorted(_corp.items()):
+                if _iid != _qid or _pid in H_MOD.cell_exclusions(1, _qid):
+                    continue
+                if (_qid, _pid) in _E2.CORPUS_QUOTE_BACKLOG:
+                    continue
+                if len(_body.split()) > 40:
+                    # A run from the MIDDLE of the answer: the opening words are
+                    # the template sentence many students share, and a shared run
+                    # is filtered as the assignment's own language.
+                    yield (_qid, _rules[0]["what"], _pid,
+                           " ".join(_body.split()[12:26]))
+                    break
+
+    _leak = _pick("a prompt quotes a counted participant verbatim",
+                  _quotable_rule_sites(),
+                  "the first item with a slot rule and a quotable counted cell")
+    if _leak is None:
+        _shape_skips.append(("a prompt quotes a counted participant verbatim",
+                             "no item has both a slot rule and a counted cell "
+                             "long enough to quote"))
+    else:
+        _leak_item, _leak_slot, _leak_pid, _leak_text = _leak
+        _a1 = [x for x in _R1.BY_ID[_leak_item]["credit"]
+               if x["what"] == _leak_slot][0]
         _saved_a1 = _a1.get("rule")
-        _a1["rule"] = f'A response reading "{_leak[1]}" counts.'
+        _a1["rule"] = f'A response reading "{_leak_text}" counts.'
         cases.append(("a prompt quotes a counted participant verbatim",
                       "PROMPT QUOTES A COUNTED CELL", "-",
                       _audit_async()))
@@ -2374,40 +2454,117 @@ def enforcement_selftest():
     # a box gold reports as absent.
     import enforcement as _E6
     _real_fb6 = _E6._fixture_boxes
-    def _filling(item, pid):
-        bx = dict(_real_fb6(item, pid))
-        if item == "Q6" and pid == 9:
-            # INVENTED TEXT, not a student's. The check fires on a box holding
-            # ANYTHING where gold reports nothing, so the content is irrelevant
-            # to what is being tested -- and a real sentence here was a copy of
-            # Q6/p9's own words sitting in the repo for no reason. If this ever
-            # stops firing, the cause is the check, not the wording.
-            bx["state_c2"] = "placeholder text for a box gold records as empty"
-        return bx
-    _E6._fixture_boxes = _filling
-    cases.append(("a box holds text gold says was never written",
-                  "FIXTURE CONTRADICTS GOLD", "-",
-                  _audit_async()))
-    _E6._fixture_boxes = _real_fb6
+    # INVENTED TEXT, not a student's. The check fires on a box holding ANYTHING
+    # where gold reports nothing, so the content is irrelevant to what is being
+    # tested -- and a real sentence here was a copy of Q6/p9's own words sitting
+    # in the repo for no reason. If this ever stops firing, the cause is the
+    # check, not the wording.
+    _FILLER6 = "placeholder text for a box gold records as empty"
+
+    # BY SHAPE (D2a, 2026-09-27), AND THE PREDICATE ASKS THE CHECK. Whether gold
+    # reports a box absent is a judgement about the GRADER'S PROSE -- "did not
+    # state" and its family -- and that classifier lives in the ported rule. A
+    # predicate here that re-derived it would be a second copy of the one thing
+    # this case exists to exercise, and would drift from it silently.
+    #
+    # So the candidate set is every EMPTY fixture box, and the test of a
+    # candidate is the check's own verdict on filling it: 5 of 38 qualify
+    # (Q3/p9, Q4c/p13, Q6/p6 and two on Q6/p9 -- the old hard-coded cell among
+    # them). A candidate that could not fire cannot be picked, and if the corpus
+    # ever offers none, `_pick` returns None and the case SKIPs, which the
+    # vacancy ratchet reports rather than passing quietly.
+    def _boxes_gold_calls_absent():
+        _base6 = len(_E6.check_fixture_agrees_with_gold() or [])
+        _empty6 = []
+        for _h6, _i6, _p6, _r6, _bx6 in _E6._fixture_cells():
+            for _b6 in sorted(_bx6):
+                if not str(_bx6[_b6] or "").strip():
+                    _empty6.append((_i6, _p6, _b6))
+        for _cand in sorted(_empty6):
+            def _probe6(item, pid, _c=_cand):
+                _d = dict(_real_fb6(item, pid))
+                if item == _c[0] and pid == _c[1]:
+                    _d[_c[2]] = _FILLER6
+                return _d
+            _E6._fixture_boxes = _probe6
+            try:
+                _n6 = len(_E6.check_fixture_agrees_with_gold() or [])
+            finally:
+                _E6._fixture_boxes = _real_fb6
+            if _n6 > _base6:
+                yield _cand
+
+    _abs_box = _pick("a box holds text gold says was never written",
+                     _boxes_gold_calls_absent(),
+                     "the first empty fixture box the check objects to filling")
+    if _abs_box is None:
+        _shape_skips.append(("a box holds text gold says was never written",
+                             "no empty box is one gold reports as absent"))
+    else:
+        def _filling(item, pid, _c=_abs_box):
+            bx = dict(_real_fb6(item, pid))
+            if item == _c[0] and pid == _c[1]:
+                bx[_c[2]] = _FILLER6
+            return bx
+        _E6._fixture_boxes = _filling
+        cases.append(("a box holds text gold says was never written",
+                      "FIXTURE CONTRADICTS GOLD", "-",
+                      _audit_async()))
+        _E6._fixture_boxes = _real_fb6
 
     # A box cut mid-clause. Two other fixture checks pass on these: the text is
     # all present and no two boxes share it, but a box holding "... I hope that
     # I" is a fragment, not a clause. Injected by truncating one.
     import enforcement as _E5
     _real_fb = _E5._fixture_boxes
-    def _truncating(item, pid):
-        bx = dict(_real_fb(item, pid))
-        if item == "Q6" and pid == 1 and bx.get("state_a1"):
-            # A REAL prefix of the response, cut so it ends on a function word.
-            # An invented string ("... going to that") cannot be located in the
-            # raw at all, so the check skips the box and the probe tests nothing.
-            bx["state_a1"] = " ".join(bx["state_a1"].split()[:6])
-        return bx
-    _E5._fixture_boxes = _truncating
-    cases.append(("a fixture box is cut mid-clause",
-                  "FIXTURE CUTS MID-CLAUSE", "-",
-                  _audit_async()))
-    _E5._fixture_boxes = _real_fb
+
+    # BY SHAPE (D2a, 2026-09-27), asking the check, for the reason the box-gold
+    # case above records. The cut has to leave A REAL PREFIX of the response that
+    # still ENDS MID-CLAUSE: an invented string cannot be located in the raw at
+    # all, so the check skips the box and the probe tests nothing, and a prefix
+    # that happens to end on a clause boundary is not a fragment. Both are
+    # judgements the ported rule makes, so the candidate's qualification is the
+    # rule's own verdict on truncating it rather than a second copy of its
+    # grammar. 475 boxes carry more than six words; the pick costs three probes.
+    def _boxes_that_cut_mid_clause():
+        _base5 = len(_E5.check_fixture_follows_response_structure() or [])
+        _long5 = []
+        for _h5, _i5, _p5, _r5, _bx5 in _E5._fixture_cells():
+            for _b5 in sorted(_bx5):
+                if len(str(_bx5[_b5] or "").split()) > 6:
+                    _long5.append((_i5, _p5, _b5))
+        for _cand in sorted(_long5):
+            def _probe5(item, pid, _c=_cand):
+                _d = dict(_real_fb(item, pid))
+                if item == _c[0] and pid == _c[1] and _d.get(_c[2]):
+                    _d[_c[2]] = " ".join(str(_d[_c[2]]).split()[:6])
+                return _d
+            _E5._fixture_boxes = _probe5
+            try:
+                _n5 = len(_E5.check_fixture_follows_response_structure() or [])
+            finally:
+                _E5._fixture_boxes = _real_fb
+            if _n5 > _base5:
+                yield _cand
+
+    _cut_box = _pick("a fixture box is cut mid-clause",
+                     _boxes_that_cut_mid_clause(),
+                     "the first box whose six-word prefix the check calls a "
+                     "fragment")
+    if _cut_box is None:
+        _shape_skips.append(("a fixture box is cut mid-clause",
+                             "no box's six-word prefix reads as a fragment"))
+    else:
+        def _truncating(item, pid, _c=_cut_box):
+            bx = dict(_real_fb(item, pid))
+            if item == _c[0] and pid == _c[1] and bx.get(_c[2]):
+                bx[_c[2]] = " ".join(str(bx[_c[2]]).split()[:6])
+            return bx
+        _E5._fixture_boxes = _truncating
+        cases.append(("a fixture box is cut mid-clause",
+                      "FIXTURE CUTS MID-CLAUSE", "-",
+                      _audit_async()))
+        _E5._fixture_boxes = _real_fb
 
     # A reporter that crashes. Nothing else here executes `report()` — the
     # audits import the module, py_compile only parses — so an unbound name in
@@ -2581,12 +2738,27 @@ def enforcement_selftest():
     # claiming to correct a value the sheet does not hold.
     import forms as _H7
     _real_cg = dict(_H7.CORRECTED_GOLD)
-    _k = ("Q6", 18)
-    _H7.CORRECTED_GOLD[_k] = {**_real_cg[_k], "was": 9.75}
-    cases.append(("a CORRECTED_GOLD entry no longer matches the sheet",
-                  "CORRECTED GOLD STALE", "-",
-                  _audit_async()))
-    _H7.CORRECTED_GOLD.clear(); _H7.CORRECTED_GOLD.update(_real_cg)
+    # BY SHAPE (D2a, 2026-09-27). The case needs an entry that EXISTS -- it
+    # spreads the real one and rewrites `was` -- and nothing more. The value is
+    # derived from the entry rather than typed: a literal 9.75 is a number the
+    # sheet might one day actually hold, and the day it does this case stops
+    # testing anything while still passing.
+    _k = _pick("a CORRECTED_GOLD entry no longer matches the sheet",
+               sorted(_real_cg),
+               "the first corrected-gold entry")
+    if _k is None:
+        _shape_skips.append(("a CORRECTED_GOLD entry no longer matches the sheet",
+                             "CORRECTED_GOLD is empty, so no entry can go stale"))
+    else:
+        _was_now = _real_cg[_k].get("was")
+        _H7.CORRECTED_GOLD[_k] = {
+            **_real_cg[_k],
+            "was": (float(_was_now) + 1.25) if isinstance(_was_now, (int, float))
+                   else 9.75}
+        cases.append(("a CORRECTED_GOLD entry no longer matches the sheet",
+                      "CORRECTED GOLD STALE", "-",
+                      _audit_async()))
+        _H7.CORRECTED_GOLD.clear(); _H7.CORRECTED_GOLD.update(_real_cg)
 
     # The hand-split transcription guard. Q4b p7 had one sentence in two boxes
     # for as long as the table has existed: the student left `Modify:` blank and
@@ -2690,21 +2862,87 @@ def enforcement_selftest():
     # The other direction: counting a family whose members carry DIFFERENT codes
     # keeps one and silently retires the rest — the shape that lost A_NOT_ANTECEDENT
     # and four others once already.
-    q4a = rubric_h1.BY_ID["Q4a"]
-    q4a["counts"] = [{"key": "antecedent_1",
-                      "slots": ["antecedent_1", "antecedent_2"]}]
-    cases.append(("a family with two codes is counted anyway",
-                  "PRIMITIVE APPLIED UNEVENLY", "-",
-                  _audit_async()))
-    del q4a["counts"]
+    #
+    # BY SHAPE (D2a, 2026-09-27). This named Q4a, defended by a declaration
+    # saying the case needed "`antecedent_1` and `antecedent_2` carrying
+    # DIFFERENT codes ... a property of Q4a's slots, not an incidental choice of
+    # item". Tested as a claim rather than re-read, it was wrong twice: those two
+    # slots carry IDENTICAL code maps, and the injection fires on FOUR items
+    # (Q4a, Q4b, Q4c, Q5) — measured by running the check under it on every h1
+    # item. The property the rule wants is a NUMBERED family (`stem_<digits>`,
+    # two or more members) whose members carry more than one distinct code VALUE
+    # between them. That also explains the item the old reason should have
+    # tripped over: Q6's two slots DO carry different codes and the case stays
+    # silent there, because `state_a1` has no numeric suffix and forms no family.
+    def _multi_code_fams():
+        import re as _re_f
+        for _iid in sorted(rubric_h1.BY_ID):
+            _it = rubric_h1.BY_ID[_iid]
+            if not _it.get("derive_from_credit") or _it.get("counts"):
+                continue
+            _fams: dict = {}
+            for _c in _it.get("credit") or []:
+                _m = _re_f.match(r"^(.+?)_(\d+)$", _c["what"])
+                if _m:
+                    _fams.setdefault(_m.group(1), []).append(_c)
+            for _stem in sorted(_fams):
+                _mem = _fams[_stem]
+                if len(_mem) < 2:
+                    continue
+                _codes = {v for _c in _mem
+                          for v in (_c.get("codes") or {}).values()}
+                if len(_codes) > 1:
+                    yield (_iid, _stem, [_c["what"] for _c in _mem])
 
-    # And the exemption itself, which is the part that rots: 1a is exempt because
-    # its weeks are named, so an exemption left behind after a conversion has to say so.
-    ENF.COUNTABLE_EXEMPT[("2b", "sentence")] = "stale on purpose"
-    cases.append(("a stale exemption outlives its conversion",
-                  "PRIMITIVE APPLIED UNEVENLY", "-",
-                  _audit_async()))
-    del ENF.COUNTABLE_EXEMPT[("2b", "sentence")]
+    _fam = _pick("a family with two codes is counted anyway", _multi_code_fams(),
+                 "the first h1 family whose members carry more than one code")
+    if _fam is None:
+        _shape_skips.append(("a family with two codes is counted anyway",
+                             "no h1 family carries more than one code"))
+    else:
+        _fam_item, _fam_stem, _fam_slots = _fam
+        qfam = rubric_h1.BY_ID[_fam_item]
+        qfam["counts"] = [{"key": _fam_slots[0], "slots": _fam_slots}]
+        cases.append(("a family with two codes is counted anyway",
+                      "PRIMITIVE APPLIED UNEVENLY", "-",
+                      _audit_async()))
+        del qfam["counts"]
+
+    # And the exemption itself, which is the part that rots: an exemption left
+    # behind after a conversion has to say so.
+    #
+    # BY SHAPE (D2a, 2026-09-27). The rule's third arm fires on `isExempt &&
+    # covered` -- an exemption naming a family that IS counted. So the target is
+    # any COUNTED family, and the exemption is invented over it; four qualify
+    # (2b/sentence, 3/example, Q1/reason, Q2/reason). Naming 2b also outlived its
+    # own comment, which explained the choice by talking about 1a's weeks.
+    def _counted_families():
+        import re as _re_x
+        for _f_x in (1, 2, 3):
+            try:
+                _R_x = _rubric_view(_f_x)
+            except Exception:                       # pragma: no cover
+                continue
+            for _i_x in sorted(_R_x.BY_ID):
+                for _c_x in (_R_x.BY_ID[_i_x].get("counts") or []):
+                    _stems = sorted({_m_x.group(1) for _s_x in (_c_x.get("slots") or [])
+                                     if (_m_x := _re_x.match(r"^(.+?)_(\d+)$", _s_x))})
+                    for _st_x in _stems:
+                        yield (_i_x, _st_x)
+
+    _ex_fam = _pick("a stale exemption outlives its conversion",
+                    _counted_families(),
+                    "the first counted family, which an exemption must not name")
+    if _ex_fam is None:
+        _shape_skips.append(("a stale exemption outlives its conversion",
+                             "no family is counted, so no exemption over one "
+                             "can be stale"))
+    else:
+        ENF.COUNTABLE_EXEMPT[_ex_fam] = "stale on purpose"
+        cases.append(("a stale exemption outlives its conversion",
+                      "PRIMITIVE APPLIED UNEVENLY", "-",
+                      _audit_async()))
+        del ENF.COUNTABLE_EXEMPT[_ex_fam]
 
     _code_item = _pick("a slot points at a code that does not exist",
                        sorted(i for i, e in rubric_h3.BY_ID.items()
@@ -2740,23 +2978,109 @@ def enforcement_selftest():
     # The measurement guard: an item can be graded correctly on screen and
     # contribute to no number at all.
     import agreement_app
-    jsaved = agreement_app.JOBS.pop("1b")
-    cases.append(("an item leaves JOBS", "NEVER MEASURED", "1b",
-                  _audit_async()))
-    agreement_app.JOBS["1b"] = jsaved
+
+    # BY SHAPE (D2a, 2026-09-27). This named 1b, defended by a declaration
+    # saying the safe targets are "the ones nothing else indexes, which is NOT A
+    # PROPERTY THIS FIXTURE CAN STATE". It is, and here it is.
+    #
+    # The failure the old reason describes is real but was attributed to the
+    # wrong place: it is not `check_ref_targets_resolve` indexing JOBS. Removing
+    # a job makes that item's CELLS unresolvable, and the audit reaches them
+    # through `measured.prompt_sha` -> `_olx(handout)` ->
+    # `corpus_ref.expand`, which resolves every `{{corpus:...}}` reference
+    # standing in the handout .olx. Pop a job some reference names and the
+    # expansion dies with `no such cell/field`, taking the whole audit with it --
+    # measured by popping the first job and reading the traceback.
+    #
+    # So the property is: a job that NO corpus reference in a handout .olx names.
+    # Eleven of twenty-six qualify; 1b is simply the first, so this picks the
+    # same target it always did and will move if a reference is added to it.
+    def _jobs_no_reference_names():
+        import re as _re_j
+        import paths as _p_j
+        _named = set()
+        for _p_olx in _p_j.handout_olx_paths():
+            with open(_p_olx) as _fh:
+                for _m in _re_j.finditer(r"\{\{corpus:([^}]*)\}\}", _fh.read()):
+                    _named.add(_m.group(1).strip().split("/")[0])
+        return sorted(set(agreement_app.JOBS) - _named)
+
+    _job = _pick("an item leaves JOBS", _jobs_no_reference_names(),
+                 "the first job no corpus reference in a handout .olx names")
+    if _job is None:
+        _shape_skips.append(("an item leaves JOBS",
+                             "every job is named by a corpus reference, so "
+                             "removing any of them kills the audit instead"))
+    else:
+        jsaved = agreement_app.JOBS.pop(_job)
+        cases.append(("an item leaves JOBS", "NEVER MEASURED", _job,
+                      _audit_async()))
+        agreement_app.JOBS[_job] = jsaved
 
     # The allowlist guard: an enforcement attribute the audit does not forward is
     # exactly how `derived` slipped past on the day it landed.
+    #
+    # THE ITEM HERE IS AN EXPECTATION, NOT A TARGET (D2a, 2026-09-27). The
+    # injection removes `derived` from the ALLOWLIST; nothing about an item is
+    # chosen. `1c` was the item the finding happens to land on -- the first that
+    # carries a `derived` attribute -- so it is DERIVED from the same fact the
+    # finding comes from rather than asserted beside it. Three items carry one.
     ksaved = set(KNOWN_ACTION_ATTRS)
-    KNOWN_ACTION_ATTRS.discard("derived")
-    cases.append(("an attribute leaves the allowlist", "UNKNOWN ATTRIBUTE", "1c",
-                  _audit_async()))
-    KNOWN_ACTION_ATTRS.clear(); KNOWN_ACTION_ATTRS.update(ksaved)
+    _allow_on = _pick("an attribute leaves the allowlist",
+                      (i for i in sorted(ACTION)
+                       if (_web_attrs(i).get("derived") or "").strip()),
+                      "the first item carrying a `derived` attribute, which is "
+                      "where the finding lands")
+    if _allow_on is None:
+        _shape_skips.append(("an attribute leaves the allowlist",
+                             "no item carries a `derived` attribute, so removing "
+                             "it from the allowlist reports nothing"))
+    else:
+        KNOWN_ACTION_ATTRS.discard("derived")
+        cases.append(("an attribute leaves the allowlist", "UNKNOWN ATTRIBUTE",
+                      _allow_on, _audit_async()))
+        KNOWN_ACTION_ATTRS.clear(); KNOWN_ACTION_ATTRS.update(ksaved)
 
+    # THE ATTRIBUTE AND THE FINDING ARE THE CONTENT; the item only has to CARRY
+    # that attribute (D2a, 2026-09-27). Blinding `onlyif` on an item without one
+    # changes nothing and the case passes having tested nothing, so the item is
+    # picked from the sheet: 5 items carry `onlyif`, 6 `equals`, 3 `derived`.
     orig = globals()["_web_attrs"]
-    for item, attr, want in (("PR", "onlyif", "CHARGE-ONCE PROBE GAP (web)"),
-                             ("DAY1", "equals", "CHARGE-ONCE PROBE GAP (web)"),
-                             ("1c", "derived", "DECLARATION STALE")):
+    _attr_cases = []
+    # CARRYING THE ATTRIBUTE IS NECESSARY AND NOT SUFFICIENT. Measured
+    # 2026-09-27: the first predicate asked only "does this item's sheet carry
+    # `equals`", picked D1, and the case reported NOTHING FIRED. Blinding
+    # `equals` or `onlyif` empties the item's web PAIR SET, and the finding is
+    # raised once per CHARGE-ONCE PAIR that the emptied set no longer declares
+    # -- so an item with no charge-once pair has nothing to expose and the
+    # injection is silent. D1 and D2 carry `equals` and have none; DAY1, DAY2,
+    # WK1 and WK2 do. `derived` reports a different finding and needs no pair.
+    #
+    # This is the failure a shape predicate is supposed to make impossible and
+    # a LOOSE one reintroduces -- the same shape as the forced predicate that
+    # "picked a cell where the injection created no duplicate and the case
+    # detected nothing while reporting PASS". It was caught here only because
+    # the case asserts a `want`; the vacancy ratchet would have caught it too.
+    _sigs_x = ENF.cli_signatures()
+    for _attr_x, _want_x in (("onlyif", "CHARGE-ONCE PROBE GAP (web)"),
+                             ("equals", "CHARGE-ONCE PROBE GAP (web)"),
+                             ("derived", "DECLARATION STALE")):
+        _needs_pair = _want_x.startswith("CHARGE-ONCE")
+        _on = _pick(f"web loses `{_attr_x}`",
+                    (i for i in sorted(ACTION)
+                     if (orig(i).get(_attr_x) or "").strip()
+                     and (not _needs_pair
+                          or (_sigs_x.get(i) or {}).get("charge_once"))),
+                    f"the first item whose sheet carries `{_attr_x}`"
+                    + (" and that has a charge-once pair for the blinding to "
+                       "expose" if _needs_pair else ""))
+        if _on is None:
+            _shape_skips.append((f"web loses `{_attr_x}`",
+                                 f"no item's sheet carries `{_attr_x}`"))
+        else:
+            _attr_cases.append((_on, _attr_x, _want_x))
+
+    for item, attr, want in _attr_cases:
         def drop(i, _item=item, _attr=attr):
             a = orig(i)
             if i == _item:
@@ -2780,10 +3104,16 @@ def enforcement_selftest():
     import measured as _M
     _runs_orig = _M._runs_doc
 
-    def _blind_olx(item, side, _o=_runs_orig):
+    # ITS TARGET IS A PARAMETER, not a name (D2a, 2026-09-27). This read
+    # `item == "1a"`, the last course id in this module reachable only by
+    # reading it -- the stub is idle, so a shape PICK here would record a choice
+    # for a case that never runs. A parameter removes the id and leaves the
+    # machinery more legible than it found it: the shape a future two-sided
+    # check needs is one that takes the item it blinds, not one that knows it.
+    def _blind_olx(item, side, _target, _o=_runs_orig):
         import copy
         doc = _o(item, side)
-        if item == "1a" and side == "olx":
+        if item == _target and side == "olx":
             doc = copy.deepcopy(doc)
             for run in doc["runs"]:
                 for r in run["results"]:
@@ -2964,11 +3294,19 @@ def enforcement_selftest():
     # -- which is exactly why three double-booked cells survived a whole day
     # while the audit read clean.
     import forms as _HH
-    _scorer_case("a corrected cell is also declared",
-                 lambda: _HH.GOLD_DIVERGENCES.append(
-                     {"code": "PROBE", "cells": [("NR", 4)], "why": "injected"}),
-                 lambda: _HH.GOLD_DIVERGENCES.pop(),
-                 want="CELL BOTH CORRECTED AND DECLARED")
+    # BY SHAPE (D2a, 2026-09-27). The contradiction is between the two tables, so
+    # the cell must be one CORRECTED_GOLD already holds -- any of the fifteen.
+    _dbl = _pick("a corrected cell is also declared", sorted(_HH.CORRECTED_GOLD),
+                 "the first cell CORRECTED_GOLD already corrects")
+    if _dbl is None:
+        _shape_skips.append(("a corrected cell is also declared",
+                             "CORRECTED_GOLD is empty, so no cell can be both"))
+    else:
+        _scorer_case("a corrected cell is also declared",
+                     lambda: _HH.GOLD_DIVERGENCES.append(
+                         {"code": "PROBE", "cells": [_dbl], "why": "injected"}),
+                     lambda: _HH.GOLD_DIVERGENCES.pop(),
+                     want="CELL BOTH CORRECTED AND DECLARED")
 
     # A SCORER-NEUTRALITY CLAIM THAT IS NOT TRUE, added 2026-09-04. The table
     # suppresses STALE SCORER for a fingerprint pair; the injection declares a
@@ -3167,8 +3505,17 @@ def enforcement_selftest():
     import olx_prompts as _OPX
     _real_src = _OPX._src
 
+    # BY SHAPE (D2a, 2026-09-27). The comment above already states the property
+    # the case needs -- "on an item that IS delivered, so the arm is exercised
+    # rather than riding on the two genuinely-undelivered items in the baseline"
+    # -- so it is asked for rather than spelled as Q2.
+    _deliv = _pick("a rule is written but never delivered",
+                   (i for i in sorted(ACTION)
+                    if (_OPX.build_web_prompt(i) or "").strip()),
+                   "the first item whose web prompt is actually built")
+
     def _undeliver():
-        want = _OPX.build_web_prompt("Q2")
+        want = _OPX.build_web_prompt(_deliv)
         line = max((ln.strip() for ln in want.split("\n")), key=len)
         _OPX._src = lambda h, _l=line: _real_src(h).replace(_l, "", 1)
 
@@ -3188,16 +3535,47 @@ def enforcement_selftest():
     # path needs a test of its own.
     _real_bounds = dict(_M.GOLD_SLOT_BOUNDS_KNOWN)
 
+    # BY SHAPE (D2a, 2026-09-27), asking the check. This named Q4a/p6, and the
+    # worry about converting it was that "stale" sounded MEASUREMENT-DEPENDENT --
+    # a cell where we now agree with gold, so the target would move whenever a
+    # sweep moved and the coverage would not be stable. Measured instead of
+    # assumed: the check reports ANY bounds entry it cannot justify, so every
+    # cell not already declared fires, and the first one tried does. The
+    # candidate's qualification is the check's own verdict on declaring it.
+    def _bounds_cells():
+        _base_b = len(ENF.check_slot_sets_match_gold() or [])
+        for _i_b in sorted(ACTION):
+            for _p_b in range(1, 21):
+                if (_i_b, _p_b) in _real_bounds:
+                    continue
+                _M.GOLD_SLOT_BOUNDS_KNOWN[(_i_b, _p_b)] = "probe"
+                try:
+                    _n_b = len(ENF.check_slot_sets_match_gold() or [])
+                finally:
+                    _M.GOLD_SLOT_BOUNDS_KNOWN.clear()
+                    _M.GOLD_SLOT_BOUNDS_KNOWN.update(_real_bounds)
+                if _n_b > _base_b:
+                    yield (_i_b, _p_b)
+                    return
+
+    _bnd = _pick("a bounds declaration outlives its cell", _bounds_cells(),
+                 "the first undeclared cell the check calls unjustified")
+
     def _add_stale():
-        _M.GOLD_SLOT_BOUNDS_KNOWN[("Q4a", 6)] = "stale: we now agree with gold"
+        _M.GOLD_SLOT_BOUNDS_KNOWN[_bnd] = "stale: we now agree with gold"
 
     def _drop_stale():
         _M.GOLD_SLOT_BOUNDS_KNOWN.clear()
         _M.GOLD_SLOT_BOUNDS_KNOWN.update(_real_bounds)
 
-    _scorer_case("a bounds declaration outlives its cell",
-                 _add_stale, _drop_stale,
-                 want="SLOT SET DISAGREES WITH GOLD")
+    if _bnd is None:
+        _shape_skips.append(("a bounds declaration outlives its cell",
+                             "every cell is already declared, or none reads as "
+                             "unjustified"))
+    else:
+        _scorer_case("a bounds declaration outlives its cell",
+                     _add_stale, _drop_stale,
+                     want="SLOT SET DISAGREES WITH GOLD")
 
     # THE FIXTURE ITSELF, which no prompt or scoring check looks at. Dropping
     # 2a's `counts` was the edit that replaced its boxes with "2 found" and cost
@@ -3390,7 +3768,19 @@ def enforcement_selftest():
             f"enforcement_selftest: the count-scaffold case needs an out root to "
             f"install its fixture, and there is none -- {_sc_why}")
 
-    _sc_item = "Q2"
+    # BY SHAPE (D2a, 2026-09-27). The comment on `_install_scaffold` below names
+    # the property outright: "the era sha must match `measured.web_code_sha`
+    # or the check's own attributability filter skips the file and the case goes
+    # vacuous for a third reason". So the item is one that HAS an era sha --
+    # 23 do -- rather than one known to have had one when this was written.
+    _sc_item = _pick("a count scaffold reports an impossible triple",
+                     (i for i in sorted(ACTION) if _M43.web_code_sha("score", i)),
+                     "the first item carrying a web-score era sha")
+    if _sc_item is None:
+        raise RuntimeError(
+            "enforcement_selftest: no item carries a web-score era sha, so the "
+            "count-scaffold fixture would be skipped by the attributability "
+            "filter and the case would test nothing")
     _sc_dir = _pl43.Path(_sc_root) / "selftest_scaffold_fixture"
     _sc_file = _sc_dir / f"{_sc_item}.runs.json"
 
@@ -3419,13 +3809,36 @@ def enforcement_selftest():
     finally:
         _remove_scaffold()
     import forms as _H
-    _real_why = _H.CORRECTED_GOLD[("NR", 4)]["why"]
-    _scorer_case("a declaration starts citing a suspect cell",
-                 lambda: _H.CORRECTED_GOLD[("NR", 4)].__setitem__(
-                     "why", _real_why + " Compare p3, which gold credits."),
-                 lambda: _H.CORRECTED_GOLD[("NR", 4)].__setitem__(
-                     "why", _real_why),
-                 want="DECLARATION ARGUES FROM A SUSPECT CELL")
+    # BY SHAPE (D2a, 2026-09-27), AND IT IS TWO PICKS, NOT ONE. The case needs a
+    # real declaration to corrupt AND a SUSPECT cell for it to cite -- the
+    # hard-coded `p3` was as much a target as `NR` was, and citing a cell that
+    # is not suspect tests nothing. So the entry is chosen from the cells whose
+    # handout HAS a suspect cell (six of fifteen qualify), and the cell cited is
+    # that handout's first suspect one.
+    def _citable_declarations():
+        for _k_c in sorted(_H.CORRECTED_GOLD):
+            _sus = _H.suspect(FORM.get(_k_c[0])) if FORM.get(_k_c[0]) else []
+            if _sus:
+                yield (_k_c, sorted(_sus)[0])
+
+    _cite_pick = _pick("a declaration starts citing a suspect cell",
+                       _citable_declarations(),
+                       "the first corrected cell whose handout has a suspect "
+                       "cell to cite")
+    if _cite_pick is None:
+        _shape_skips.append(("a declaration starts citing a suspect cell",
+                             "no corrected cell shares a handout with a suspect "
+                             "cell, so no declaration can cite one"))
+    else:
+        _cite_key, _cite_pid = _cite_pick
+        _real_why = _H.CORRECTED_GOLD[_cite_key]["why"]
+        _scorer_case("a declaration starts citing a suspect cell",
+                     lambda: _H.CORRECTED_GOLD[_cite_key].__setitem__(
+                         "why", _real_why +
+                         f" Compare p{_cite_pid}, which gold credits."),
+                     lambda: _H.CORRECTED_GOLD[_cite_key].__setitem__(
+                         "why", _real_why),
+                     want="DECLARATION ARGUES FROM A SUSPECT CELL")
 
     # THE THREE CHECKS ADDED 2026-09-12, each clean at baseline -- so they need
     # the forward direction (introduce the condition, verify it is reported)

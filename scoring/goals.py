@@ -274,33 +274,39 @@ def next_label(prefix: str = "Q") -> str:
 
 def check() -> list[str]:
     """Everything about GOALS.md's entries that a program can settle."""
-    bad: list[str] = []
+    # PORTED (goal K). The JUDGEMENT is generic -- a label is a name and must be
+    # unique, a citation must resolve, an entry is closed and never deleted, a
+    # closure needs agreement -- and every INPUT is this project's: which labels
+    # exist, which documents cite them, what HEAD held, which closures were
+    # approved.
+    #
+    # PYTHON ASSEMBLES AND PASSES. Two of the four rules compare against
+    # `git show HEAD:...`, and a rule that shells out behaves differently under
+    # a build, a hook and a test. It is read here and handed over; a MISSING
+    # baseline travels as `before: None` so the rule can report it, because
+    # "the comparison could not run" reported as clean is how a check goes
+    # quiet without anyone deciding it should.
+    import lo_enforce
+
     try:
         text = GOALS.read_text()
     except OSError as e:
         return [f"{GOALS.name} cannot be read: {type(e).__name__}: {e}"]
 
-    # 1. DUPLICATES. Two entries answering to one citation.
-    seen: dict[str, str] = {}
-    for m in ENTRY.finditer(text):
-        label = f"{m.group(2)}{m.group(3)}"
-        if label in seen:
-            bad.append(
-                f"{GOALS.name}: duplicate goal label {label} — '{seen[label]}' and "
-                f"'{m.group(4)[:60]}'. Every citation of {label} is now ambiguous; "
-                f"`python3 goals.py --next {m.group(2)}` allocates a free one")
-        else:
-            seen[label] = m.group(4)[:60]
+    entries_now = [{"label": f"{m.group(2)}{m.group(3)}",
+                    "state": m.group(1),
+                    "title": m.group(4)}
+                   for m in ENTRY.finditer(text)]
 
-    now = entries(text)
-
-    # 2. DANGLING CITATIONS, across the tree.
     # THE COURSE'S OWN DOCUMENTS CITE SUBGOALS TOO, and they are no longer under
-    # HERE. BACKLOG.md alone cites dozens; globbing `scoring/` after the move would
-    # check the modules and quietly stop checking the record.
+    # HERE. BACKLOG.md alone cites dozens; globbing `scoring/` after the move
+    # would check the modules and quietly stop checking the record.
     cited_in = [pathlib.Path(compose_docs.doc_path(n))
-                for n in sorted(set(compose_docs.SPLIT_DOCS) | set(compose_docs.WHOLE_DOCS))]
-    for path in sorted(set(list(HERE.glob("*.md")) + list(HERE.glob("*.py")) + cited_in)):
+                for n in sorted(set(compose_docs.SPLIT_DOCS)
+                                | set(compose_docs.WHOLE_DOCS))]
+    citations = []
+    for path in sorted(set(list(HERE.glob("*.md")) + list(HERE.glob("*.py"))
+                           + cited_in)):
         if path.name == "goals.py":
             continue
         try:
@@ -309,51 +315,22 @@ def check() -> list[str]:
             continue
         for n, line in enumerate(src.splitlines(), 1):
             for pre, num in CITE.findall(line):
-                if f"{pre}{num}" not in now:
-                    bad.append(
-                        f"{path.name}:{n} cites subgoal {pre}{num}, which is not an "
-                        f"entry in {GOALS.name} — the label is wrong, or the entry "
-                        f"was deleted rather than closed")
+                citations.append({"file": path.name, "line": n,
+                                  "label": f"{pre}{num}"})
 
     before = _before()
-    if before is None:
-        bad.append(
-            f"{GOALS.name}: no committed prior state to compare against -- "
-            f"`git show HEAD:{_TRACKED.name}` in {_TRACKED.parent} returned "
-            f"nothing. The deletion and unapproved-closure checks below cannot "
-            f"run, which is NOT the same as their passing. Commit the ledger.")
-        return bad
-
-    # 3. DELETIONS. A goal is closed, never removed: its number is cited
-    #    elsewhere and its record is the reason the work is not redone.
-    for label, (_state, title) in before.items():
-        if label not in now:
-            moved = REFILED.get(label)
-            if moved:
-                if moved[0] in now:
-                    continue                  # declared, and the target exists
-                bad.append(
-                    f"{GOALS.name}: goal {label} is declared REFILED to "
-                    f"{moved[0]}, but {moved[0]} is not an entry in the file. A "
-                    f"refile that points nowhere is a deletion with a note on it")
-                continue
-            bad.append(
-                f"{GOALS.name}: goal {label} ('{title[:60]}') was in the recorded "
-                f"state and is GONE. Goals are closed with `- [x]`, never deleted — "
-                f"the entry is what stops the work being redone, and its number is "
-                f"cited elsewhere. Restore it")
-
-    # 4. UNAPPROVED CLOSURES. GOALS.md's own first rule, enforced.
-    for label, (state, title) in now.items():
-        was = before.get(label)
-        if was and was[0] == " " and state == "x" and label not in CLOSURES_APPROVED:
-            bad.append(
-                f"{GOALS.name}: goal {label} ('{title[:60]}') is being CLOSED and the "
-                f"user has not agreed. This file's own first rule is never to close "
-                f"a goal without asking. Ask, then record it in "
-                f"goals.CLOSURES_APPROVED as \"{label}\"")
-    return bad
-
+    return lo_enforce.run("goals_record_is_intact", {
+        "entries": entries_now,
+        "citations": citations,
+        "before": None if before is None else
+                  [{"label": k, "state": v[0], "title": v[1]}
+                   for k, v in before.items()],
+        "trackedName": _TRACKED.name,
+        "trackedDir": str(_TRACKED.parent),
+        "recordName": GOALS.name,
+        "closuresApproved": sorted(CLOSURES_APPROVED),
+        "refiled": {k: list(v) for k, v in REFILED.items()},
+    })
 
 def misfiled_series() -> list[str]:
     """Entries whose label series does not match the section they are filed in."""

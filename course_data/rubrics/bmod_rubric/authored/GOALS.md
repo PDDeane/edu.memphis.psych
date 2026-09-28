@@ -10333,9 +10333,34 @@ per-cell claim.
 
 ### Q67
 <!-- qc:Q67 -->
-- [ ] Q67. **Q4a/p3: gold charges one antecedent slot, we charge none, and the paper scorer already reaches gold.**  <!--@2026-09-15-->
+- [ ] Q67. **Q4a/p3: the antecedent charge is UNSTABLE, not absent -- 7 runs of 13 reach gold.**  <!--@2026-09-15-->
       Filed 2026-09-12 on the user's instruction, from the audit's SLOT SET
       DISAGREES WITH GOLD arm. Measured from the ledger, no calls.
+
+      REWORDED 2026-09-27, and the old wording is kept here because the
+      difference is the point. It read: "gold charges one antecedent slot, we
+      charge none, and the paper scorer already reaches gold." The ledger no
+      longer says that. The band is (7, 13, `unstable_counted_right`) -- seven
+      runs reach gold and six do not -- so what is owed is STABILITY, not a
+      scoring rule, and a fix aimed at the charge would be aimed at the wrong
+      thing.
+
+      WHY IT LOOKED RESOLVED. The per-cell MEDIAN books the cell RIGHT, so
+      `check_every_wrong_cell_has_an_owner` reports this subgoal as naming a
+      cell that no longer needs it. Subgoal E41 exists because that median
+      hides exactly this case: "a cell right in 7 runs of 12 is booked as a
+      success and nothing distinguishes it from one right in 12". Closing on
+      that would round a 7-6 margin up to a solved problem.
+
+      THE STALE-SCORER FLAG WAS CHECKED, NOT ASSUMED. Every item's runs are
+      flagged because the scorer fingerprint moved. Re-scoring Q4a's recorded
+      verdicts through the shipped scorer reproduced 260 of 260 EXACTLY, with
+      the +0.5 control moving all 260 -- so the numbers stand and only the
+      fingerprint changed.
+
+      PARKED 2026-09-27 until the K and L work is done. It closes by making the
+      charge reliable, or by declaring the cell in `DECLARED_CEILING_CELLS`,
+      which this check already excludes -- not by closing on the median.
           gold 3.00, charges 1 slot -- WHICH one is unknowable from the comment,
           the COUNT is not, which is what makes this a disagreement on every
           reading rather than an interpretation argument.

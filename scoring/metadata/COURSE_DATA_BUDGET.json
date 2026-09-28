@@ -43,7 +43,7 @@
   "docx_text.py": 1,
   "editguard.py": 0,
   "enforcement.py": 7,
-  "equivalence.py": 7,
+  "equivalence.py": 0,
   "evidence.py": 0,
   "export_grader_columns.py": 0,
   "export_grader_marks.py": 0,

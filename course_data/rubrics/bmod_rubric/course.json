@@ -1838,7 +1838,7 @@
   "ITEM_GATED_BUDGET": 0,
   "OLX_CORPUS_REF_BUDGET": 0,
   "ONE_SIDED_SCORED_SLOTS_BUDGET": 0,
-  "PARKED_BUDGET": 1,
+  "PARKED_BUDGET": 2,
   "PROSE_ONLY_BUDGET": 27,
   "RUBRIC_CONSUMER_BUDGET": 1,
   "SLOT_RULE_BACKLOG_BUDGET": 1,
@@ -1846,6 +1846,96 @@
   "UNEXERCISED_PRIMITIVES_BUDGET": 0
  },
  "declarations": {
+  "OLX_TEACHING_REFS": [
+   [
+    [
+     "PR",
+     2,
+     "pr"
+    ],
+    "approved by the instructor 2026-09-27: a worked example a CLASS READS. It does not affect how the scorer performs, and the scoring set was chosen in part for teaching purposes"
+   ],
+   [
+    [
+     "Q4b",
+     11,
+     "modify"
+    ],
+    "approved by the instructor 2026-09-27: a worked example a CLASS READS. It does not affect how the scorer performs, and the scoring set was chosen in part for teaching purposes"
+   ],
+   [
+    [
+     "Q4b",
+     15,
+     "first"
+    ],
+    "approved by the instructor 2026-09-27: a worked example a CLASS READS. It does not affect how the scorer performs, and the scoring set was chosen in part for teaching purposes"
+   ],
+   [
+    [
+     "Q5",
+     16,
+     "first"
+    ],
+    "approved by the instructor 2026-09-27: a worked example a CLASS READS. It does not affect how the scorer performs, and the scoring set was chosen in part for teaching purposes"
+   ],
+   [
+    [
+     "Q6",
+     7,
+     "affect_c1"
+    ],
+    "approved by the instructor 2026-09-27: a worked example a CLASS READS. It does not affect how the scorer performs, and the scoring set was chosen in part for teaching purposes"
+   ],
+   [
+    [
+     "D1",
+     8,
+     "d1"
+    ],
+    "approved by the instructor 2026-09-27: a worked example a CLASS READS. It does not affect how the scorer performs, and the scoring set was chosen in part for teaching purposes"
+   ],
+   [
+    [
+     "NR",
+     1,
+     "nr"
+    ],
+    "approved by the instructor 2026-09-27: a worked example a CLASS READS. It does not affect how the scorer performs, and the scoring set was chosen in part for teaching purposes"
+   ],
+   [
+    [
+     "PP",
+     1,
+     "pp"
+    ],
+    "approved by the instructor 2026-09-27: a worked example a CLASS READS. It does not affect how the scorer performs, and the scoring set was chosen in part for teaching purposes"
+   ],
+   [
+    [
+     "1c",
+     1,
+     "series"
+    ],
+    "approved by the instructor 2026-09-27: a worked example a CLASS READS. It does not affect how the scorer performs, and the scoring set was chosen in part for teaching purposes"
+   ],
+   [
+    [
+     "1c",
+     20,
+     "title"
+    ],
+    "approved by the instructor 2026-09-27: a worked example a CLASS READS. It does not affect how the scorer performs, and the scoring set was chosen in part for teaching purposes"
+   ],
+   [
+    [
+     "Q4b",
+     13,
+     "modify"
+    ],
+    "approved by the instructor 2026-09-27: a worked example a CLASS READS. It does not affect how the scorer performs, and the scoring set was chosen in part for teaching purposes"
+   ]
+  ],
   "HAND_AUTHORED_SHEET_ATTRS": [
    [
     "showChecks",
@@ -1897,9 +1987,16 @@
    [
     [
      "-",
-     "MIGRATED MODULE HOLDS COURSE DATA"
+     "WRONG CELL WITH NO OWNER"
     ],
-    "D2d's exemption was removed 2026-09-19; its 27 embeddings in `equivalence.py::enforcement_selftest` are now counted rather than excused, and D2a (shape-selected fixtures, each reporting its chosen target) is owed and scheduled. The park goes when D2a lands."
+    "Q4a/p3 is named by OPEN subgoal Q67 -- \"gold charges one antecedent slot, we charge none, and the paper scorer already reaches gold\" -- and the check reports the cell as RIGHT at the recorded median on every side, so the subgoal looks stale. IT IS NOT, AND THE MEDIAN IS DOING THE WORK. The band is (7, 13, unstable_counted_right): seven runs of thirteen reach gold and six do not. `cell_bands` says why that matters -- \"a cell right in 7 runs of 12 is booked as a success and nothing distinguishes it from one right in 12\", which is the whole reason subgoal E41 exists. Closing Q67 on this would round a 7-6 margin up to a solved problem. THE STALE-SCORER ALARM WAS CHECKED AND IS HARMLESS: every item's runs are flagged because the scorer fingerprint moved, and re-scoring Q4a's recorded verdicts through the shipped scorer reproduced 260 of 260 exactly, with the +0.5 control moving all 260 -- so the numbers stand and only the fingerprint changed. Parked 2026-09-27 on the instructor's instruction, to be dealt with after the K and L work. WHAT UNPARKS IT: re-wording Q67 to the claim that is now true (a STABILITY problem, not a scoring-rule one), or declaring the cell in DECLARED_CEILING_CELLS, which this check already excludes. NOT closing the subgoal on the median."
+   ],
+   [
+    [
+     "-",
+     "OLX QUOTES A STUDENT THROUGH A REFERENCE"
+    ],
+    "The 29 that remain are all INSIDE `<LLMAction>` -- worked examples in the prompt the grader is sent, not on any page a student reads. The 14 on the page were approved and declared in OLX_TEACHING_REFS; these were not, and the instructor's reason does not reach them: a prompt example DOES affect how the scorer performs, so replacing one is a change to the instrument and has to be measured, not just edited. Parked 2026-09-27 on the instructor's instruction -- they are wrong and they are not being fixed yet, because the work that would let us re-measure the prompts is the rest of goal K, goal L and the sundries after them. WHAT UNPARKS IT: those landing, and then either converting the impersonal ones (`D1/p8` x10 is a student restating the textbook definition of positive punishment) or declaring the rest on the ground that a prompt is not published to students. NOT a re-baseline, and not a raised OLX_CORPUS_REF_BUDGET -- that budget ratchets down only."
    ]
   ],
   "VERDICT_SPACE_DIVERGENCES": [
@@ -3532,57 +3629,7 @@
    ]
   ],
   "HAND_AUTHORED_ATTRS": [],
-  "SELFTEST_NAMED_FIXTURES": [
-   [
-    [
-     "the paper scorer's per-cell stub",
-     "Q6"
-    ],
-    "a FILTER inside a stub, not a target: the stub answers differently for one item so the case can tell the two paths apart. The id is a discriminator in fake code, and deriving it would only move the constant."
-   ],
-   [
-    [
-     "a box holds text gold says is absent",
-     "Q6"
-    ],
-    "GOLD-BOUND, not rubric-bound: p9 is a cell where gold reports the box empty, which is a fact about the marked-up workbook. Deriving it means reading gold to find such a cell -- possible, and considerably more expensive than the fixture it would replace."
-   ],
-   [
-    [
-     "a box holds a different student's words",
-     "Q6"
-    ],
-    "gold-bound in the same way: p1's `state_a1` is the cell this shape was found on. See the entry above."
-   ],
-   [
-    [
-     "a family with two codes is counted anyway",
-     "Q4a"
-    ],
-    "the CONTENT of the test is that `antecedent_1` and `antecedent_2` carry DIFFERENT codes. That is a property of Q4a's slots, not an incidental choice of item, and an item without it tests nothing."
-   ],
-   [
-    [
-     "an item leaves JOBS",
-     "1b"
-    ],
-    "NOT ARBITRARY, and measured: removing the first job instead raises KeyError inside `check_ref_targets_resolve`, which indexes JOBS for that item unconditionally. The safe targets are the ones nothing else indexes, which is not a property this fixture can state."
-   ],
-   [
-    [
-     "the OLX-side stub",
-     "1a"
-    ],
-    "a FILTER inside a stub, like the paper-scorer entry: the stub answers differently for one item and side so the case can tell the paths apart."
-   ],
-   [
-    [
-     "the evenness exemption is stale",
-     "2b"
-    ],
-    "the exemption injected is `(2b, sentence)`, and 2b is the item whose sentences are the countable family the exemption would be about. A stale exemption for an item with no such family would be rejected for the wrong reason."
-   ]
-  ],
+  "SELFTEST_NAMED_FIXTURES": [],
   "PAPER_ITEM_NOTES": [
    [
     "Q3",

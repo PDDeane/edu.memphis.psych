@@ -44,9 +44,15 @@ def _cases():
     """
     import copy
 
+    # `paths` FIRST and on its own: it is what puts the general-scorer
+    # directory on sys.path, and `agreement_app` lives there. Alphabetical
+    # order put the scorer first and the import died with ModuleNotFoundError.
+    import paths as _paths  # noqa: F401  (import order is the point)
+
+    import agreement as AG
+    import measured as M_c
     import agreement_app as APP
     import enforcement as ENF
-    import paths as _paths
     import forms as H
     import olx_prompts as O
 
@@ -343,7 +349,15 @@ def _cases():
     # .olx into the collection. Unlike every other injection here that is
     # visible to a payload assembled from disk, which is why this one was safe
     # to self-assemble; it is exercised anyway rather than reasoned about.
-    probe_olx = _paths.OLX_DIR / "_selftest_provenance.olx"
+    # THE COURSE'S OWN FOLDER, not the collection. This copy said
+    # `_paths.OLX_DIR` -- the location the suite itself used until this course
+    # moved into a folder of its own, at which point the payload builder read
+    # the folder and a file written one directory above sat unseen. The suite
+    # was fixed; THIS COPY WAS NOT, and it reported the check blind to an
+    # injection the check sees perfectly well. Caught by the tool's own gap
+    # line, which is the drift its docstring predicts of a hand-copied
+    # injection: "a copy that drifts is caught by the case failing to fire".
+    probe_olx = _paths.roots().location / "_selftest_provenance.olx"
     out.append(("no_unresolved_reference_reaches_the_page",
                 ENF.check_no_unresolved_reference_reaches_the_page,
                 lambda: probe_olx.write_text("<Course><Vertical/></Course>\n"),
@@ -394,6 +408,203 @@ def _cases():
                     lambda: ENF.check_slot_codes_exist(ENF.all_items()),
                     lambda: q.__setitem__("absent", "NO_VERDIKT"),
                     lambda: (q.clear(), q.update(saved_codes))))
+
+    # "a derived rule's field leaves the refs map" -- pops a field from
+    # `agreement.BLOCKS[...]["refs"]` IN MEMORY.
+    #
+    # THIS IS THE CASE THAT PROVED THE GAP REPORT BELOW IS WORTH READING.
+    # `covered_cases()` named `derived_fields_resolve` as carrying a self-test
+    # case this list does not exercise, printed it, and it was left. The check
+    # then asked the runner to self-assemble, the assembler read `refs` from the
+    # course record on DISK, and the mutation above was invisible: the rule
+    # answered clean and the suite reported NOTHING FIRED. Named here now, so
+    # the same regression costs one run of this tool instead of one of the suite.
+    try:
+        d_spec = AG.BLOCKS[3]["bmod_h3_graph_llm"]
+        d_field = AG.load_action(d_spec["olx"],
+                                 "bmod_h3_graph_llm")["derived"][0]["fields"][0]
+    except Exception:                                   # pragma: no cover
+        d_spec = None
+    if d_spec is not None:
+        saved_refs = dict(d_spec["refs"])
+
+        def _drop_ref():
+            d_spec["refs"].pop(d_field, None)
+
+        def _restore_ref():
+            d_spec["refs"].clear()
+            d_spec["refs"].update(saved_refs)
+
+        out.append(("derived_fields_resolve", ENF.check_derived_fields_resolve,
+                    _drop_ref, _restore_ref))
+
+    # "the two prompts fill `{fail}` with different verdicts" -- empties a
+    # keyed cover group and its codes and writes a `{fail}` rule, IN MEMORY.
+    R1f = H.config(ENF._forms()[0])["rubric"]
+    cov_item = next((i for i, e in sorted(R1f.BY_ID.items())
+                     if (e.get("cover") or [{}])[0].get("keys")), None)
+    if cov_item is not None:
+        qf = R1f.BY_ID[cov_item]
+        cov_key = qf["cover"][0]["keys"][0]
+        sc1 = [x for x in qf["credit"] if x["what"] == cov_key][0]
+        saved_cover, had_rule = qf["cover"], sc1.get("rule")
+        saved_fcodes = sc1.get("codes")
+
+        def _hide_cover():
+            qf["cover"], sc1["codes"] = [], {}
+            sc1["rule"] = "Answer `{fail}` when the box names the wrong thing."
+
+        def _show_cover():
+            qf["cover"] = saved_cover
+            if saved_fcodes is None:
+                sc1.pop("codes", None)
+            else:
+                sc1["codes"] = saved_fcodes
+            if had_rule is None:
+                sc1.pop("rule", None)
+            else:
+                sc1["rule"] = had_rule
+
+        out.append(("rule_fail_tokens_agree", ENF.check_rule_fail_tokens_agree,
+                    _hide_cover, _show_cover))
+
+    # "a count scaffold reports an impossible triple" -- a DISK case: it writes
+    # a runs file whose three counts cannot all be true. Kept faithful to the
+    # suite's own install, ERA SHA INCLUDED: without it the check's
+    # attributability filter skips the file and the probe tests nothing.
+    import json as _json_s
+
+    import measured as _M_s
+
+    sc_root, _sc_why = _paths.out_root_or_reason()
+    if sc_root is not None:
+        sc_item = "Q2"
+        sc_dir = os.path.join(str(sc_root), "selftest_scaffold_fixture")
+        sc_file = os.path.join(sc_dir, f"{sc_item}.runs.json")
+
+        def _install_scaffold():
+            os.makedirs(sc_dir, exist_ok=True)
+            with open(sc_file, "w", encoding="utf8") as fh:
+                fh.write(_json_s.dumps({
+                    "era": {"web_score_sha": _M_s.web_code_sha("score", sc_item)},
+                    "runs": [{"results": [{
+                        "participant_id": 9999,
+                        "answers": {"reasons_listed": 0,
+                                    "reasons_failing": 0,
+                                    "reasons_given": 3}}]}]}))
+
+        def _remove_scaffold():
+            if os.path.exists(sc_file):
+                os.unlink(sc_file)
+            if os.path.isdir(sc_dir) and not os.listdir(sc_dir):
+                os.rmdir(sc_dir)
+
+        out.append(("count_scaffolds_are_arithmetic",
+                    ENF.check_count_scaffolds_are_arithmetic,
+                    _install_scaffold, _remove_scaffold))
+
+    # "a goal is closed without approval" -- a DISK case: it flips one open
+    # checkbox in the composed GOALS.md. Registered the day the check was
+    # ported (2026-09-27), rather than waiting for the gap line to say so.
+    import re as _re_g
+
+    import compose_docs as _CD_g
+    import goals as _G_g
+
+    _gl = _pathlib_g = None
+    try:
+        import pathlib as _pathlib_g
+        _gl = _pathlib_g.Path(_CD_g.composed_path("GOALS.md"))
+        _goals_src = _gl.read_text()
+        _open_one = _re_g.search(r"^- \[ \] [A-Z]+\d+\. .*$", _goals_src, _re_g.M)
+    except Exception:                                   # pragma: no cover
+        _open_one = None
+    if _open_one is not None:
+        def _close_one():
+            _gl.write_text(_goals_src.replace(
+                _open_one.group(0),
+                _open_one.group(0).replace("- [ ]", "- [x]", 1), 1))
+
+        def _reopen():
+            _gl.write_text(_goals_src)
+
+        out.append(("goals_record_is_intact", _G_g.check, _close_one, _reopen))
+
+    # ---- THE SEVEN THE GAP REPORT NAMED, 2026-09-27 --------------------------
+    #
+    # All seven were already ported and carrying a case while this tool said
+    # "all 25 covered". It could not see them because `covered_cases` looked for
+    # `lo_enforce.run(` in the CHECK BODY, and each of these delegates through a
+    # helper. Six predate the port that exposed the blindness.
+    import agreement as _A_c
+
+    # "the owner map stops being read"
+    _real_owners = M_c._live_subgoal_owners
+    out.append((
+        "every_wrong_cell_has_an_owner", ENF.check_every_wrong_cell_has_an_owner,
+        lambda: setattr(M_c, "_live_subgoal_owners",
+                        lambda *a, **k: {k2: {} for k2 in _real_owners()}),
+        lambda: setattr(M_c, "_live_subgoal_owners", _real_owners)))
+
+    # "recovery stops computing a primitive's slot"
+    _real_ac = _A_c.apply_computed
+    out.append((
+        "computed_slot_recovery_is_faithful",
+        ENF.check_computed_slot_recovery_is_faithful,
+        lambda: setattr(_A_c, "apply_computed",
+                        lambda action, checks, fixture: checks),
+        lambda: setattr(_A_c, "apply_computed", _real_ac)))
+
+    # "the artifact stops recording a count answer"
+    _real_rec = _A_c.recorded_answer
+    out.append((
+        "recorded_answers_are_complete", ENF.check_recorded_answers_are_complete,
+        lambda: setattr(_A_c, "recorded_answer",
+                        lambda sl, ch: _A_c.verdict_of(ch, sl["key"])),
+        lambda: setattr(_A_c, "recorded_answer", _real_rec)))
+
+    # "the fingerprint starts tracking prose again" -- A DIFFERENT CASE, and the
+    # first attempt attached the wrong one. Two cases sit adjacent in the suite
+    # and a regex took the nearer label, so this check was registered against an
+    # injection it has no reason to see and reported `not this one` -- which
+    # reads exactly like a blind check. A guard fed the wrong injection accuses
+    # the code instead of itself.
+    _real_strip = M_c._behaviour_src
+    out.append((
+        "scorer_fingerprint_is_scoped_and_prose_blind",
+        ENF.check_scorer_fingerprint_is_scoped_and_prose_blind,
+        lambda: setattr(M_c, "_behaviour_src", lambda src: src),
+        lambda: setattr(M_c, "_behaviour_src", _real_strip)))
+
+    # "a module picks a gold loader by handout, undeclared"
+    _real_allow = dict(ENF.FORM_KEYED_GOLD_READERS)
+    if "cross_path" in _real_allow:
+        out.append((
+            "gold_is_read_by_item", ENF.check_gold_is_read_by_item,
+            lambda: ENF.FORM_KEYED_GOLD_READERS.pop("cross_path", None),
+            lambda: (ENF.FORM_KEYED_GOLD_READERS.clear(),
+                     ENF.FORM_KEYED_GOLD_READERS.update(_real_allow))))
+
+    # "a scorer-neutrality entry excuses nothing" -- the SPENT-EXEMPTION arm,
+    # pointing an entry at a sha no item is recorded at. That is the half that
+    # rots silently.
+    _real_neutral = dict(M_c.SCORER_NEUTRAL)
+    out.append((
+        "scorer_neutrality_is_verified", ENF.check_scorer_neutrality_is_verified,
+        lambda: M_c.SCORER_NEUTRAL.__setitem__(
+            ("deadbeefcafe", "f00dbaadf00d"), "injected"),
+        lambda: (M_c.SCORER_NEUTRAL.clear(),
+                 M_c.SCORER_NEUTRAL.update(_real_neutral))))
+
+    # "a bounds declaration outlives its cell" -- the cell is picked BY SHAPE by
+    # the suite; any undeclared cell the check calls unjustified will do here.
+    _real_bounds = dict(M_c.GOLD_SLOT_BOUNDS_KNOWN)
+    out.append((
+        "slot_sets_match_gold", ENF.check_slot_sets_match_gold,
+        lambda: M_c.GOLD_SLOT_BOUNDS_KNOWN.__setitem__(
+            ("1a", 1), "stale: we now agree with gold"),
+        lambda: (M_c.GOLD_SLOT_BOUNDS_KNOWN.clear(),
+                 M_c.GOLD_SLOT_BOUNDS_KNOWN.update(_real_bounds))))
     return out
 
 
@@ -414,9 +625,37 @@ def covered_cases() -> tuple[set, set]:
     here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     src = open(os.path.join(here, "enforcement.py"), encoding="utf8").read()
     eq = open(os.path.join(here, "equivalence.py"), encoding="utf8").read()
+    # PORTED AT ANY DEPTH, not just in the check body. A check can delegate
+    # through a helper -- `check_every_wrong_cell_has_an_owner` is
+    # `return MEAS.wrong_cells_without_an_owner()`, and THAT is what calls
+    # `lo_enforce.run`. Looking only at the check body missed it, so a newly
+    # ported check carrying a self-test case was not counted and this tool
+    # reported "all covered" while saying nothing about it.
+    #
+    # THE SAME BLIND SPOT, THIRD TIME IN ONE DAY: counting at the wrong
+    # delegation depth mis-stated how many checks were ported, then mis-tiered
+    # the porting plan, and here it silently narrowed the guard that exists to
+    # protect ports. Follow the import.
+    def _delegates(fn) -> bool:
+        seg = ast.get_source_segment(src, fn) or ""
+        if "lo_enforce.run(" in seg:
+            return True
+        for mod in set(re.findall(r"^\s*import (\w+)", seg, re.M)):
+            for d in (here, os.path.join(here, "tools"),
+                      os.path.join(here, "bmod"),
+                      os.path.join(os.path.dirname(here), "scorers")):
+                f = os.path.join(d, mod + ".py")
+                if os.path.exists(f):
+                    try:
+                        if "lo_enforce.run(" in open(f, encoding="utf8").read():
+                            return True
+                    except OSError:
+                        pass
+        return False
+
     ported = {f.name for f in ast.parse(src).body
               if isinstance(f, ast.FunctionDef) and f.name.startswith("check_")
-              and "lo_enforce.run(" in (ast.get_source_segment(src, f) or "")}
+              and _delegates(f)}
     label = {}
     for m in re.finditer(r"ENF\.(check_\w+)\([^\n]*\n\s*findings\.append\(\(\s*"
                          r"[^,]+,\s*\"([^\"]+)\"", eq):

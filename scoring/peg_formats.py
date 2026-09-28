@@ -137,30 +137,27 @@ def referenced_files(roots: list[str]) -> set[str]:
 
 def verify(reg: dict, found: dict, referenced: set,
            course_only: dict | None = None) -> list[str]:
-    out = []
-    for ext in sorted(reg):
-        if ext not in AUTHORED_AS:
-            out.append(f"{ext} is a registered PEG format and AUTHORED_AS does not "
-                       f"say what a teacher writes in it -- which is the one thing "
-                       f"an intake program needs from this table")
-    for ext in sorted(AUTHORED_AS):
-        if ext not in reg:
-            out.append(f"AUTHORED_AS describes {ext}, which the engine's registry "
-                       f"does not know")
-    for ext, files in sorted(found.items()):
-        if ext in ("cast", "liquid"):
-            continue
-        if ext not in reg and ext not in UNREGISTERED:
-            out.append(f".{ext} is used by {len(files)} course file(s) "
-                       f"({files[0]}) and is registered by NO grammar -- say what "
-                       f"it is, or it is content nothing can parse")
-    for ext in sorted(UNREGISTERED):
-        if ext in reg:
-            out.append(f"{ext} is declared unregistered but the engine registers "
-                       f"it now -- the declaration has outlived its reason")
-        if ext not in found:
-            out.append(f"{ext} is declared unregistered and no course uses it any "
-                       f"more -- drop the entry")
+    # PORTED (goal K), SPLIT AT THE OWNER BOUNDARY, on the user's instruction:
+    # "ORPHANED_CONTENT should be handled separately, the rest can port."
+    #
+    # WHAT MOVED judges EXTENSIONS -- `.capapeg` is a grammar the engine ships,
+    # and what a teacher authors in it is the same statement on every course.
+    # WHAT STAYED judges COURSE FILES, by basename. Carrying `ORPHANED_CONTENT`
+    # across in the same payload would have taken a course-specific list over
+    # on the back of two engine ones, and the rule would have become
+    # course-shaped without anyone deciding that.
+    import os
+
+    import lo_enforce
+
+    out = lo_enforce.run("peg_formats_declared", {
+        "registry": sorted(reg),
+        "authoredAs": sorted(AUTHORED_AS),
+        "unregistered": sorted(UNREGISTERED),
+        "found": {k: list(v) for k, v in found.items()},
+    })
+
+    # ---- THE ORPHAN ARMS, which are a COURSE question ---------------------
     # GRAMMAR SIDECARS ARE NOT COURSE CONTENT. Each grammar ships
     # `<name>.pegjs.template.<ext>` and `<name>.pegjs.preview.<ext>` -- the
     # starter text and the doc preview the Studio offers an author. They are

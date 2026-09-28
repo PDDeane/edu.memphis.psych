@@ -149,20 +149,25 @@ def groups() -> dict[str, set[str]]:
 
 def part_a(entries: list[dict], declared: dict[str, set[str]]) -> tuple[list, list]:
     """-> (violations, cleanups). Two lists, never one."""
-    known = declared["rubric"] | declared["generator"]
+    # PORTED (goal K), AS A SPLIT. `part_b` stays in python because it
+    # AST-parses engine modules to catch a module crossing the reader boundary.
+    # This half is set logic over field names and moves.
+    #
+    # TWO LISTS, NEVER ONE, and the port keeps them two RULES for the same
+    # reason the function returns a pair: a real violation must not hide in a
+    # list of tidying.
+    import lo_enforce
+
     present: set[str] = set()
     for e in entries:
         present |= set(e)
-    violations = [
-        f"item field {f!r} belongs to no declared group. §9.2a: a field naming no "
-        f"group FAILS rather than defaulting -- add it to RUBRIC_FIELDS or "
-        f"GENERATOR_FIELDS, whichever the engine actually reads it through"
-        for f in sorted(present - known)]
-    cleanups = [
-        f"{f!r} is declared in {'RUBRIC' if f in declared['rubric'] else 'GENERATOR'}"
-        f"_FIELDS and appears on no item -- stale, not a violation"
-        for f in sorted(known - present)]
-    return violations, cleanups
+    payload = {"present": sorted(present),
+               "declared": {"rubric": sorted(declared["rubric"]),
+                            "generator": sorted(declared["generator"])},
+               "generatorTables": [], "declarations": [],
+               "declarationType": "list", "itemFields": []}
+    return (lo_enforce.run("course_schema_fields", payload),
+            lo_enforce.run("course_schema_cleanups", payload))
 
 
 def _accessor_of(node: ast.AST) -> str | None:

@@ -522,9 +522,50 @@ def check_derived_fields_resolve() -> list[str]:
     # returning zero rules agrees with python's clean answer for entirely the
     # wrong reason. Fire-tested by adding an unresolvable field to a real rule
     # on both sides: byte-identical, same item, same key.
+    #
+    # PYTHON ASSEMBLES AND PASSES, and that is the whole point of this comment.
+    # This asked with `None` and let the runner build its own payload. The
+    # runner reads `refs` from the course record ON DISK; the self-test injects
+    # by popping a field from `agreement.BLOCKS[...]["refs"]` IN MEMORY. So the
+    # injection was invisible, the rule answered clean, and the case reported
+    # NOTHING FIRED -- measured 2026-09-27, and it is the exact failure
+    # `tools/injection_reach.py` was written to catch. That tool had already
+    # named this check as one it does not exercise; the warning was printed and
+    # not acted on.
+    #
+    # THE RULE STAYS SELF-ASSEMBLING for the native path: `auditContent.ts` runs
+    # it at build time with no python to ask. A passed payload simply overrides
+    # the assembler, so both callers keep working and only this one sees the
+    # mutation.
+    import agreement as AG
     import lo_enforce
+    # `FORM`, NOT `HANDOUT`. The pre-port body said `HANDOUT[item]`; the name was
+    # renamed and this module already carries a note about the same mistake --
+    # "it said `HANDOUT[item]`, which does not exist in this module ... every
+    # item raised NameError, a bare `except: continue` swallowed it, and the
+    # check reported 0 findings while comparing NOTHING". Restoring the old body
+    # verbatim walked straight back into it; here it raised ImportError at once
+    # because the import is at the top of the function rather than swallowed.
+    from olx_prompts import ACTION, FORM
 
-    return lo_enforce.run("derived_fields_resolve", None)
+    items = []
+    for item, aid in sorted(ACTION.items()):
+        spec = (AG.BLOCKS.get(FORM[item]) or {}).get(aid)
+        if spec is None:
+            items.append({"item": item, "hasBlock": False, "error": None,
+                          "refFields": [], "derived": []})
+            continue
+        try:
+            action = AG.load_action(spec["olx"], aid)
+        except SystemExit as exc:
+            items.append({"item": item, "hasBlock": True, "error": str(exc),
+                          "refFields": list(spec["refs"]), "derived": []})
+            continue
+        items.append({"item": item, "hasBlock": True, "error": None,
+                      "refFields": list(spec["refs"]),
+                      "derived": [{"key": r["key"], "fields": list(r["fields"])}
+                                  for r in action["derived"]]})
+    return lo_enforce.run("derived_fields_resolve", {"items": items})
 
 def check_ref_targets_resolve() -> list[str]:
     """Does every <Ref> in a measured prompt point at a field the harness can fill?
@@ -1257,12 +1298,6 @@ import coursedata as _CD
 SLOT_STRUCTURE_FAMILIES = _CD.slot_structure_families()
 HAND_AUTHORED_ATTRS = _declaration("HAND_AUTHORED_ATTRS")
 PROSE_ONLY_SLOTS = _declaration("PROSE_ONLY_SLOTS")
-# RAISED 25 -> 27 on 2026-09-12 for two slots the audit had been reporting as
-# UNDECLARED, not for two new prose rules: `1c.series_box_holds` and
-# `DAY2.targets_own_behavior` were already judged by prose and by nothing
-# computable, and the budget moves because the DECLARATION was written, not
-# because the corpus grew. Lower it whenever one converts to a primitive.
-PROSE_ONLY_BUDGET = _budget("PROSE_ONLY_BUDGET")
 
 
 # WHICH PRIMITIVE SET each "NOT CONVERTIBLE" claim was judged against.
@@ -1304,13 +1339,6 @@ PROSE_ONLY_JUDGED_AGAINST = _declaration("PROSE_ONLY_JUDGED_AGAINST")
 # `declaration_source`.
 SLOT_STRUCTURE_DIVERGENCES: dict[tuple[str, str], str] = _declaration(
     "SLOT_STRUCTURE_DIVERGENCES")
-# ZERO, and it is meant to stay there. The single entry was DAY1's
-# `phrased_directly`, retired 2026-09-04 by RENAMING the gated variant
-# `phrased_directly_gate` rather than exempting it: if two sheets price a
-# question differently they are not asking the same question, and the shared name
-# is what made a recorded claim about the slot wrong (subgoal Q21's precision
-# table). A new entry here now means someone chose an exemption over a name.
-SLOT_STRUCTURE_BUDGET = _budget("SLOT_STRUCTURE_BUDGET")
 
 
 def _family_slot_structure() -> dict:
@@ -1820,6 +1848,13 @@ GOLD_ALPHABET_EXEMPT = {
 
 
 FORM_KEYED_GOLD_READERS = {
+    # FOUND BY WIDENING, 2026-09-27. This check globbed the ENGINE ROOT only, so
+    # `tools/` was exempt by ACCIDENT rather than by decision -- and the table a
+    # reader consults said nothing about it. The module iterates every handout to
+    # export the whole corpus; no item is ever in scope, which is the same ground
+    # `cross_path` stands on.
+    'export_grader_marks': 'iterates all three handouts to export the corpus; '
+                           'no item is in scope',
     # Sites that pick a gold loader by HANDOUT NUMBER rather than by item, which
     # is legitimate only when the handout is not being derived from an item. See
     # measured.gold_cell for the failure this table exists to bound: naming the
@@ -1841,6 +1876,20 @@ FORM_KEYED_GOLD_READERS = {
 
 
 RAW_GOLD_READERS = {
+    # THE RAW ROWS ARE ITS SUBJECT, not an input it forgot to correct. It exports
+    # the graders' ORIGINAL marks beside the corrected grid -- "equal on all but
+    # the corrected cells, carried explicitly rather than only where they differ,
+    # so no reader has to know to fall back" -- so applying the corrections would
+    # destroy the record it exists to write. Same ground as
+    # `measured.gold_rows_that_do_not_reconcile`, which audits those rows against
+    # the graders' own comments.
+    #
+    # DECLARED 2026-09-27, after the check stopped globbing one directory. It had
+    # been outside the rule since the day the module moved into `tools/`, and
+    # nothing said so: a narrowed scan reports the same clean answer as a clean
+    # tree.
+    'export_grader_marks': "exports the graders' original rows AS the record; "
+                           'correcting them would destroy what it writes',
     # RENAMED 2026-08-31: this entry said `check_corrections_still_match_the_sheet`,
     # which has never existed. The function is `check_corrected_gold_matches_the
     # _sheet`, and its exemption is legitimate -- it reads gold raw on purpose.
@@ -1956,7 +2005,7 @@ def check_gold_accounting_is_uniform() -> list[str]:
     # PART TWO: every CONSUMER, discovered rather than listed. The hard-coded
     # three missed four -- enforcement, handouts, baseline_h1 and gold itself --
     # so a new module comparing gold raw was invisible to this check.
-    for f in sorted(here.glob("*.py")):
+    for f in _package_py():
         src = f.read_text()
         if not LOADER.search(src):
             continue
@@ -3031,14 +3080,35 @@ def check_every_check_is_invoked() -> list[str]:
     defined = set(re.findall(r"^def (check_\w+)", src, re.M))
     called = set(re.findall(r"\b(check_\w+)\s*\(",
                             re.sub(r"^def check_\w+.*$", "", src, flags=re.M)))
-    for name in ("equivalence.py", "measured.py", "agreement.py", "compare_runs.py",
-                 "olx_prompts.py", "leakage.py"):
-        try:
-            called |= set(re.findall(r"\b(check_\w+)\s*\(", (here / name).read_text()))
-        except OSError:
+    # RESOLVED BY IMPORT, NOT BY A PATH GUESS, and a file that cannot be found
+    # is a FINDING. This read `here / name` for a fixed list, and `agreement.py`
+    # moved into the general-scorer directory on 2026-09-27 -- so that file
+    # stopped being scanned the day it moved, silently, because the `except
+    # OSError: continue` swallowed it. Any check invoked only from there would
+    # then read as "defined but never invoked", and the remedy a reader is
+    # handed -- delete it -- is the opposite of what the tree needs.
+    #
+    # THE SAME SHAPE AS TWO OTHER FAULTS THE SAME DAY: a single-directory glob
+    # that stopped matching when files moved (`_data_modules`), and a
+    # fingerprint that hashed one directory (`_selftest_input_fingerprint`).
+    # A path guess is a dependency on a layout nobody promised to keep.
+    import paths as _p_inv
+
+    unreadable = []
+    for name in ("equivalence.py", "measured.py", "agreement.py",
+                 "compare_runs.py", "olx_prompts.py", "leakage.py"):
+        found = _p_inv.module_source(name[:-3])
+        if found is None:
+            unreadable.append(name)
             continue
-    return [f"enforcement.{n}() is defined but never invoked -- it reads as "
-            f"coverage and enforces nothing" for n in sorted(defined - called)]
+        called |= set(re.findall(r"\b(check_\w+)\s*\(", found))
+    return [
+        f"{name} is named as a caller of these checks and cannot be read, so "
+        f"every check invoked only from it would read as UNINVOKED -- which is "
+        f"a deletion instruction. Find it or drop it from the list"
+        for name in unreadable
+    ] + [f"enforcement.{n}() is defined but never invoked -- it reads as "
+         f"coverage and enforces nothing" for n in sorted(defined - called)]
 
 
 def check_web_scorer_exercises_its_sheet() -> list[str]:
@@ -3998,19 +4068,6 @@ def check_single_box_fixtures_are_verbatim() -> list[str]:
 _CONSENSUS_SOURCE: str | None = None
 
 
-# Every `{{corpus:...}}` still standing in a served .olx. The count may FALL and
-# may not RISE, like the other budgets here.
-# 0 as of 2026-09-16. Handout 2's worked non-example was a real student's
-# sentence, carried into the page through a reference -- which kept the words
-# out of the FILE but still made a student's writing the thing every reader is
-# taught from, and made the page unrenderable without $COURSE_DATA. It is now an
-# invented sentence with the same defect being taught ("Going to bed earlier
-# will reward me with feeling rested" -- the reward is just what the behaviour
-# does), checked against the whole response space for collisions.
-#
-# The budget ratchets DOWN and never up: a new reference in an .olx is a
-# finding, not a precedent.
-OLX_CORPUS_REF_BUDGET = _budget("OLX_CORPUS_REF_BUDGET")
 
 
 def check_olx_corpus_references() -> list[str]:
@@ -4163,54 +4220,32 @@ def check_items_are_measured_as_configured() -> list[str]:
     on, the same bargain the rest of this file offers. What it may not be is
     absent: an item with no entry at all is the Q1 state, and it fails.
     """
+
+    # PORTED (goal K), AS A SPLIT. Python reads each side's status from the
+    # ledger; the judgement -- what ABSENT, STALE PROMPT and STALE CELLS each
+    # oblige, and that a fact true on two sides is said once -- moves.
+    import lo_enforce
     import measured as MEAS
 
     # EVERY side that has recorded anything, not just the cli default. The two
-    # can genuinely disagree, because `prompt_sha` is side-aware: `_olx_only_visible`
-    # neutralises the open-tag attributes the python harness never reads, so a
-    # change to one of THOSE leaves the cli fingerprint identical while the web's
-    # moves. Read from the cli alone, this gate would then call an item current
-    # while the number the web column publishes was measured against a different
-    # prompt -- the exact statement it exists to prevent, and unsayable.
-    #
-    # No item is in that state today; the gap is structural, not observed. It is
-    # closed now rather than after, because the failure is silent by construction:
-    # a stale web number looks like a good one.
-    problems = []
-    seen: dict[str, str] = {}
+    # can genuinely disagree, because `prompt_sha` is side-aware:
+    # `_olx_only_visible` neutralises the open-tag attributes the python harness
+    # never reads, so a change to one of THOSE leaves the cli fingerprint
+    # identical while the web's moves. Read from the cli alone, this gate would
+    # then call an item current while the number the web column publishes was
+    # measured against a different prompt -- the exact statement it exists to
+    # prevent, and unsayable.
+    sides = []
     for side in MEAS.SIDES:
         try:
             rows = MEAS.status(side)
         except Exception:
             continue
-        for item, state in rows:
-            if state.startswith("ABSENT"):
-                # ABSENT is reported for the DEFAULT side only. Every item is
-                # expected to have a cli number; the paper sides are swept
-                # separately and their absence is E28's business, not a gap here.
-                if side != MEAS.DEFAULT_SIDE:
-                    continue
-                problems.append(
-                    f"{item} has no entry in MEASURED.json. Sweep it and run "
-                    f"`measured.py --record {item} OUT/{item}.runs.json`, or declare "
-                    f"`pending` with a reason saying when it will be measured")
-            elif state.startswith("STALE PROMPT"):
-                if seen.get(item) == state:
-                    continue          # both sides stale the same way: say it once
-                seen[item] = state
-                problems.append(
-                    f"{item} [{side}]: {state}. Its prompt text changed since the "
-                    f"recorded measurement, so the recorded number is not this "
-                    f"prompt's number — re-sweep and re-record")
-            elif state.startswith("STALE CELLS"):
-                if seen.get(item) == state:
-                    continue
-                seen[item] = state
-                problems.append(
-                    f"{item} [{side}]: {state}. Its denominator changed since the "
-                    f"recorded measurement, so the recorded number was computed "
-                    f"over a different set of cells — re-sweep and re-record")
-    return problems
+        sides.append({"side": side,
+                      "rows": [{"item": item, "state": state}
+                               for item, state in rows]})
+    return lo_enforce.run("items_measured_as_configured",
+                          {"defaultSide": MEAS.DEFAULT_SIDE, "sides": sides})
 
 
 # EVERY DECLARATION TABLE, AND THE CHECK THAT RE-TESTS IT.
@@ -4225,6 +4260,9 @@ def check_items_are_measured_as_configured() -> list[str]:
 # 5" outlived the fix that made it false, with the whole audit green: no check
 # owned it, and nothing said one was missing.
 DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
+    "enforcement.OLX_TEACHING_REFS": (
+        "corpus references approved as teaching text, honoured only OUTSIDE <LLMAction>",
+        ("check_olx_corpus_references",)),
     "enforcement.CARRIED_NOTES": (
         "the shape of the recorded reasoning carried out of the rubric modules "
         "and now living as OLX comments -- runs and lines per tag, so an edit is "
@@ -4545,8 +4583,13 @@ def check_system_prompts_are_parallel() -> list[str]:
     difference is not the finding. An UNDECLARED difference is, and so is a
     declaration that has gone stale because the two sides converged.
     """
+    # PORTED (goal K), AS A SPLIT. `score.SYSTEM_TMPL` is a python constant, so
+    # python is one of the two voices and stays. What moves is the judgement:
+    # undeclared difference, one-sided rule, and the declaration that has gone
+    # stale because the two sides converged.
     import re as _re
 
+    import lo_enforce
     import olx_prompts as _OP
     import score as _S
 
@@ -4555,36 +4598,11 @@ def check_system_prompts_are_parallel() -> list[str]:
                 for m in _re.finditer(r"^(\d+)\. (.*?)(?=^\d+\. |\Z)",
                                       text, _re.S | _re.M)}
 
-    web, paper = _rules(_OP.WEB_SYSTEM), _rules(_S.SYSTEM_TMPL)
-    problems = []
-    for n in sorted(set(web) | set(paper), key=int):
-        w, p = web.get(n), paper.get(n)
-        declared = n in SYSTEM_PROMPT_DIVERGENCES
-        if w is None or p is None:
-            side = "the paper scorer" if w is None else "the web"
-            if not declared:
-                problems.append(
-                    f"system prompt rule {n} exists only on {'the web' if p is None else 'the paper side'} "
-                    f"-- a rule one scorer is told and the other is not. Add it to "
-                    f"the other prompt, or declare it in "
-                    f"SYSTEM_PROMPT_DIVERGENCES with the mechanism that forces it")
-            continue
-        if w == p:
-            if declared:
-                problems.append(
-                    f"SYSTEM_PROMPT_DIVERGENCES declares rule {n} must differ "
-                    f'("{SYSTEM_PROMPT_DIVERGENCES[n][:60]}...") but the two '
-                    f"prompts now say it identically -- retire the entry, or the "
-                    f"table stops meaning anything")
-            continue
-        if not declared:
-            problems.append(
-                f"system prompt rule {n} DIFFERS between the two scorers and is "
-                f"not declared.\n      web  : {w[:110]}\n      paper: {p[:110]}\n"
-                f"      If the difference is forced by the output shape, declare "
-                f"it in SYSTEM_PROMPT_DIVERGENCES; if not, make them agree")
-    return problems
-
+    return lo_enforce.run("system_prompts_are_parallel", {
+        "web": _rules(_OP.WEB_SYSTEM),
+        "paper": _rules(_S.SYSTEM_TMPL),
+        "declared": dict(SYSTEM_PROMPT_DIVERGENCES),
+    })
 
 def check_prompt_deviation_tables_are_current() -> list[str]:
     """Do the declared web/CLI deviations still name things that exist?
@@ -4834,28 +4852,26 @@ def check_divergence_arithmetic_is_still_true() -> list[str]:
         rb = RB[J["handout"]].BY_ID.get(item) or {}
         return web_max, rb.get("max")
 
-    # "sum to 4 against an item max of 5", "web_max ... is 4 while the rubric max is 5"
-    CLAIM = _re.compile(r"sum to (\d+(?:\.\d+)?)\b.*?max of (\d+(?:\.\d+)?)", _re.S | _re.I)
-    problems = []
+    # PORTED (goal K). `_maxes` STAYS, and that is the point: it reads the slot
+    # sheet the way the SCORER does, and the declaration under test is a claim
+    # about exactly the two numbers it returns. A first attempt deleted it along
+    # with the body and would have called a function that no longer existed.
+    # TypeScript parses the claim out of the prose and compares.
+    import lo_enforce
+    import olx_prompts as _OP
+
+    entries = []
     for entry in getattr(_OP, "SCORING_DIVERGENCES", []):
         blob = " ".join(str(entry.get(k) or "") for k in ("what", "why"))
-        m = CLAIM.search(blob)
-        if not m:
-            continue
-        claimed_web, claimed_rubric = float(m.group(1)), float(m.group(2))
+        items = []
         for item in entry.get("items") or []:
             web_max, rubric_max = _maxes(item)
-            if web_max is None:
-                continue
-            if (web_max, rubric_max) != (claimed_web, claimed_rubric):
-                problems.append(
-                    f"SCORING_DIVERGENCES declares for {item}: "
-                    f'"{str(entry.get("what"))[:70]}" -- claiming web_max '
-                    f"{claimed_web:g} against rubric max {claimed_rubric:g}. The "
-                    f"sheet now computes web_max {web_max:g} against rubric max "
-                    f"{rubric_max:g}. The divergence was FIXED and the declaration "
-                    f"outlived it; retire the entry")
-    return problems
+            items.append({"item": item, "webMax": web_max,
+                          "rubricMax": rubric_max})
+        entries.append({"what": str(entry.get("what") or ""),
+                        "blob": blob, "items": items})
+    return lo_enforce.run("divergence_arithmetic_is_still_true",
+                          {"entries": entries})
 
 
 def check_slot_sets_match_gold() -> list[str]:
@@ -5421,13 +5437,11 @@ def check_side_notes_are_side_specific() -> list[str]:
 # while the table lived here the rule could be run from python and from
 # nowhere else -- a native caller could read the budget but not the entries
 # it bounds. Its reasons travel with it, as the `why` of each entry.
+OLX_TEACHING_REFS = _declaration("OLX_TEACHING_REFS")
+
+
 PARKED_UNDECLARED = _declaration("PARKED_UNDECLARED")
 
-# Ratcheted like every other table here. A park is cheap to add and easy to
-# forget, which is the failure mode: a parking lot nobody empties becomes a
-# second declaration table with none of the review. Raise this only with the
-# entry, and lower it when one is retired.
-PARKED_BUDGET = _budget("PARKED_BUDGET")
 
 
 # How far a side's own verdicts may fail to reproduce its own score before the
@@ -5505,7 +5519,7 @@ def check_no_module_defines_names_after_its_main_guard() -> list[str]:
     import ast
     from pathlib import Path as _P
     out = []
-    for path in sorted(_P(__file__).resolve().parent.glob("*.py")):
+    for path in _package_py():
         f = path.name
         try:
             tree = ast.parse(path.read_text())
@@ -5970,7 +5984,7 @@ def check_filesystem_locations_come_from_paths_py() -> list[str]:
     from pathlib import Path as _P
     ROOTS = ("/home/", "/Users/", "/tmp/", "/var/", "/opt/", "~/")
     out = []
-    for path in sorted(_P(__file__).resolve().parent.glob("*.py")):
+    for path in _package_py():
         if path.name == "paths.py":
             continue
         try:
@@ -6063,7 +6077,7 @@ def check_filesystem_locations_come_from_paths_py() -> list[str]:
     _SAFE = re.compile(r"\bpaths\b|\b_p\w*\.|\bHERE\b|_HERE|\bREPO\b|\bOUT\b"
                        r"|\bLO\b|SCORING|COURSE_|__file__|tempfile|argv|sys\.")
     # THE SAME ENUMERATION THE ARM ABOVE USES, not a second one.
-    for path in sorted(_P(__file__).resolve().parent.glob("*.py")):
+    for path in _package_py():
         try:
             text = path.read_text()
             t = _ast.parse(text)
@@ -6119,7 +6133,7 @@ def check_the_export_is_not_used_to_decide_whose_words_these_are() -> list[str]:
     from pathlib import Path as _P
     out = []
     OWNED = {"corpus_resolve.py", "corpus_ref.py"}
-    for path in sorted(_P(__file__).resolve().parent.glob("*.py")):
+    for path in _package_py():
         if path.name in OWNED:
             continue
         try:
@@ -6170,7 +6184,7 @@ def check_one_definition_of_what_counts_as_student_text() -> list[str]:
     out = []
     OWNED = {"precommit_gate.py", "corpus_ref.py"}
     SIGNS = ("FUNCTION_WORDS", "STOPWORDS", "MIN_CONTENT", "MIN_QUOTE_WORDS")
-    for path in sorted(_P(__file__).resolve().parent.glob("*.py")):
+    for path in _package_py():
         f = path.name
         if f in OWNED:
             continue
@@ -6326,40 +6340,40 @@ def check_paper_feedback_explains_its_deductions() -> list[str]:
     wording fix moves neither the prompt nor the score, so an artifact written
     before one is otherwise indistinguishable from one written after.
     """
-    import json
-    import pathlib as _pl
-    import re as _re
 
+    # PORTED (goal K). Python reads the ARTIFACTS and the RUBRIC; everything
+    # after that -- attribution, classification, tallying, reporting -- is in
+    # lo-blocks. The stamp comparison is safe to hand over because BOTH values
+    # come from here: `paper_render_sha` computes one and the artifact carries
+    # the other. What must never move is RECOMPUTING a stamp with a second
+    # implementation; comparing two values python resolved is not that.
     import forms as H
+    import lo_enforce
     import measured as M
     import paths as _paths
 
     root, _why = _paths.out_root_or_reason()
     if root is None:
-        return [f"{_why} -- this check cannot run, which is NOT the same as passing"]
-    want = M.paper_render_sha()
-    EMPTY = _re.compile(r"-\s*[\d.]+\s*pts?:\s*$")
-    reasonless: dict = {}
-    unknown: dict = {}
-    benign: dict = {}
-    unattributable: set = set()
-    # ONE ATTRIBUTABLE ARTIFACT IS ENOUGH. The loop below adds an item to
-    # `unattributable` on every artifact whose stamp is stale -- and the corpus
-    # keeps every artifact it has ever written, so a single undated archival
-    # directory condemned an item no matter how fresh its newest measurement
-    # was. The message has always said "no paper artifact attributable", which
-    # is the right question; the set was answering "some paper artifact is not".
-    # On 2026-09-15 that reported all 26 items unattributable on the morning a
-    # correctly-stamped sweep of all 26 landed. Same fault, same session, as the
-    # web-side check that needed this exact set.
-    attributed: set = set()
+        return lo_enforce.run("paper_feedback_explains_its_deductions",
+                              {"unreadable": _why, "want": "",
+                               "rubric": {}, "artifacts": []})
+
+    rubric, artifacts = {}, []
     for item in sorted(M._jobs()):
         try:
             cfg = H.config(M._jobs()[item]["handout"])["rubric"].BY_ID[item]
         except Exception:
             continue
-        texts = {d["code"]: d.get("text", "") for d in cfg.get("deductions") or []}
-        by_what = {c["what"]: c for c in cfg.get("credit") or []}
+        rubric[item] = {
+            "texts": {d["code"]: d.get("text", "")
+                      for d in cfg.get("deductions") or []},
+            # CAN THIS COMPONENT COST POINTS AT ALL? A classification slot
+            # carries neither points nor gates, is never "met", and reaches the
+            # unknown branch on every cell -- 594 harmless entries. The rule
+            # reports an unknown code only where a charge was possible.
+            "scorable": {c["what"]: bool(c.get("pts") or c.get("gates"))
+                         for c in cfg.get("credit") or []},
+        }
         for path in _runs_files(root, f"*/{item}.runs.json"):
             try:
                 doc = jsoncache.load(path)
@@ -6370,57 +6384,22 @@ def check_paper_feedback_explains_its_deductions() -> list[str]:
             if not results or "item_id" not in results[0]:
                 continue                       # not the paper scorer's to answer for
             era = doc.get("era") or {}
-            stamp = ((era.get("items") or {}).get(item, {}) or {}).get(
-                "paper_render_sha", era.get("paper_render_sha"))
-            if stamp != want:
-                unattributable.add(item)
-                continue
-            attributed.add(item)
-            for r in results:
-                if r.get("item_id") != item:
-                    continue
-                for d in r.get("deductions") or []:
-                    if not (texts.get(d.get("code")) or "").strip() \
-                            and not (d.get("note") or "").strip():
-                        k = (item, str(d.get("code")))
-                        reasonless[k] = reasonless.get(k, 0) + 1
-                for line in str(r.get("feedback") or "").splitlines():
-                    if EMPTY.search(line.strip()):
-                        k = (item, "<a charge with no words after it>")
-                        reasonless[k] = reasonless.get(k, 0) + 1
-                for code in r.get("unknown_codes") or []:
-                    # ONLY WHERE A CHARGE WAS POSSIBLE. `unknown_codes` is
-                    # dominated by structure, not defect: a CLASSIFICATION slot
-                    # is a credit component with no `codes`, no points and no
-                    # met/absent vocabulary, so it is never "met", reaches the
-                    # unknown branch on every cell, and is recorded harmlessly --
-                    # 594 entries across the corpus, every one of them an
-                    # unscored component. Reporting those would make this check
-                    # permanently red and bury the case that matters: a slot
-                    # that COULD have cost points failing in a way the rubric
-                    # has no words for, where the student is charged nothing and
-                    # told nothing about a real miss.
-                    comp = by_what.get(str(code).split(":")[0])
-                    if not comp or not (comp.get("pts") or comp.get("gates")):
-                        benign[item] = benign.get(item, 0) + 1
-                        continue
-                    k = (item, str(code))
-                    unknown[k] = unknown.get(k, 0) + 1
-    out = []
-    for (item, code), n in sorted(reasonless.items(), key=lambda kv: -kv[1]):
-        out.append(f"{item}: a deduction charged points as {code!r} and the "
-                   f"student read no reason for it -- x{n}")
-    for (item, code), n in sorted(unknown.items(), key=lambda kv: -kv[1]):
-        out.append(f"{item}: the paper scorer answered {code!r}, which the "
-                   f"rubric defines no code for, so it was dropped -- x{n}. It "
-                   f"cost nothing; it means the grader is answering in a "
-                   f"vocabulary the rubric does not share")
-    unattributable -= attributed
-    if unattributable:
-        out.append(f"{len(unattributable)} item(s) have no paper artifact "
-                   f"attributable to today's feedback wording, so what their "
-                   f"students read cannot be checked ({', '.join(sorted(unattributable))})")
-    return out
+            artifacts.append({
+                "item": item,
+                "stamp": ((era.get("items") or {}).get(item, {}) or {}).get(
+                    "paper_render_sha", era.get("paper_render_sha")),
+                "results": [{
+                    "itemId": r.get("item_id"),
+                    "deductions": [{"code": str(d.get("code")),
+                                    "note": str(d.get("note") or "")}
+                                   for d in r.get("deductions") or []],
+                    "feedback": str(r.get("feedback") or "").splitlines(),
+                    "unknownCodes": [str(c) for c in r.get("unknown_codes") or []],
+                } for r in results],
+            })
+    return lo_enforce.run("paper_feedback_explains_its_deductions", {
+        "unreadable": None, "want": M.paper_render_sha(),
+        "rubric": rubric, "artifacts": artifacts})
 
 
 def _render_code_unchanged_since(artifact: "pathlib.Path") -> bool:
@@ -6489,7 +6468,14 @@ def check_students_see_what_each_check_decided() -> list[str]:
     MARKED = _re.compile(r"^- ([\u2713\u00b7]) \*\*(.+?)\*\* \u2014 (.*)$")
     root, _why = _paths.out_root_or_reason()
     if root is None:
-        return [f"{_why} -- this check cannot run, which is NOT the same as passing"]
+        # A CHECK THAT CANNOT RUN HAS NOT PASSED -- travels as a payload so the
+        # rule says it rather than returning a list a reader cannot tell from
+        # a clean one.
+        import lo_enforce as _le
+
+        return _le.run("students_see_what_each_check_decided",
+                       {"unreadable": _why, "unattributable": [],
+                        "looked": 0, "tally": []})
     def _app_wrote_it(doc: dict) -> bool:
         """Did the APP write this artifact? `cell` is its key, as result_cell says.
 
@@ -6545,29 +6531,25 @@ def check_students_see_what_each_check_decided() -> list[str]:
                         if m and m.group(3).strip().startswith("not reported"):
                             key = (item, m.group(2))
                             tally[key] = tally.get(key, 0) + 1
-    out = []
+    # PORTED (goal K), AS A SPLIT. The walk, the attribution filter and the
+    # feedback-line tally stay here: what a student SAW is a fact about a
+    # RECORDED run, and re-deriving it from today's code would report what they
+    # would see now. What moves is the reporting, including the three silences
+    # that must each be said rather than passed.
+    import lo_enforce
+
     # ONE attributable artifact is enough: the message says an item has NO
     # artifact attributable, and the set accumulates on every artifact that
     # fails. Every item has many and most are old.
     unattributable -= attributed
-    if unattributable:
-        out.append(
-            f"{len(unattributable)} item(s) have no artifact attributable to "
-            f"today's renderer, so what their students see cannot be checked at "
-            f"all ({', '.join(sorted(unattributable))}). Each is answered by its "
-            f"next sweep, which stamps `web_render_sha`; until then this check is "
-            f"silent about them rather than guessing from text an older renderer "
-            f"produced")
-    if not looked:
-        return out or ["no readable artifact carries rendered feedback, so what "
-                       "the student saw cannot be checked -- sweep, or say why not"]
-    return out + [
-        f"{item}: the student read a tick or a cross beside "
-        f"'{label}' with the words 'not reported' -- x{n}. That check scored "
-        f"them and told them nothing. A computed check has no verdict of its "
-        f"own, so its line must render what it was computed FROM"
-        for (item, label), n in sorted(tally.items(), key=lambda kv: -kv[1])
-    ]
+    return lo_enforce.run("students_see_what_each_check_decided", {
+        "unreadable": None,
+        "unattributable": sorted(unattributable),
+        "looked": looked,
+        "tally": [{"item": item, "label": label, "n": n}
+                  for (item, label), n in sorted(tally.items(),
+                                                 key=lambda kv: -kv[1])],
+    })
 
 
 def _request_capture() -> tuple:
@@ -7188,9 +7170,16 @@ def check_engines_offer_the_same_verdicts() -> list[str]:
     live code and it still compares them; only the word was wrong, and a
     reader who takes it at face value concludes the check is dead.
     """
+
+    # PORTED (goal K), AS A SPLIT. EACH ENGINE'S VERDICT LIST COMES THROUGH ITS
+    # OWN READER -- the app's via `olx_prompts.parse_slots`, the harness's via
+    # `agreement.load_action` -- because a comparison fed by one reader twice is
+    # that reader agreeing with itself. That is the whole hazard this check was
+    # written for: three instruments looked like they covered it and none did.
     import re as _re
 
     import agreement as A
+    import lo_enforce
     import olx_prompts as O
     import paths as P
 
@@ -7203,8 +7192,9 @@ def check_engines_offer_the_same_verdicts() -> list[str]:
         return ["DEFAULT_VERDICTS not found in slotSheet.ts -- this audit is stale"]
     app_default = [v.strip().strip("'\"") for v in m.group(1).split(",") if v.strip()]
 
-    out = []
+    items = []
     for item, action_id in sorted(O.ACTION.items()):
+        row = {"item": item, "app": {}, "harness": {}, "excluded": []}
         try:
             h = O.FORM[item]
             olx = open(P.OLX % h).read()
@@ -7220,45 +7210,15 @@ def check_engines_offer_the_same_verdicts() -> list[str]:
             # The app's own fallback, and the harness's own, each via its own path.
             app_defaults = ([v.strip() for v in verd.group(1).split(",") if v.strip()]
                             if verd else app_default)
-            app_slots = {s["key"]: s.get("options") or []
-                         for s in O.parse_slots(spec.group(1), app_defaults)}
-            py_slots = {s["key"]: s.get("options") or []
-                        for s in A.load_action(_p7.handout_olx(h), action_id)["slots"]}
+            row["app"] = {s["key"]: s.get("options") or []
+                          for s in O.parse_slots(spec.group(1), app_defaults)}
+            act = A.load_action(_p7.handout_olx(h), action_id)
+            row["harness"] = {s["key"]: s.get("options") or [] for s in act["slots"]}
+            row["excluded"] = sorted(act.get("excluded") or [])
         except Exception as e:
-            out.append(f"{item}: cannot compare verdict lists: {type(e).__name__}: {e}")
-            continue
-        # ONLY WHAT THE GRADER IS ASKED. A COMPUTED slot -- an `equals`, `maps`,
-        # `derived`, `expect` or `forbid` target -- is excluded from both sides'
-        # response schemas, so the two sheets can declare different verdict lists
-        # for it and no grader will ever see either. Verified against the real
-        # captured requests: of 76 slots where the declarations differ, 19 are
-        # computed and absent from the app's schema; the other 57 are genuinely
-        # offered, 13 of them on slots that carry points. Reporting the 19 would
-        # be claiming a difference in a question nobody is asked.
-        try:
-            excluded = set(A.load_action(_p7.handout_olx(h), action_id)["excluded"])
-        except Exception:
-            excluded = set()
-        silent = 0
-        for key in sorted(set(app_slots) & set(py_slots)):
-            a, p = app_slots[key], py_slots[key]
-            if a != p and key in excluded:
-                silent += 1
-                continue
-            if a != p:
-                out.append(
-                    f"{item}.{key}: the app offers {a} and the harness offers {p}. "
-                    f"The two engines are asking the grader a different question, "
-                    f"so their answers are not comparable on this slot -- and a "
-                    f"verdict only one side can say is one only that side can be "
-                    f"charged for")
-        if silent:
-            out.append(
-                f"{item}: {silent} computed slot(s) also declare different "
-                f"verdict lists on the two sides. No grader is asked them, so "
-                f"nothing can answer differently -- recorded rather than "
-                f"reported as a divergence, so the count is not silently lost")
-    return out
+            row["error"] = f"{type(e).__name__}: {e}"
+        items.append(row)
+    return lo_enforce.run("engines_offer_same_verdicts", {"items": items})
 
 
 def check_every_sweep_is_recorded() -> list[str]:
@@ -7286,6 +7246,7 @@ def check_every_sweep_is_recorded() -> list[str]:
     artifact the ledger points at, for the same column, by the program that side
     contracts to. Mtime says exactly that and nothing else.
     """
+    rows = []
     import json
 
     import measured as M
@@ -7362,26 +7323,20 @@ def check_every_sweep_is_recorded() -> list[str]:
                 (incomplete if dead else newer).append(
                     f"{cand.parent.name} ({dead} failed cell(s))" if dead
                     else cand.parent.name)
-            if incomplete:
-                out.append(
-                    f"{item} [{side}]: a NEWER sweep exists and cannot be "
-                    f"recorded -- {', '.join(incomplete[:3])}. The provider "
-                    f"returned nothing parseable for those cells, so the run "
-                    f"judged nothing there. Fill them with a cell-level sweep "
-                    f"and re-fold BEFORE recording; until then the older, "
-                    f"complete artifact is the better measurement and is "
-                    f"correctly the one recorded")
-            if newer:
-                out.append(
-                    f"{item} [{side}]: {len(newer)} sweep artifact(s) on disk are "
-                    f"NEWER than the one recorded"
-                    + (f" ({rec.get('out')})" if rec.get("out") else " (none recorded)")
-                    + f" -- {', '.join(newer[:3])}"
-                    + (" ..." if len(newer) > 3 else "")
-                    + ". Record it: until then every check reads the superseded "
-                      "measurement, and the findings it produces describe a tree "
-                      "that has already moved on")
-    return out
+            rows.append({"item": item, "side": side,
+                         "recordedOut": rec.get("out"),
+                         "newer": newer, "incomplete": incomplete})
+    # PORTED (goal K), AS A SPLIT. Everything above is the ARCHIVE -- which
+    # artifacts exist, when the GRADER ran, what program and model produced
+    # them, how many cells the provider never answered -- and none of it is
+    # reconstructible from the tree. What moves is the judgement at the end: a
+    # newer CLEAN sweep is a backlog item, a newer sweep with FAILED CELLS is a
+    # cell-fill and not one, and telling a reader to record the second sends
+    # them at a refusal.
+    import lo_enforce
+
+    return lo_enforce.run("every_sweep_is_recorded", {"rows": rows})
+
 
 
 def check_web_code_neutrality_is_verified() -> list[str]:
@@ -7449,14 +7404,21 @@ def check_web_code_is_stamped_by_its_own_sha() -> list[str]:
     They are a backfill debt, not 26 separate defects, and burying a live
     mismatch under two dozen standing lines is how a list stops being read.
     """
+
+    # PORTED (goal K), AS A SPLIT. Python reads the RUN ARCHIVE and fingerprints
+    # the app code; the judgement -- a changed ASK invalidates the answers, a
+    # changed SCORE only the numbers, an UNSTAMPED column can be dated against
+    # nothing -- is generic and moves.
+    import lo_enforce
     import measured as M
 
     try:
-        want_ask, want_score = M.web_code_sha("ask"), M.web_code_sha("score")
+        M.web_code_sha("ask"), M.web_code_sha("score")
     except SystemExit as e:
-        return [f"the web-code fingerprint cannot be computed: {e}"]
+        return lo_enforce.run("web_code_is_stamped",
+                              {"fingerprintError": str(e), "items": []})
 
-    out, unstamped = [], []
+    items = []
     for item in sorted(M._jobs()):
         doc = M._runs_doc(item, "olx")
         if not doc:
@@ -7468,31 +7430,15 @@ def check_web_code_is_stamped_by_its_own_sha() -> list[str]:
         per = (era.get("items") or {}).get(item, {}) or {}
         got_ask = per.get("web_ask_sha", era.get("web_ask_sha"))
         got_score = per.get("web_score_sha", era.get("web_score_sha"))
-        if not got_ask and not got_score:
-            unstamped.append(item)
-            continue
-        want_ask = M.web_code_sha("ask", item)
-        want_score = M.web_code_sha("score", item)
-        if got_ask and got_ask != want_ask:
-            out.append(
-                f"{item}: recorded against app schema code {got_ask}, now "
-                f"{want_ask}. `buildSlotSchema` has changed, so the ANSWERS in "
-                f"this column were given to a different question -- re-sweep; "
-                f"re-scoring cannot reach it")
-        if got_score and got_score != want_score and \
-                (got_score, want_score) not in M.WEB_CODE_NEUTRAL:
-            out.append(
-                f"{item}: recorded against app scoring code {got_score}, now "
-                f"{want_score}. The answers still stand; the numbers computed "
-                f"from them may not -- re-sweep."
-                + _archive_reading(M, era, "score"))
-    if unstamped:
-        out.append(
-            f"{len(unstamped)} web column(s) predate the app-code stamp and "
-            f"cannot be dated against lo-blocks at all ({', '.join(unstamped)}). "
-            f"Each is re-stamped by its next sweep; until then a change to "
-            f"`buildSlotSchema` or `scoreSlotSheet` is invisible to them")
-    return out
+        row = {"item": item, "gotAsk": got_ask, "gotScore": got_score}
+        if got_ask or got_score:
+            row["wantAsk"] = M.web_code_sha("ask", item)
+            row["wantScore"] = M.web_code_sha("score", item)
+            row["scoreNeutral"] = (got_score, row["wantScore"]) in M.WEB_CODE_NEUTRAL
+            row["archiveNote"] = _archive_reading(M, era, "score")
+        items.append(row)
+    return lo_enforce.run("web_code_is_stamped",
+                          {"fingerprintError": None, "items": items})
 
 
 def check_paper_prompt_is_stamped() -> list[str]:
@@ -7517,36 +7463,39 @@ def check_paper_prompt_is_stamped() -> list[str]:
     indistinguishable from an honestly stale one, which is why the invariant is
     enforced at the source instead of being left to the ledger to notice.
     """
+
+    # PORTED (goal K), AS A SPLIT. Python computes BOTH fingerprints -- see
+    # NATIVE_BLOCKED for why the OLX one must not be recomputed natively even
+    # though it could be -- and reads the recorded stamps; the judgement moves.
+    import lo_enforce
     import measured as M
     import score as SC
 
-    out = []
+    items = []
     for it in all_items():
         item = it["id"]
+        row = {"item": item}
         try:
             SC.fingerprint_text(item)
         except Exception as e:
-            out.append(f"{item}: score.fingerprint_text does not build "
-                       f"({type(e).__name__}: {e}) -- the paper prompt cannot "
-                       f"be stamped, so a paper sweep would record unstamped")
+            row["fingerprintError"] = f"{type(e).__name__}: {e}"
+            items.append(row)
             continue
         try:
-            paper, olx = M.prompt_sha(item, "paper"), M.prompt_sha(item, "olx")
+            row["paperSha"] = M.prompt_sha(item, "paper")
+            row["olxSha"] = M.prompt_sha(item, "olx")
         except Exception as e:
-            out.append(f"{item}: prompt_sha failed ({type(e).__name__}: {e})")
+            row["shaError"] = f"{type(e).__name__}: {e}"
+            items.append(row)
             continue
-        if paper == olx:
-            out.append(f"{item}: the paper and olx prompt shas are both "
-                       f"{paper} -- the paper side is borrowing the web's "
-                       f"stamp, so a paper-only prompt change stales nothing")
+        recorded = []
         for side in ("paper", "paper_opus"):
             rec = (M.load().get("items", {}).get(item, {}) or {}).get(side)
-            if rec and rec.get("prompt_sha") == olx:
-                out.append(f"{item} [{side}]: recorded at prompt_sha {olx}, "
-                           f"which is the OLX side's current hash -- that "
-                           f"column is stamped with the web's prompt and "
-                           f"cannot say what produced it; re-record it")
-    return out
+            if rec:
+                recorded.append({"side": side, "promptSha": rec.get("prompt_sha")})
+        row["recorded"] = recorded
+        items.append(row)
+    return lo_enforce.run("paper_prompt_is_stamped", {"items": items})
 
 
 def check_paper_reproduces_web_scores() -> list[str]:
@@ -7563,18 +7512,21 @@ def check_paper_reproduces_web_scores() -> list[str]:
     three reader bugs that had to be fixed before its numbers meant anything --
     each one dropped a slot, and a dropped slot is charged rather than skipped.
     """
+
+    # PORTED (goal K), AS A SPLIT. Python RUNS the measurement -- the web's
+    # recorded judgments through `score.py`'s arithmetic -- and this judges the
+    # pairs. The judgments are held fixed on both sides, which is what makes a
+    # difference mean the two implementations disagree rather than the model
+    # having answered twice.
+    import lo_enforce
     import measured as MEAS
 
     d = MEAS.web_judgments_through_paper()
-    out = []
-    for item, pid, web, paper in d["differing"]:
-        out.append(
-            f"{item}/p{pid}: the web's own judgments score {web:g} on the web and "
-            f"{paper:g} through the paper scorer's arithmetic. The judgments are "
-            f"held fixed, so this is the two scoring implementations disagreeing")
-    for e in d["errors"]:
-        out.append(f"the web's judgments could not be scored by the paper path -- {e}")
-    return out
+    return lo_enforce.run("paper_reproduces_web_scores", {
+        "differing": [{"item": item, "pid": pid, "web": web, "paper": paper}
+                      for item, pid, web, paper in d["differing"]],
+        "errors": [str(e) for e in d["errors"]],
+    })
 
 
 def paper_reproduces_web_line() -> str:
@@ -8307,7 +8259,7 @@ def check_no_module_appends_to_the_repository() -> list[str]:
     import pathlib as _pl
 
     out = []
-    for path in sorted(_pl.Path(str(_HERE_DIR)).glob("*.py")):
+    for path in _package_py():
         try:
             tree = _ast.parse(path.read_text())
         except (SyntaxError, OSError):
@@ -9199,7 +9151,7 @@ def check_no_module_shadow_in_scratchpad() -> list[str]:
     import glob
 
     here = pathlib.Path(__file__).resolve().parent
-    mine = {p.name for p in here.glob("*.py")}
+    mine = {p.name for p in _package_py()}
     out = []
     for pat in ("/tmp/claude-*/*/*/scratchpad", "/tmp/claude-*/*/scratchpad"):
         for d in glob.glob(pat):
@@ -9423,42 +9375,39 @@ def check_designed_text_is_the_measured_text() -> list[str]:
     not a demand that they be. It speaks only where evidence EXISTS and the
     design disagrees with it.
     """
+    # PORTED (goal K), AS A SPLIT. The generic half is the FINGERPRINT -- "a
+    # design must be the text that was MEASURED, not a summary of the result",
+    # and `fieldSha` is what decides when two spellings are the same text. Both
+    # engines must compute it identically or the comparison means nothing.
+    #
+    # PYTHON RESOLVES AND PASSES. `{{corpus:...}}` must be expanded before
+    # hashing, and expanding needs the response records; see NATIVE_BLOCKED.
+    import lo_enforce
     import probe as PR
 
-    out = []
+    receipts = []
     for r in PR.receipts():
-        key = (r.get("item"), r.get("slot"), "desc")
-        want = DESIGNED_TEXT.get(key)
+        want = DESIGNED_TEXT.get((r.get("item"), r.get("slot"), "desc"))
         if want is None:
             continue
-        # COMPARE AGAINST THE DESIGNED FIELD AS PROBED, which is the receipt's
-        # `checklist_sha`, NOT its `sha`. Those were the same thing until
-        # 2026-09-08, when `probe.question_for` was changed to return BOTH
-        # prompt sections -- the rubric summary line as well as the checklist
-        # line -- because 56 of 179 asked slots were under-reported by the
-        # checklist alone. That fix moved `sha` onto the ASSEMBLED question and
-        # left this check comparing a raw rubric field against a two-section
-        # string, which can never be equal: the design became a "paraphrase" of
-        # its own evidence BY ARITHMETIC, for every slot registered after that
-        # change. WK2/aimed_correctly still passed only because its receipt
-        # predates it.
-        #
-        # So each check now compares what it actually means:
-        #   check_probe_receipts_match_shipping   the ASSEMBLED question, which
-        #       is what the grader saw -- `sha`
-        #   THIS CHECK                            the DESIGNED FIELD as probed
-        #       -- `checklist_sha`, which is `_field_sha` of the rubric text
-        # Falling back to `sha` keeps receipts written before the split honest
-        # rather than silently unchecked.
-        probed = r.get("checklist_sha") or r.get("sha")
-        if _field_sha(want) != probed:
-            out.append(
-                f"{r['item']}/{r['slot']}: DESIGNED_TEXT is {_field_sha(want)} but "
-                f"the probe that is its only evidence asked {probed}. The design "
-                f"was not lifted from the artifact that measured it -- take it from "
-                f"the probe script, not from a summary of the result")
-    return out
-
+        resolved = str(want)
+        if "{{corpus:" in resolved:
+            try:
+                import corpus_resolve as _CR
+                resolved = _CR.expand(resolved)
+            except Exception:          # no export configured: hash it raw
+                pass
+        # COMPARE AGAINST THE DESIGNED FIELD AS PROBED -- `checklist_sha`, not
+        # `sha`. Those were one thing until the probe question grew a second
+        # section; comparing a raw rubric field against a two-section string can
+        # never be equal, so every slot registered after that change became a
+        # paraphrase of its own evidence BY ARITHMETIC. The fallback keeps
+        # receipts written before the split honest rather than silently unchecked.
+        receipts.append({"item": r["item"], "slot": r["slot"],
+                         "designed": resolved,
+                         "probed": r.get("checklist_sha") or r.get("sha")})
+    return lo_enforce.run("designed_text_is_the_measured_text",
+                          {"receipts": receipts})
 
 def check_new_slots_were_probed() -> list[str]:
     """An answerable slot the ledger has never seen, with no probe receipt.
@@ -9842,23 +9791,27 @@ def check_ask_equivalences_still_hold() -> list[str]:
     `_ask_equivalent` already refuses such a row silently; this says so out loud,
     because a declaration that has quietly stopped applying is one nobody removes.
     """
+
+    # PORTED (goal K), AS A SPLIT. Python re-derives each row's CURRENT ask
+    # fingerprint; the judgement -- a declared equivalence whose question has
+    # moved no longer applies -- is generic. Only ONE side of the comparison is
+    # computed here, so this does not hit the hazard recorded on
+    # `paper_prompt_is_stamped`.
+    import lo_enforce
     import measured as M
-    out = []
+
+    rows = []
     for key, why in sorted(ASK_EQUIVALENT_PROMPTS.items()):
         item, side, was, ask = key
+        row = {"item": item, "side": side, "was": was, "declared": ask,
+               "why": why}
         try:
-            now = M.ask_sha(item, side)
+            row["now"] = M.ask_sha(item, side)
         except Exception as exc:
-            out.append(f"{item}/{side}: cannot re-derive ask_sha to check the "
-                       f"declared equivalence for {was}: {type(exc).__name__}")
-            continue
-        if now != ask:
-            out.append(
-                f"{item}/{side}: the equivalence declared for prompt {was} names "
-                f"ask_sha {ask}, but the question is now {now} -- the row no "
-                f"longer applies and artifacts stamped {was} are genuinely "
-                f"history. Remove it ({why}).")
-    return out
+            # THE TYPE ONLY, which is what the message has always quoted.
+            row["error"] = type(exc).__name__
+        rows.append(row)
+    return lo_enforce.run("ask_equivalences_still_hold", {"rows": rows})
 
 
 def _artifact_prompt_state(doc: dict, item_id: str):
@@ -10007,7 +9960,13 @@ def check_mapped_slots_agree_with_their_map() -> list[str]:
         by_item.setdefault(item, []).append(s)
     root, _why = _paths.out_root_or_reason()
     if root is None:
-        return [f"{_why} -- this check cannot run, which is NOT the same as passing"]
+        # A CHECK THAT CANNOT RUN HAS NOT PASSED. It travels as a PAYLOAD so
+        # the rule says it, rather than as an early empty return that a reader
+        # cannot tell from a clean result.
+        import lo_enforce as _le
+
+        return _le.run("mapped_slots_agree_with_their_map",
+                       {"unreadable": _why, "divergences": []})
     if not root.is_dir():
         return []
     tally: dict = {}
@@ -10081,30 +10040,24 @@ def check_mapped_slots_agree_with_their_map() -> list[str]:
         # silences the alarm.
         return _artifact_prompt_state(doc, item_id) is not False
 
-    out: list[str] = []
+    # PORTED (goal K), AS A SPLIT. The walk, the two filters and the tally stay
+    # here -- they read the ARCHIVE, and the canonical slot readers are
+    # python's. What moves is the report; the count ordering it depends on is
+    # computed here so the rule does not re-derive it.
+    import lo_enforce
+
+    divergences = []
     for (d, item, key, pick, got, want), n in sorted(tally.items(),
                                                      key=lambda kv: -kv[1]):
         if not _is_live(d, item):
             continue
-        out.append(
-            f"{d}: {item}/{key} was RECORDED {got!r} on pick {pick!r} where "
-            f"MAPS computes {want!r}, x{n}. THE SCORE FOLLOWS THE RECORDED "
-            f"VERDICT ON THE APP AND THE MAP ON THE MIRROR, so the two engines "
-            f"score the same answer differently -- measured per run, every "
-            f"divergent run is a wrong run unless the recorded verdict happens "
-            f"to be score-equivalent to the mapped one")
-    return out
+        divergences.append({"dir": d, "item": item, "key": key,
+                            "pick": repr(pick), "got": repr(got),
+                            "want": repr(want), "n": n})
+    return lo_enforce.run("mapped_slots_agree_with_their_map",
+                          {"unreadable": None, "divergences": divergences})
 
 
-# SLOTS THE SHEET ASKS AND THE RUBRIC DELIBERATELY DOES NOT DEFINE. Subgoal E49.
-# The reverse-direction check reports a sheet slot with no rubric element,
-# because the app would otherwise be putting a question to the grader that the
-# python scorer never reads. That is usually a defect. It is not always one: an
-# UNSCORED slot whose only job is to shape FEEDBACK has nothing for the mirror to
-# mirror, since the mirror does not produce feedback at all.
-# Keep this table small, and require the two facts that make the claim checkable:
-# the slot carries NO points, and something in the generator consumes it.
-ONE_SIDED_SCORED_SLOTS_BUDGET = _budget("ONE_SIDED_SCORED_SLOTS_BUDGET")
 
 # Subgoal E53. Slots where the two engines score the SAME judgement through a
 # different DECOMPOSITION -- one enumerates per item, the other counts -- so
@@ -10596,11 +10549,19 @@ def check_probe_reach_limits_still_apply() -> list[str]:
     something it did not. Retiring one is cheap -- NR's own entry says it "will
     stop applying if the rule ever becomes a gate", and this is what notices.
     """
+
+    # PORTED (goal K), AS A SPLIT. Python reads each item's sheet through the
+    # HARNESS's own reader and computes the two shape facts; the judgement --
+    # lose both and a pairwise flip can reach the pair, so the excuse expired --
+    # moves. An expired excuse is invisible by construction: the pair stops
+    # being probed, nothing fails, and the entry goes on excusing a limit that
+    # is no longer there.
     import agreement as A
+    import lo_enforce
     import measured as MEAS
     import olx_prompts as O
 
-    out: list[str] = []
+    items = []
     for entry in getattr(O, "PROBE_REACH_LIMITS", []) or []:
         for item in (entry or {}).get("items") or ():
             h = (MEAS._jobs().get(item) or {}).get("handout")
@@ -10610,21 +10571,18 @@ def check_probe_reach_limits_still_apply() -> list[str]:
                 spec = A.load_action(_p7.handout_olx(h), O.ACTION[item])
             except Exception:
                 continue
-            wide = any(len(r.get("conds") or ()) >= 3
-                       for r in (spec.get("forbid") or ()))
             computed = set(MEAS._computed_slots(spec))
-            unflippable = any(r.get("cond") in computed
-                              for r in (spec.get("requires") or ()))
-            if wide or unflippable:
-                continue
-            out.append(
-                f"olx_prompts.PROBE_REACH_LIMITS excuses {item} on the grounds "
-                f"that the CLI probe cannot reach its sublinear pair, but {item} "
-                f"now has no `forbid` of three or more conditions and no "
-                f"`requires` on a computed key -- so a pairwise flip CAN reach "
-                f"it and the excuse no longer holds. Drop the item from the "
-                f"entry and let the audit probe it")
-    return out
+            items.append({
+                "item": item,
+                # the probe flips answered fields pairwise, so a three-way
+                # condition is out of its reach
+                "wide": any(len(r.get("conds") or ()) >= 3
+                            for r in (spec.get("forbid") or ())),
+                # the probe cannot flip what the scorer derives
+                "unflippable": any(r.get("cond") in computed
+                                   for r in (spec.get("requires") or ())),
+            })
+    return lo_enforce.run("probe_reach_limits_still_apply", {"items": items})
 
 
 def check_goals_record_is_intact() -> list[str]:
@@ -10772,7 +10730,7 @@ def check_gold_comparisons_share_an_alphabet() -> list[str]:
     import ast
 
     bad: list[str] = []
-    for path in sorted(_P(__file__).resolve().parent.glob("*.py")):
+    for path in _package_py():
         src = path.read_text()
         try:
             tree = ast.parse(src)
@@ -10953,7 +10911,7 @@ def check_gold_is_read_by_item() -> list[str]:
     #    not still passing. Referencing two or more of the three loaders IS
     #    picking by handout, whatever the syntax around it.
     pat = re.compile(r"\bload_h([123])\b")
-    for path in sorted(_P(__file__).resolve().parent.glob("*.py")):
+    for path in _package_py():
         mod = path.stem
         src = path.read_text()
         if re.search(r"^def load_h[123]\b", src, re.M):
@@ -12829,42 +12787,48 @@ def check_the_cli_sends_the_apps_prompt() -> list[str]:
     that mapping written into it. Duplicating that here would put the same bridge
     in two places, which is how a bridge stops being one.
     """
-    out: list[str] = []
+
+    # PORTED (goal K), AS A SPLIT. Reading `slotSheetGuidance` out of
+    # `slotSheet.ts` is the ENGINE reading its own source; what the MIRROR
+    # composes, and whether each block still lifts to more than an empty match,
+    # are facts about python. So python gathers and the rule judges.
     import re as _re
+
+    import lo_enforce
+
+    payload = {"readError": None, "called": None,
+               # The order `agreement.checklist_guidance` composes, stated here
+               # because the mirror hardcodes it -- which is the gap this check
+               # exists for: every individual lift succeeds and the composition
+               # can still drift.
+               "expected": ["studentFacingGuidance", "checklistGuidance",
+                            "terseFeedbackGuidance"],
+               "lifted": []}
     try:
         import paths as _paths
         ts = open(_paths.SLOTSHEET_TS).read()
     except Exception as exc:
-        return [f"could not read slotSheet.ts to compare the prompt paths: {exc}"]
+        payload["readError"] = str(exc)
+        return lo_enforce.run("cli_sends_the_apps_prompt", payload)
 
     m = _re.search(r"export function slotSheetGuidance\b[^{]*\{(.*?)\n\}", ts, _re.S)
-    if not m:
-        return ["slotSheetGuidance() not found in slotSheet.ts -- the CLI mirrors a "
-                "composition that no longer exists, so the two paths cannot be compared"]
-    body = m.group(1)
-    called = _re.findall(r"\b([a-z][A-Za-z]*Guidance)\s*\(", body)
-    # What agreement.checklist_guidance composes, in its own order.
-    expected = ["studentFacingGuidance", "checklistGuidance", "terseFeedbackGuidance"]
-    if called != expected:
-        out.append(
-            "slotSheetGuidance() now composes "
-            f"{called} but agreement.checklist_guidance composes {expected}. Every "
-            "individual block still lifts cleanly, so the prompts differ silently: "
-            "fix the mirror in agreement.checklist_guidance to match this order")
-    # And each block must still be liftable, in BOTH branches.
-    try:
-        import agreement as _AG
-        for show in (True, False):
-            txt = _AG.checklist_guidance(show)
-            if len(txt.strip()) < 200:
-                out.append(f"checklist_guidance(show_checks={show}) lifted only "
-                           f"{len(txt.strip())} chars -- a block matched empty, so the "
-                           "CLI is sending less guidance than the app")
-    except SystemExit as exc:
-        out.append(f"a guidance block no longer lifts out of slotSheet.ts: {exc}")
-    except Exception as exc:
-        out.append(f"could not compose the CLI guidance: {exc}")
-    return out
+    if m:
+        payload["called"] = _re.findall(r"\b([a-z][A-Za-z]*Guidance)\s*\(", m.group(1))
+        # EACH BLOCK MUST STILL LIFT, IN BOTH BRANCHES. A block that matched
+        # empty leaves the CLI sending less guidance than the app, and every
+        # individual lift still "succeeds".
+        try:
+            import agreement as _AG
+            for show in (True, False):
+                txt = _AG.checklist_guidance(show)
+                payload["lifted"].append({"showChecks": show,
+                                          "chars": len(txt.strip()), "error": None})
+        except SystemExit as exc:
+            payload["lifted"].append({"showChecks": None, "chars": 0,
+                                      "error": str(exc)})
+        except Exception as exc:
+            return [f"could not compose the CLI guidance: {exc}"]
+    return lo_enforce.run("cli_sends_the_apps_prompt", payload)
 
 
 # ---------------------------------------------------------------------------
@@ -13284,6 +13248,38 @@ def probe_declaration_tables() -> list[str]:
 # interface for humans and for T3.2, and the gate never trusts it.
 # ---------------------------------------------------------------------------
 _HERE_DIR = pathlib.Path(__file__).resolve().parent
+
+
+def _package_py() -> list:
+    """Every python file in the PACKAGE, at any depth. Sorted, pruned.
+
+    NOT `_HERE_DIR.glob("*.py")`, which is what ten checks used and what made
+    every one of them quietly narrower than its own docstring. Measured
+    2026-09-27: the engine root holds 55 modules and the package holds 81, so a
+    rule that says "no module may spell a filesystem location" was exempting a
+    third of the modules it names -- including the course's own scorers and the
+    authoring builders, which are exactly where a course-shaped path would go.
+
+    THE SAME FAULT THREE TIMES IN ONE DAY, each found only by accident: a
+    `rubric_h*_source.py` glob that stopped matching the day the file moved
+    directory, a self-test fingerprint that hashed one directory out of five,
+    and a hard-coded caller list that silently skipped `agreement.py` after the
+    move. A glob over one directory is a dependency on a layout nobody promised
+    to keep, and it fails SILENTLY -- the scan simply sees less and says the
+    same thing.
+
+    THE SIBLING SCORERS COUNT. `scorers/` is not under the engine root, and the
+    rules here are about what any module in this package may do; a scorer is a
+    module in this package.
+    """
+    import paths as _p_pkg
+
+    out = list(_p_pkg.repo_files(".py", root=_HERE_DIR))
+    try:
+        out += list(_p_pkg.repo_files(".py", root=_p_pkg.SCORERS_GENERAL))
+    except Exception:                                   # pragma: no cover
+        pass
+    return sorted(set(out))
 _HERE_MODULE = sys.modules[__name__]
 COURSE_DATA_BUDGET = _p7.SCORING_METADATA / "COURSE_DATA_BUDGET.json"
 
@@ -13363,10 +13359,26 @@ def _data_modules() -> dict[str, str]:
     # to `rubric_h2_source.py` and moved it out of the scoring path to sit with
     # the builders; its data is the course file's and is served from there, and
     # what stays is the four factories the export reads to WRITE that file.
-    for path in sorted(_HERE_DIR.glob("rubric_h*_source.py")):
-        out[path.name] = (
-            "a handout's authored rubric, read by `rubric_export` to WRITE the "
-            "course file and kept outside the scoring path")
+    # DEPTH-AGNOSTIC, and that is not a refinement. This globbed ONE directory
+    # (`_HERE_DIR`, the engine root). When `rubric_h2_source.py` moved into the
+    # course's own `scoring/<course>/`, the glob stopped matching and the entry
+    # did not go stale -- it VANISHED, silently, and the module it exempted
+    # became RATCHETED. Nobody decided that, and the growth the exemption exists
+    # to permit would have been refused the next time it happened.
+    #
+    # NOTHING REPORTED IT, exactly as the docstring above predicted: "editguard
+    # sees literal table entries, so a derived table is invisible to it --
+    # nothing will report an entry here vanishing." The one surviving signal was
+    # the `data_modules` budget mismatch, and that landed in the PARKED bucket
+    # under a park written for an unrelated issue, where it sat unread.
+    #
+    # So the walk is pruned and depth-free: a rubric source is found wherever
+    # the repository legitimately keeps it.
+    for path in paths.repo_files("_source.py"):
+        if re.fullmatch(r"rubric_h\w+_source\.py", path.name):
+            out[path.name] = (
+                "a handout's authored rubric, read by `rubric_export` to WRITE "
+                "the course file and kept outside the scoring path")
 
     # (3) THE COURSE'S OWN CODE, which is NOT a builder and is named one file at
     # a time on purpose. These RUN -- `scorers.resolve` loads the scorer during
@@ -13479,48 +13491,31 @@ RUBRIC_CONSUMER_BUDGET = _budget("RUBRIC_CONSUMER_BUDGET")
 # entry. An entry whose number no longer matches the count is reported, so this
 # cannot quietly become a second budget.
 COURSE_DATA_REENTRY: dict[str, tuple[int, str]] = {
-    "equivalence.py": (
-        # 27 -> 24 -> 17 on 2026-09-20 as D2a proceeds. Converted so far: the
-        # `dealt` fixture (first job with a `dealt` group), the `equals` case
-        # (first h2 item declaring `equals`), the coded-antecedent case (first
-        # h1 item with coded `antecedent_*` slots), the broken-code case (first
-        # h3 item whose first credit carries codes) and the `expect` case
-        # (first h2 item with both an `expect` rule and an EXPECT entry).
-        #
-        # Reviewed here each time rather than re-baselined silently -- which is
-        # what this check is for, and it has now caught the drop twice.
-        # 27 -> 24 -> 17 -> 13 on 2026-09-20. Added since: the `cover` and
-        # cover-vocabulary cases (first h1 item with a labelled `cover` rule),
-        # the duplicated-item case (any item proves it; the first h1 item), and
-        # the two-fixes case (first cell carrying a consensus fix, duplicating a
-        # box THAT CELL already fixes rather than a name typed into the case).
-        # 27 -> 24 -> 17 -> 13 -> 10 on 2026-09-20. Added since: the
-        # computed-check case (first item a divergence says the web computes),
-        # the exclusion-prose case (first exclusion cell carrying an
-        # `expect_error` -- a case that had ALREADY drifted once, from Q6/p9 to
-        # Q4c/p16, and was re-pointed by hand), and the unjustified-citation
-        # case (the item is incidental; pid 99 is what makes it unjustified).
-        # 27 -> 9 over 2026-09-20. D2a is DONE, and it did not reach zero:
-        # eleven of twelve case clusters now pick their target by shape, and the
-        # 9 that remain are NAMED ON PURPOSE, each with its reason in
-        # `SELFTEST_NAMED_FIXTURES` and each checked to still name a real item.
-        #
-        # Stopping here is the finding, not a shortfall. One forced predicate
-        # already picked a cell where the injection created no duplicate and the
-        # case detected nothing while reporting PASS. A named fixture with a
-        # stated reason fails loudly; a contrived predicate fails silently, and
-        # silence is what D2a exists to remove.
-        # 9 -> 7 on 2026-09-20, after the nine declared reasons were tested as
-        # CLAIMS rather than re-read. Two did not survive: one said its item was
-        # the only one with a shape the case actually INJECTS, and one said it
-        # "follows" a case it merely coincided with. Both are shape-picked now.
-        # Five of the remaining seven were confirmed by measurement.
-        7,
-        "D2d's exemption was removed 2026-09-19. These 27 embeddings were always "
-        "there and were subtracted before anyone looked; nothing was added. D2a "
-        "(fixtures that select their target by shape) is the work that removes "
-        "them, and the finding is parked under MIGRATED MODULE HOLDS COURSE DATA "
-        "until it lands."),
+    # EMPTY SINCE 2026-09-27, when `equivalence.py` reached ZERO and the entry
+    # below was removed on this check's own instruction: "the work it was
+    # waiting on is done; remove the entry so the ratchet has no hole left in
+    # it." The history is kept because the number moved for reasons worth
+    # remembering: 27 -> 24 -> 17 -> 13 -> 10 -> 9 -> 7 -> 0, each step a
+    # fixture that stopped naming a cell of this course and started selecting
+    # one by shape.
+    #
+    # THE LAST SEVEN WERE DEFENDED AND THE DEFENCE DID NOT SURVIVE TESTING.
+    # Each had a stated reason in `SELFTEST_NAMED_FIXTURES` saying why a shape
+    # predicate could not work. Tested as claims rather than re-read, three were
+    # simply false: `Q4a`'s said the case needed two slots "carrying DIFFERENT
+    # codes ... a property of Q4a's slots" (they carry identical code maps, and
+    # the injection fires on four items); `1b`'s said the safe targets were "not
+    # a property this fixture can state" (they are -- a job no corpus reference
+    # names, and eleven qualify); `1a`'s guarded a stub that has been idle since
+    # the case it served was retired.
+    #
+    # THE OTHER FOUR WERE REAL AND THE ANSWER WAS NOT A BETTER PREDICATE. They
+    # turned on judgements the ported rules make -- whether gold's prose reports
+    # a box absent, whether a six-word prefix reads as a fragment. Restating
+    # those here would have been a second copy of the thing the case exists to
+    # exercise. So the candidate's qualification is the RULE'S OWN VERDICT on
+    # the injection, which cannot drift from the rule and cannot pick a target
+    # the case would be silent on.
 }
 
 
@@ -13642,10 +13637,17 @@ def check_module_has_no_course_data() -> list[str]:
                        f"nothing and hides that the module was never checked")
             continue
         if counts.get(mod):
+            # NO `_exempt` FILTER, because there is no exemption and no such
+            # function. It went with D2d on 2026-09-19 -- `_course_data_counts`
+            # right above says so: "EVERY embedding, with no exemption to
+            # subtract". These two calls were left behind, so this line raised
+            # NameError rather than reporting; and it does so ONLY on the branch
+            # that has a finding to report, which is the worst possible place
+            # for a latent crash. The audit aborts instead of naming the module.
             detail = ", ".join(
-                f"{cat}={sum(1 for e in rec.get(cat, []) if not _exempt(mod, e))}"
+                f"{cat}={len(rec.get(cat, []))}"
                 for cat in ("tables", "literal_ids", "vocabulary")
-                if sum(1 for e in rec.get(cat, []) if not _exempt(mod, e)))
+                if rec.get(cat))
             out.append(f"{mod} is declared MIGRATED ({claim}) but still holds "
                        f"course data: {detail}")
 
@@ -14778,7 +14780,17 @@ def check_sheet_matches_the_rubric_it_names() -> list[str]:
     so and returns a finding, because a reader that quietly finds nothing is how
     an empty result comes to look like a clean one.
     """
-    out = []
+
+    # PORTED (goal K). Two projections of one definition, compared; the
+    # judgement is generic and the projections are this course's.
+    #
+    # EVERY FAILURE TRAVELS AS DATA rather than as an early return, for the
+    # reason this function's own history records: an item whose action cannot be
+    # loaded is a FINDING, because a `continue` that swallows the error makes a
+    # check that cannot fail. The same one level up -- an unstaged rubric is
+    # reported, since an unbuilt artifact is not evidence that the two agree.
+    import lo_enforce
+
     try:
         import agreement as A
         import olx_prompts as O
@@ -14789,46 +14801,40 @@ def check_sheet_matches_the_rubric_it_names() -> list[str]:
     try:
         rubric = RC.load()
     except FileNotFoundError:
-        return [f"the rubric component has not been staged ({RC.staged_path()}); "
-                f"run `npm run build:stage-content` -- an unbuilt artifact is not "
-                f"evidence that the sheet and the rubric agree"]
+        return lo_enforce.run("sheet_matches_rubric", {"rubricError": {
+            "kind": "unstaged",
+            "detail": f"the rubric component has not been staged "
+                      f"({RC.staged_path()}); run `npm run build:stage-content` "
+                      f"-- an unbuilt artifact is not evidence that the sheet "
+                      f"and the rubric agree"}, "items": []})
     except Exception as exc:
-        return [f"the staged rubric component will not parse: "
-                f"{type(exc).__name__}: {exc}"]
-    # A SKIP IS NOT A PASS, and the first version of this check was proof. It said
-    # `HANDOUT[item]`, which does not exist in this module -- the name lives in
-    # `olx_prompts` -- so every item raised NameError, a bare `except: continue`
-    # swallowed it, and the check reported 0 findings while comparing NOTHING. Two
-    # injected failures, a dropped slot and a rubricDef naming no item, both came
-    # back clean. So the exception is REPORTED now: an item whose action cannot be
-    # loaded is a finding, because the alternative is a check that cannot fail.
+        return lo_enforce.run("sheet_matches_rubric", {"rubricError": {
+            "kind": "unparsable",
+            "detail": f"the staged rubric component will not parse: "
+                      f"{type(exc).__name__}: {exc}"}, "items": []})
+
+    items = []
     for item in sorted(O.ACTION):
+        row = {"item": item}
         try:
             act = A.load_action(_p7.handout_olx(O.FORM[item]), O.ACTION[item])
         except Exception as exc:
-            out.append(f"{item}: cannot load its action to compare against the "
-                       f"rubric: {type(exc).__name__}: {exc}")
+            row["error"] = f"{type(exc).__name__}: {exc}"
+            items.append(row)
             continue
         named = act.get("rubric_def")
-        if not named:
-            out.append(f"{item}: its <LLMAction> names no rubricDef, so nothing "
-                       f"ties the sheet to a rubric entry")
-            continue
-        entry = rubric.get(named)
-        if entry is None:
-            out.append(f"{item}: rubricDef={named!r} names no <Item> in the "
-                       f"staged rubric -- the sheet points at nothing")
-            continue
-        sheet = {s.get("key") for s in (act.get("slots") or [])
-                 if isinstance(s, dict) and s.get("key")}
-        declared = {s.get("key") for s in entry.get("slots", []) if s.get("key")}
-        if sheet and declared and sheet != declared:
-            only_sheet = sorted(sheet - declared)
-            only_rubric = sorted(declared - sheet)
-            out.append(
-                f"{item}: the sheet and rubric entry {named!r} describe different "
-                f"slots -- sheet only {only_sheet}, rubric only {only_rubric}")
-    return out
+        row["rubricDef"] = named
+        if named:
+            entry = rubric.get(named)
+            row["entryExists"] = entry is not None
+            if entry is not None:
+                row["sheetKeys"] = sorted({s.get("key") for s in (act.get("slots") or [])
+                                           if isinstance(s, dict) and s.get("key")})
+                row["rubricKeys"] = sorted({s.get("key") for s in entry.get("slots", [])
+                                            if s.get("key")})
+        items.append(row)
+    return lo_enforce.run("sheet_matches_rubric",
+                          {"rubricError": None, "items": items})
 
 
 def check_the_course_links_the_rubric_and_every_form() -> list[str]:

@@ -1249,8 +1249,28 @@ def module_path(name: str):
     remembered.
     """
     import importlib
-    mod = importlib.import_module(name.removesuffix(".py"))
-    return Path(mod.__file__)
+
+    stem = name.removesuffix(".py")
+    try:
+        return Path(importlib.import_module(stem).__file__)
+    except Exception:
+        pass
+    # AND A PRUNED WALK WHEN IMPORT CANNOT SEE IT. `import` knows every
+    # directory this module puts on the path, and `tools/` is deliberately not
+    # one of them -- its modules are reached as `from tools import x`, so a bare
+    # import of one raises and the caller concluded the file was GONE.
+    #
+    # Measured 2026-09-27: `RAW_GOLD_READERS` declared `export_grader_marks` and
+    # its own verifier reported "there is no export_grader_marks.py -- the module
+    # was renamed or removed", about a file sitting in `tools/`. A resolver that
+    # covers four directories out of five fails in the one direction that reads
+    # like a real finding, and the remedy it hands a reader -- drop the entry --
+    # would delete a live exemption.
+    for f in repo_files(".py", root=SCORING):
+        if f.name == f"{stem}.py":
+            return f
+    raise ModuleNotFoundError(
+        f"module_path({name!r}): neither importable nor present under {SCORING}")
 
 
 def module_source(name: str) -> str:

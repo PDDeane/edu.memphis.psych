@@ -184,37 +184,37 @@ def scan(directory: str | None = None) -> dict:
 
 def verify(found: dict) -> list[str]:
     """The ratchet: the count may fall, never rise without a declaration."""
-    out = []
-    names = set(found["branched"])
+    # PORTED (goal K), AS A SPLIT. Finding the branches means parsing PYTHON
+    # SOURCE, so `scan()` stays; the RATCHET is three generic statements about
+    # a vocabulary budget -- a new undeclared name, a count that rose, and an
+    # entry nothing reaches any more -- and those move.
+    #
+    # THE BUDGET IS PASSED, NOT READ THERE. Reading it inside the rule made the
+    # rule untestable without a filesystem: a fire test on "an entry nothing
+    # branches on" could not be written, because the only way to mutate the
+    # budget was to write the file. Passing it also lets the two read failures
+    # stay findings -- a budget that cannot be read is not a budget that passes.
+    import json
+    import os
+
+    import lo_enforce
+
+    budget, err = None, None
     try:
         budget = json.loads(open(BUDGET).read())
     except FileNotFoundError:
-        return [f"{os.path.basename(BUDGET)} is missing, so the property ratchet "
-                f"cannot run -- which is NOT the same as passing. Write it with "
-                f"`property_ratchet.py --tighten`."]
+        err = "missing"
     except ValueError as exc:
-        return [f"{os.path.basename(BUDGET)} is unreadable: {exc}"]
+        err = str(exc)
 
-    allowed = set(budget.get("branched", []))
-    declared = budget.get("declared", {})
-    for name in sorted(names - allowed):
-        why = declared.get(name)
-        if not why:
-            out.append(
-                f"{name!r} is a declared PROPERTY and engine code branches on it "
-                f"({found['branched'][name][0]['file']}:"
-                f"{found['branched'][name][0]['line']}). D1x-c says a value the "
-                f"engine branches on is BEHAVIOUR and belongs in a strategy "
-                f"registry. Make it a strategy, or declare in "
-                f"{os.path.basename(BUDGET)} why a strategy would not do.")
-    if len(names) > len(allowed):
-        out.append(f"the property vocabulary reached in branches grew "
-                   f"{len(allowed)} -> {len(names)}; the ratchet only tightens")
-    for name in sorted(allowed - names):
-        out.append(f"{name!r} is in the budget and is no longer branched on -- "
-                   f"re-tighten so the reduction cannot be undone")
-    return out
-
+    return lo_enforce.run("property_vocabulary_ratchet", {
+        "branched": found["branched"],
+        "budget": None if budget is None else {
+            "branched": list(budget.get("branched", [])),
+            "declared": dict(budget.get("declared", {}))},
+        "budgetError": err,
+        "budgetName": os.path.basename(BUDGET),
+    })
 
 def tighten(found: dict) -> int:
     names = sorted(found["branched"])
