@@ -175,6 +175,18 @@
    "scan",
    "verify"
   ],
+  "assembler_reach.py": [
+   "Mutation",
+   "Mutation.__enter__",
+   "Mutation.__exit__",
+   "Mutation.__init__",
+   "_allowed_roots",
+   "_assemble",
+   "_cases",
+   "_drop_first_slot",
+   "_guard_path",
+   "main"
+  ],
   "backends.py": [
    "AnthropicApiBackend",
    "AnthropicApiBackend.SUPPORTS_TOOLS",

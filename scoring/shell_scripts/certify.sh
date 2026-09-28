@@ -90,6 +90,13 @@ step enforce-suite    "" bash -c "cd '$LO' && npx vitest run packages/shared/lib
 step audit            "" python3 precommit_gate.py
 step injection-reach  "" python3 tools/injection_reach.py
 
+# DOES EVERY NATIVE ASSEMBLER READ THE SOURCE IT CLAIMS TO? The sibling
+# question to injection-reach, and it belongs HERE rather than in the self-test:
+# its injections are on disk, and a disk case cannot overlap a forked audit --
+# it forces a barrier. The self-test runs in parallel and takes ~20 minutes;
+# a barrier per assembler would serialise it into hours.
+step assembler-reach  "" python3 tools/assembler_reach.py
+
 if [ "$LEVEL" != "full" ]; then
   say ""
   say "$PASS passed, $FAIL failed, $SKIP skipped.  GATE ONLY -- this is not a certification."
