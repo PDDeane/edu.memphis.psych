@@ -182,14 +182,18 @@
    "Mutation.__init__",
    "_allowed_roots",
    "_assemble",
+   "_assemble_nocold",
    "_break_one_artifact_program",
    "_budget_path",
    "_cases",
    "_check_budget",
    "_cleared_rules",
+   "_cold",
    "_drop_first_slot",
    "_guard_path",
+   "_mutations",
    "_recover",
+   "_sweep_all",
    "main"
   ],
   "backends.py": [
