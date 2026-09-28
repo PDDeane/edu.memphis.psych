@@ -144,7 +144,7 @@ step run-paper-1x "" bash "$REPO/scorers/shell_scripts/sweep_paper.sh" "$ONE/pap
 if [ -z "${SMOKE_URL:-}" ]; then
   step walkthrough "SMOKE_URL is unset, and the config defaults to :8888 which may be another tree -- start this tree's server and set SMOKE_URL" true
 else
-  step walkthrough "" bash -c "cd '$LO' && SMOKE_URL='$SMOKE_URL' npm run smoke"
+  step walkthrough "" bash -c "cd '$LO' && SMOKE_URL='$SMOKE_URL' CERTIFIED_NS='$NS' npm run smoke"
 fi
 
 # MISSED LLM CALLS ARE FILLED LAST, and it is last on purpose: it has to run
