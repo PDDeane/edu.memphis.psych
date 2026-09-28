@@ -144,7 +144,27 @@ def _recover(paths_to_check) -> list:
 
 
 def _assemble(rule: str, ns: str):
+    """Assemble `rule`'s payload in a COLD runner.
+
+    THE BRIDGE REUSES ONE NODE SERVER -- "started on first use and reused" --
+    and several readers memoise at module scope: `archive.ts` caches the ledger
+    and every runs document it opens. So a payload read after a mutation can be
+    served from a cache populated BEFORE it, and the assembler looks like it is
+    not reading its source when in fact this tool never let it.
+
+    MEASURED: `every_sweep_is_recorded` reported DID NOT MOVE with its artifact
+    mutated in three different ways, until the server was restarted between
+    reads. `sheet_matches_rubric` moved throughout, because rubricSource does
+    not memoise -- which is exactly how a cache-shaped blindness hides: it
+    afflicts some rules and not others, and the ones it spares look like proof
+    the tool works.
+
+    Restarting costs a process start per read. That is the price of the answer
+    meaning anything.
+    """
     import lo_enforce
+
+    lo_enforce._stop_server()
     return lo_enforce.probe("assemble", {"rule": rule, "ns": ns})
 
 
@@ -152,6 +172,22 @@ def _drop_first_slot(src: str) -> str:
     import re
     m = re.search(r"\n\s*<Slot\b[^>]*/>", src)
     return src.replace(m.group(0), "", 1) if m else src
+
+
+def _break_one_artifact_program(src: str) -> str:
+    """Make one recorded cell unrecognisable to `artifactProgram`.
+
+    THE MUTATION HAS TO MOVE WHAT THE PAYLOAD IS BUILT FROM, which for
+    `every_sweep_is_recorded` is the ARCHIVE, not the rubric. Its rows carry an
+    `inspected` count -- candidates whose program is admissible for that column
+    -- and `artifactProgram` decides that by the KEY a result is stored under.
+    Renaming `cell` makes this artifact unattributable, so the count moves.
+    """
+    # EVERY occurrence, not the first. `artifactProgram` returns on the FIRST
+    # result it can classify, so renaming one key leaves the next result still
+    # identifying the file and the payload does not move -- which is exactly
+    # what this tool reported when the case was written that way.
+    return src.replace('"cell"', '"cell_broken"')
 
 
 def _cases():
@@ -182,12 +218,45 @@ def _cases():
     #
     # Cases are therefore added ONE AT A TIME, each shown to move before it is
     # committed, rather than generated in bulk from a file list.
+    import glob
+    import paths as _p
+
     staged = RC.staged_path()
-    return [
+    cases = [
         # SLOT KEYS ARE LITERALLY THIS RULE'S SUBJECT: it compares the sheet's
         # keys against the staged rubric's, so removing one must move it.
         ("sheet_matches_rubric", staged, _drop_first_slot),
     ]
+    # A DIFFERENT SOURCE ENTIRELY: this rule reads the RUN ARCHIVE. Any recorded
+    # artifact will do, so take the first by name rather than naming one -- a
+    # case that hard-codes an artifact goes stale the next time the archive is
+    # rebuilt, and then reports a blind assembler that is not blind.
+    # THE ARTIFACT HAS TO BE ONE THE PAYLOAD ACTUALLY READS, and that took
+    # three refusals from this tool to get right. The rows are built per JOB
+    # ITEM and match candidates by basename, so an artifact is only counted when
+    # it is named `<item>.runs.json` for an item in JOBS. The first pick was
+    # `_refold_NP/NP.runs.json`, which has no `cell` key at all -- refused for
+    # changing nothing. The second was `c1move/web.runs.json`: it HAS the key,
+    # the mutation applied cleanly, and the payload still did not move, because
+    # `web` is not a job item and nothing ever reads that file.
+    #
+    # Each refusal was the tool working. A case that mutates a file the payload
+    # never opens proves nothing, and would have been recorded as coverage.
+    import measured as _M
+
+    job_items = set(_M._jobs())
+    for cand in sorted(glob.glob(os.path.join(str(_p.OUT), "*", "*.runs.json"))):
+        item = os.path.basename(cand)[: -len(".runs.json")]
+        if item not in job_items:
+            continue
+        try:
+            if '"cell"' in open(cand, encoding="utf8").read():
+                cases.append(("every_sweep_is_recorded", cand,
+                              _break_one_artifact_program))
+                break
+        except OSError:
+            continue
+    return cases
 
 
 def _cleared_rules() -> set:

@@ -182,6 +182,7 @@
    "Mutation.__init__",
    "_allowed_roots",
    "_assemble",
+   "_break_one_artifact_program",
    "_budget_path",
    "_cases",
    "_check_budget",

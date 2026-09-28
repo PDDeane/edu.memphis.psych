@@ -7246,128 +7246,21 @@ def check_every_sweep_is_recorded() -> list[str]:
     artifact the ledger points at, for the same column, by the program that side
     contracts to. Mtime says exactly that and nothing else.
     """
-    rows = []
-    import json
 
-    import measured as M
-    import paths as P
-
-    out = []
-    for item in sorted(M._jobs()):
-        for side in ("olx", "paper", "paper_opus"):
-            rec = M.entry(item, side)
-            if not rec:
-                continue
-            recorded = M._runs_path(item, side)
-            # DATE THE RUNS, NOT THE FILE. `era.measured_at` says when the
-            # grader ran; mtime says when someone last wrote the file, and for a
-            # pooled or folded artifact those are different dates. Preferring
-            # mtime made `pooled_paper` -- an assembly containing a FAILED
-            # cell-fill -- look newer than the clean measurement it superseded.
-            # Fall back to mtime only when there is no stamp, and say so.
-            floor, floor_dated = 0.0, False
-            if recorded:
-                rp = pathlib.Path(recorded)
-                floor = rp.stat().st_mtime
-                try:
-                    rdoc = jsoncache.load(rp)
-                    at = ((rdoc.get("era") or {}).get("measured_at") or "")
-                    if at:
-                        import datetime as _dt
-                        floor = _dt.datetime.fromisoformat(at).timestamp()
-                        floor_dated = True
-                except Exception:
-                    pass
-            # THE CONTRACT IS A PAIR, (shape, model), and comparing only the
-            # shape advised recording an OPUS artifact into the `paper` column:
-            # `pooled_paper_opus` has the right shape and the wrong model, and
-            # `--record` would refuse it on the same contract. Decision 11.3
-            # excludes paper_opus from acceptance outright, so the advice was
-            # not merely useless -- it pointed at work that must not be done.
-            _, want_model = M.SIDE_CONTRACT[side]
-            newer, incomplete = [], []
-            # LIVENESS, per side. `considered` counts what the glob returned;
-            # `inspected` counts what PASSED the shape test. A check arm that
-            # examined nothing has not passed -- it has not run. This is
-            # `check_every_check_is_invoked`'s CHECK NEVER RUNS one level down:
-            # that reports a verifier registered but never invoked, "it reads as
-            # coverage and enforces nothing", and an ARM can be dead the same way
-            # while the check as a whole looks healthy. This one WAS.
-            considered = inspected = 0
-            for cand in _runs_files(P.OUT, f"*/{item}.runs.json"):
-                considered += 1
-                # THE LIVENESS COUNT IS TAKEN BEFORE THE RECENCY FILTER, and
-                # that position is the whole point. Counting shape-test passes
-                # further down -- after `when <= floor` has dropped everything
-                # older than the recorded artifact -- gives ZERO on a healthy
-                # tree, because normally nothing IS newer. Measured when it was
-                # first written that way: olx and paper both 0 of 950, which
-                # would have made this fire constantly and be turned off within
-                # the week. What the arm needs to prove is that the SHAPE TEST
-                # accepts something for this side at all; recency is a separate
-                # question the rows already answer.
-                try:
-                    if M._artifact_program(jsoncache.load(cand)) in M.want_shapes(side):
-                        inspected += 1
-                except Exception:
-                    pass
-                try:
-                    doc = jsoncache.load(cand)
-                    at = ((doc.get("era") or {}).get("measured_at") or "")
-                    if at:
-                        import datetime as _dt
-                        when = _dt.datetime.fromisoformat(at).timestamp()
-                    else:
-                        # UNDATEABLE. It cannot show it is newer, so it does not
-                        # get to displace a dated measurement -- and if the
-                        # RECORDED one is itself undated, neither can claim
-                        # recency and mtime is all there is.
-                        if floor_dated:
-                            continue
-                        when = cand.stat().st_mtime
-                    if when <= floor:
-                        continue
-                except Exception:
-                    continue
-                # NOT `!=` AGAINST THE FIELD. `_artifact_program` returns a
-                # STRING; the contract names a TUPLE of admissible programs.
-                # Comparing them directly is always unequal, and the web column
-                # skipped all 147 candidates it was written to inspect while the
-                # paper column passed 26 and looked healthy.
-                # `measured.want_shapes` is the one normalising spelling.
-                if M._artifact_program(doc) not in M.want_shapes(side):
-                    continue
-                got_model = (doc.get("era") or {}).get("model") or ""
-                if want_model not in got_model:
-                    continue        # right shape, wrong model: another column's
-                # A SWEEP WITH FAILED CELLS IS NOT A RECORDABLE SWEEP, and
-                # saying "record this" about one sends the reader at a refusal.
-                # `pooled_paper` is newer than the NP/PP columns and carries six
-                # cells the provider never returned JSON for -- the recorded
-                # 3-run artifacts are CLEAN, so the newer one is worse, not
-                # later. Report it as needing a cell-fill, not as a backlog.
-                dead = sum(1 for run in (doc.get("runs") or [])
-                           for c in (run.get("results") or [])
-                           if c.get("score") is None
-                           and not (c.get("checks") or c.get("verdicts")))
-                (incomplete if dead else newer).append(
-                    f"{cand.parent.name} ({dead} failed cell(s))" if dead
-                    else cand.parent.name)
-            rows.append({"item": item, "side": side,
-                         "recordedOut": rec.get("out"),
-                         "newer": newer, "incomplete": incomplete,
-                         "considered": considered, "inspected": inspected})
-    # PORTED (goal K), AS A SPLIT. Everything above is the ARCHIVE -- which
-    # artifacts exist, when the GRADER ran, what program and model produced
-    # them, how many cells the provider never answered -- and none of it is
-    # reconstructible from the tree. What moves is the judgement at the end: a
-    # newer CLEAN sweep is a backlog item, a newer sweep with FAILED CELLS is a
-    # cell-fill and not one, and telling a reader to record the second sends
-    # them at a refusal.
+    # SELF-ASSEMBLED (goal K, E63). The runner reads the archive itself --
+    # archive.ts carries the ledger, the runs documents, the era stamps and the
+    # both-layout walk -- and the payload was COMPARED against the one python
+    # sent before this fetch was deleted: 53 rows, 26 olx / 26 paper / 1
+    # paper_opus, every row identical, liveness counters included.
+    #
+    # It carries an assembler-reach case, and that case took three refusals to
+    # write: the artifact it mutates has to be one the payload actually reads,
+    # which means named `<item>.runs.json` for an item in JOBS. Two earlier
+    # picks mutated files nothing opens and would have been recorded as
+    # coverage while proving nothing.
     import lo_enforce
 
-    return lo_enforce.run("every_sweep_is_recorded", {"rows": rows})
-
+    return lo_enforce.run("every_sweep_is_recorded", None)
 
 
 def check_web_code_neutrality_is_verified() -> list[str]:
