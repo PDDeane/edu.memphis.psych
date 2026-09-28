@@ -1598,10 +1598,39 @@ SIDE_CONTRACT = {
     # THE GUARD THIS RELAXES IS NOT RELAXED FOR PAPER. `rubric_python` still
     # cannot enter a web column: it scores a different input by a different
     # ledger, which is the mislabelling this contract was written to stop.
+    # THE SHAPE IS UNIFORM: a TUPLE of programs, even where there is only one.
+    # It was POLYMORPHIC -- a tuple for the web column, a bare string for the
+    # paper ones -- and that is what hid a live defect for as long as it lived.
+    # `enforcement.check_every_sweep_is_recorded` compared the STRING
+    # `_artifact_program(doc)` returns against this field with `!=`. For a paper
+    # column that is string-vs-string and works; for the web column it is
+    # string-vs-TUPLE, always unequal, so every candidate was skipped and the
+    # web half of that check inspected NOTHING. Measured over six items before
+    # the fix: web PASSED=0 SKIPPED=147, paper PASSED=26.
+    #
+    # A uniform shape makes that same wrong line fail on ALL THREE columns at
+    # once, which is how it would have been caught the day it was written. The
+    # polymorphism did not cause the bug; it concealed it.
     "olx":        (("olx_app", "olx_python"), "gpt-5-mini"),
-    "paper":      ("rubric_python", "gpt-5-mini"),
-    "paper_opus": ("rubric_python", "opus"),
+    "paper":      (("rubric_python",), "gpt-5-mini"),
+    "paper_opus": (("rubric_python",), "opus"),
 }
+
+
+def want_shapes(side: str) -> tuple:
+    """The artifact programs that may write `side`.
+
+    ONE SPELLING FOR THREE CALLERS, which is the point. Each normalised this
+    field for itself and they did not agree: `web_sides()` wrote
+    `set(prog if isinstance(prog, tuple) else (prog,))`, `_check_side_contract`
+    wrote `((want_shape,) if isinstance(want_shape, str) else tuple(...))`, and
+    `enforcement.py` wrote a bare `!=`, which was simply wrong.
+
+    Still tolerant of a bare string, so the accessor keeps answering correctly
+    if the table is ever edited back toward the old shape.
+    """
+    want_shape, _model = SIDE_CONTRACT[side]
+    return (want_shape,) if isinstance(want_shape, str) else tuple(want_shape)
 
 
 # WHICH SIDES ARE THE WEB, AND WHICH THE PAPER -- DERIVED, never listed.
@@ -1622,9 +1651,8 @@ WEB_PROGRAMS = ("olx_app", "olx_python")
 
 def web_sides() -> tuple:
     """The columns an ENGINE-side reader can account for."""
-    return tuple(s for s, (prog, _m) in SIDE_CONTRACT.items()
-                 if set(prog if isinstance(prog, tuple) else (prog,))
-                 <= set(WEB_PROGRAMS))
+    return tuple(s for s in SIDE_CONTRACT
+                 if set(want_shapes(s)) <= set(WEB_PROGRAMS))
 
 
 def paper_sides() -> tuple:
@@ -1700,14 +1728,14 @@ def _check_side_contract(side: str, doc: dict, runs_path: str) -> list[str]:
     got_model = (era.get("model") or "").strip()
     got_shape = _artifact_program(doc)
     out = []
-    want_shapes = ((want_shape,) if isinstance(want_shape, str) else tuple(want_shape))
-    if got_shape and got_shape not in want_shapes:
+    admissible = want_shapes(side)
+    if got_shape and got_shape not in admissible:
         was = {"olx_app": "agreement_app.py (the OLX prompt, scored by the shipped grader)",
                "olx_python": "agreement.py (the OLX prompt, scored in Python)",
                "rubric_python": "score.py (the RUBRIC prompt, scored in Python)"}
         out.append(
             f"side {side!r} must be recorded from "
-            f"{' or '.join(was[w] for w in want_shapes)}, but "
+            f"{' or '.join(was[w] for w in admissible)}, but "
             f"{runs_path} was written by {was[got_shape]} (results are keyed "
             f"{'`cell`' if got_shape == 'olx_app' else '`participant_id`'})")
     if not got_model:

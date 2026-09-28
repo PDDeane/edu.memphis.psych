@@ -7284,9 +7284,33 @@ def check_every_sweep_is_recorded() -> list[str]:
             # `--record` would refuse it on the same contract. Decision 11.3
             # excludes paper_opus from acceptance outright, so the advice was
             # not merely useless -- it pointed at work that must not be done.
-            want_shape, want_model = M.SIDE_CONTRACT[side]
+            _, want_model = M.SIDE_CONTRACT[side]
             newer, incomplete = [], []
+            # LIVENESS, per side. `considered` counts what the glob returned;
+            # `inspected` counts what PASSED the shape test. A check arm that
+            # examined nothing has not passed -- it has not run. This is
+            # `check_every_check_is_invoked`'s CHECK NEVER RUNS one level down:
+            # that reports a verifier registered but never invoked, "it reads as
+            # coverage and enforces nothing", and an ARM can be dead the same way
+            # while the check as a whole looks healthy. This one WAS.
+            considered = inspected = 0
             for cand in _runs_files(P.OUT, f"*/{item}.runs.json"):
+                considered += 1
+                # THE LIVENESS COUNT IS TAKEN BEFORE THE RECENCY FILTER, and
+                # that position is the whole point. Counting shape-test passes
+                # further down -- after `when <= floor` has dropped everything
+                # older than the recorded artifact -- gives ZERO on a healthy
+                # tree, because normally nothing IS newer. Measured when it was
+                # first written that way: olx and paper both 0 of 950, which
+                # would have made this fire constantly and be turned off within
+                # the week. What the arm needs to prove is that the SHAPE TEST
+                # accepts something for this side at all; recency is a separate
+                # question the rows already answer.
+                try:
+                    if M._artifact_program(jsoncache.load(cand)) in M.want_shapes(side):
+                        inspected += 1
+                except Exception:
+                    pass
                 try:
                     doc = jsoncache.load(cand)
                     at = ((doc.get("era") or {}).get("measured_at") or "")
@@ -7305,7 +7329,13 @@ def check_every_sweep_is_recorded() -> list[str]:
                         continue
                 except Exception:
                     continue
-                if M._artifact_program(doc) != want_shape:
+                # NOT `!=` AGAINST THE FIELD. `_artifact_program` returns a
+                # STRING; the contract names a TUPLE of admissible programs.
+                # Comparing them directly is always unequal, and the web column
+                # skipped all 147 candidates it was written to inspect while the
+                # paper column passed 26 and looked healthy.
+                # `measured.want_shapes` is the one normalising spelling.
+                if M._artifact_program(doc) not in M.want_shapes(side):
                     continue
                 got_model = (doc.get("era") or {}).get("model") or ""
                 if want_model not in got_model:
@@ -7325,7 +7355,8 @@ def check_every_sweep_is_recorded() -> list[str]:
                     else cand.parent.name)
             rows.append({"item": item, "side": side,
                          "recordedOut": rec.get("out"),
-                         "newer": newer, "incomplete": incomplete})
+                         "newer": newer, "incomplete": incomplete,
+                         "considered": considered, "inspected": inspected})
     # PORTED (goal K), AS A SPLIT. Everything above is the ARCHIVE -- which
     # artifacts exist, when the GRADER ran, what program and model produced
     # them, how many cells the provider never answered -- and none of it is
