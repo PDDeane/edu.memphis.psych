@@ -14781,60 +14781,20 @@ def check_sheet_matches_the_rubric_it_names() -> list[str]:
     an empty result comes to look like a clean one.
     """
 
-    # PORTED (goal K). Two projections of one definition, compared; the
-    # judgement is generic and the projections are this course's.
+    # SELF-ASSEMBLED (goal K, E63). The runner builds this payload from the same
+    # course records python used to read, and the two were COMPARED before this
+    # fetch was deleted: 23 rows, `rubricError` None on both, every row byte
+    # identical -- and the rubric half identical to `rubric_component.load()`'s
+    # keys across all 26 items, the 3 slotless ones included.
     #
-    # EVERY FAILURE TRAVELS AS DATA rather than as an early return, for the
-    # reason this function's own history records: an item whose action cannot be
-    # loaded is a FINDING, because a `continue` that swallows the error makes a
-    # check that cannot fail. The same one level up -- an unstaged rubric is
-    # reported, since an unbuilt artifact is not evidence that the two agree.
+    # PROVEN ON FIRING DATA, which is the half that agreement at rest cannot
+    # supply: with one `<Slot>` removed from a COPY of the staged rubric, both
+    # readers moved identically and the rule returned exactly one finding naming
+    # the dropped key. Every rule here returns [] on today's tree, so "the two
+    # agree" would otherwise have been agreement at zero.
     import lo_enforce
 
-    try:
-        import agreement as A
-        import olx_prompts as O
-        import rubric_component as RC
-    except Exception as exc:                            # pragma: no cover
-        return [f"cannot compare the sheet against the rubric: "
-                f"{type(exc).__name__}: {exc}"]
-    try:
-        rubric = RC.load()
-    except FileNotFoundError:
-        return lo_enforce.run("sheet_matches_rubric", {"rubricError": {
-            "kind": "unstaged",
-            "detail": f"the rubric component has not been staged "
-                      f"({RC.staged_path()}); run `npm run build:stage-content` "
-                      f"-- an unbuilt artifact is not evidence that the sheet "
-                      f"and the rubric agree"}, "items": []})
-    except Exception as exc:
-        return lo_enforce.run("sheet_matches_rubric", {"rubricError": {
-            "kind": "unparsable",
-            "detail": f"the staged rubric component will not parse: "
-                      f"{type(exc).__name__}: {exc}"}, "items": []})
-
-    items = []
-    for item in sorted(O.ACTION):
-        row = {"item": item}
-        try:
-            act = A.load_action(_p7.handout_olx(O.FORM[item]), O.ACTION[item])
-        except Exception as exc:
-            row["error"] = f"{type(exc).__name__}: {exc}"
-            items.append(row)
-            continue
-        named = act.get("rubric_def")
-        row["rubricDef"] = named
-        if named:
-            entry = rubric.get(named)
-            row["entryExists"] = entry is not None
-            if entry is not None:
-                row["sheetKeys"] = sorted({s.get("key") for s in (act.get("slots") or [])
-                                           if isinstance(s, dict) and s.get("key")})
-                row["rubricKeys"] = sorted({s.get("key") for s in entry.get("slots", [])
-                                            if s.get("key")})
-        items.append(row)
-    return lo_enforce.run("sheet_matches_rubric",
-                          {"rubricError": None, "items": items})
+    return lo_enforce.run("sheet_matches_rubric", None)
 
 
 def check_the_course_links_the_rubric_and_every_form() -> list[str]:
