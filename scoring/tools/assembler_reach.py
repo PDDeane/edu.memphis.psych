@@ -28,6 +28,7 @@ WHAT IT PROVES, AND WHAT IT DOES NOT.
 
 import json
 import os
+import re
 import shutil
 import sys
 
@@ -116,6 +117,32 @@ class Mutation:
         return False
 
 
+def _recover(paths_to_check) -> list:
+    """Restore anything a KILLED earlier run left mutated, before doing anything.
+
+    `Mutation.__exit__` restores on exceptions, but it cannot run at all if the
+    process is killed -- a timeout, a Ctrl-C, an OOM. THAT IS NOT HYPOTHETICAL:
+    a throwaway coverage probe with the same `finally` shape was killed by a
+    two-minute timeout on 2026-09-28 and left the authored rubric mutated with
+    its backup beside it. The tree was recovered by hand from that backup.
+
+    So the backup file is the RECOVERY RECORD, not just an implementation
+    detail: if one exists at startup, a previous run died holding a mutation,
+    and the right first act is to put the file back -- mtime included, since the
+    backup was copied with metadata.
+    """
+    restored = []
+    for path in paths_to_check:
+        bak = path + ".assembler_reach.bak"
+        if os.path.exists(bak):
+            st = os.stat(bak)
+            shutil.copy2(bak, path)
+            os.utime(path, (st.st_atime, st.st_mtime))
+            os.remove(bak)
+            restored.append(path)
+    return restored
+
+
 def _assemble(rule: str, ns: str):
     import lo_enforce
     return lo_enforce.probe("assemble", {"rule": rule, "ns": ns})
@@ -163,6 +190,71 @@ def _cases():
     ]
 
 
+def _cleared_rules() -> set:
+    """The rules lo-blocks has cleared for self-assembly.
+
+    STRIP `//` COMMENT LINES BEFORE SCRAPING. The block carries prose, and that
+    prose quotes identifiers: a scan that did not strip comments once read the
+    SLOT KEY `link_c2` out of a comment and reported it as a cleared rule with
+    no assembler -- a defect that did not exist.
+    """
+    import paths
+
+    src = (paths.LO / "packages/shared/lib/llm/enforce/native.ts").read_text(
+        encoding="utf8")
+    m = re.search(r"SELF_ASSEMBLING[^=]*=\s*new Set\(\[(.*?)\n\]\)", src, re.S)
+    if not m:
+        raise SystemExit("assembler_reach: SELF_ASSEMBLING not found in native.ts")
+    code = "\n".join(l for l in m.group(1).splitlines()
+                     if not l.strip().startswith("//"))
+    return set(re.findall(r"'([a-z_0-9]+)'", code))
+
+
+def _budget_path():
+    import paths
+
+    return paths.SCORING / "metadata" / "ASSEMBLER_REACH_BUDGET.json"
+
+
+def _check_budget(covered: set) -> list:
+    """Uncovered cleared rules may only DECREASE.
+
+    A RATCHET, not a pass/fail line (QUALITY_CONTROL §5: every declaration table
+    needs one, or its entries outlive their reason). 74 of 75 cleared rules have
+    no case today, and failing on that would put the tool straight into the set
+    of things people switch off. What must not happen is the number GROWING: a
+    rule cleared for self-assembly from now on arrives with a case, or the
+    budget refuses it.
+    """
+    cleared = _cleared_rules()
+    uncovered = sorted(cleared - covered)
+    path = _budget_path()
+    try:
+        budget = json.loads(path.read_text(encoding="utf8"))["uncovered"]
+    except Exception:
+        budget = None
+    out = []
+    if budget is None:
+        path.write_text(json.dumps({"uncovered": len(uncovered),
+                                    "rules": uncovered}, indent=1) + "\n",
+                        encoding="utf8")
+        print(f"  budget written: {len(uncovered)} cleared rule(s) without a case")
+    elif len(uncovered) > budget:
+        new = sorted(set(uncovered) - set(json.loads(
+            path.read_text(encoding="utf8")).get("rules", [])))
+        out.append(
+            f"{len(uncovered)} cleared rule(s) have no assembler-reach case, up "
+            f"from {budget}. A rule cleared for self-assembly must arrive with a "
+            f"case showing its assembler reads its source: {', '.join(new) or '?'}")
+    elif len(uncovered) < budget:
+        path.write_text(json.dumps({"uncovered": len(uncovered),
+                                    "rules": uncovered}, indent=1) + "\n",
+                        encoding="utf8")
+        print(f"  budget TIGHTENED: {budget} -> {len(uncovered)} uncovered")
+    print(f"  coverage: {len(covered)} of {len(cleared)} cleared rule(s) have a case")
+    return out
+
+
 def main() -> int:
     # `paths` FIRST AND ON ITS OWN. It is what puts the general-scorer directory
     # on sys.path, and `olx_prompts` lives there. injection_reach.py carries the
@@ -175,8 +267,16 @@ def main() -> int:
 
     import coursedata
     ns = coursedata.course_id()
+
+    cases = _cases()
+    # RECOVER FIRST, ALWAYS. A killed run leaves a mutated tree and a backup;
+    # every later reader of that file -- including this tool's own baseline --
+    # would otherwise measure the mutation as if it were the source.
+    for path in _recover([c[1] for c in cases]):
+        print(f"  RECOVERED {path} from a previous run that was killed mid-mutation")
+
     blind, ran = [], 0
-    for rule, path, transform in _cases():
+    for rule, path, transform in cases:
         try:
             before = json.dumps(_assemble(rule, ns), sort_keys=True)
         except Exception as exc:
@@ -196,6 +296,11 @@ def main() -> int:
             blind.append(rule)
 
     print()
+    over = _check_budget({c[0] for c in cases} - set(blind))
+    for line in over:
+        print(f"  {line}")
+    if over:
+        return 1
     if blind:
         print(f"{len(blind)} assembler(s) did not move when their source "
               f"changed: {', '.join(blind)}")

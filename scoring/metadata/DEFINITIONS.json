@@ -182,9 +182,13 @@
    "Mutation.__init__",
    "_allowed_roots",
    "_assemble",
+   "_budget_path",
    "_cases",
+   "_check_budget",
+   "_cleared_rules",
    "_drop_first_slot",
    "_guard_path",
+   "_recover",
    "main"
   ],
   "backends.py": [
