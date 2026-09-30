@@ -75,6 +75,20 @@ say "GATE"
 step editguard        "" python3 tools/editguard.py
 step tsc              "" bash -c "cd '$LO' && npx tsc --noEmit -p packages/shared"
 step enforce-suite    "" bash -c "cd '$LO' && npx vitest run packages/shared/lib/llm/enforce/enforce.test.ts"
+
+# THE TYPESCRIPT BUILD AUDIT, and it is here because of what it caught. It
+# reports STALENESS -- ".stage/content is 49h older than the newest .olx" -- and
+# staleness is not cosmetic: a sweep driven against a stale stage scores content
+# the tree no longer holds, and every number it produces looks healthy. On
+# 2026-09-30 the handouts and rubric had been edited a day after a passing
+# certification, and nothing in that certification would have noticed.
+#
+# IT IS THE ENGINE'S OWN CHECK, not a python mirror of one. `no_unresolved_
+# reference_reaches_the_page` lives in lo-blocks and reads the built artifacts
+# directly; running it here means the certification asks the side that KNOWS.
+# It fails on regressions against a recorded baseline, so the standing backlog
+# does not block a run while a new finding does.
+step build-audit      "" bash -c "cd '$LO' && ./sandbox.sh ./node_modules/.bin/tsx packages/shared/scripts/auditContent.ts"
 # THE AUDIT IS READ BY THE PREPARED CLASSIFIER, NOT BY ITS EXIT CODE.
 # `precommit_gate.py` is the thing that already answers "is this committable",
 # and it answers it correctly in a way a shell test cannot: `print_enforcement`
