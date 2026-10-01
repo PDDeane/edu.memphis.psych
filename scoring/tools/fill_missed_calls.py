@@ -25,6 +25,7 @@ One pass, then the truth.
 import glob
 import json
 import os
+import re
 import subprocess
 import sys
 
@@ -42,6 +43,43 @@ def _missed(cell: dict) -> bool:
                                                 or cell.get("score") is not None):
         return True
     return False
+
+
+def _paper_missed(item: dict) -> bool:
+    """A paper item whose call did not come back.
+
+    THE PAPER SHAPE IS NOT THE WEB SHAPE, which is the whole reason this
+    function exists separately. score.py writes one `participant_NNN.json` per
+    participant per handout, each holding an `items` array; there is no `cell`,
+    no `ok`, and no `status`. A missed call shows up as a null `score`, usually
+    with an `error` like "no JSON object in output: ''" and `escalate: true`.
+    """
+    return item.get("score") is None or bool(item.get("error"))
+
+
+def scan_paper(paper_dir: str) -> dict:
+    """-> {handout: [(participant, item_id), ...]} for calls that did not return.
+
+    KEYED BY HANDOUT because that is the unit score.py re-runs: it scores a
+    whole handout per invocation, so a refill re-runs `--handout N`, exactly as
+    the web side re-runs an item.
+    """
+    out: dict = {}
+    pat = re.compile(r"(?:^|/)r(\d+)/h(\d+)/participant_(\d+)\.json$")
+    for path in sorted(glob.glob(os.path.join(
+            paper_dir, "r*", "h*", "participant_*.json"))):
+        m = pat.search(path)
+        if not m:
+            continue
+        run, handout, pid = m.group(1), m.group(2), m.group(3)
+        try:
+            doc = json.load(open(path, encoding="utf8"))
+        except Exception:
+            continue
+        for item in (doc.get("items") or []):
+            if _paper_missed(item):
+                out.setdefault((run, handout), []).append((pid, item.get("item_id")))
+    return out
 
 
 def scan(web_dir: str) -> dict:
@@ -69,11 +107,32 @@ def main() -> int:
         print(f"  no web sweep at {web}; nothing to fill")
         return 0
 
+    paper = os.path.join(one, "paper")
     missed = scan(web)
+    pmissed = scan_paper(paper) if os.path.isdir(paper) else {}
     total = sum(len(v) for v in missed.values())
-    if not missed:
-        print("  0 missed LLM call(s); the sweep is complete")
+    ptotal = sum(len(v) for v in pmissed.values())
+
+    # BOTH SIDES, and the paper half was missing until 2026-09-30. This scanned
+    # only `one-run/web` and reported "the sweep is complete" while two paper
+    # item-scores of 520 had come back with no score at all, one of them
+    # carrying `no JSON object in output`. A step written to stop a denominator
+    # shrinking quietly was itself blind to an entire side.
+    if pmissed:
+        print(f"  {ptotal} missed paper call(s) across "
+              f"{len(pmissed)} handout-run(s):")
+        for (run, handout), cells in sorted(pmissed.items()):
+            names = ", ".join(f"p{p}/{i}" for p, i in cells[:6])
+            print(f"    r{run} h{handout}: {len(cells)} -- {names}")
+        print("  Re-run those handouts through sweep_paper.sh and re-fold "
+              "before recording: score.py scores a whole handout per "
+              "invocation, so the handout is the unit to refill.")
+
+    if not missed and not pmissed:
+        print("  0 missed LLM call(s) on either side; the sweep is complete")
         return 0
+    if not missed:
+        return 1
 
     print(f"  {total} missed call(s) across {len(missed)} item(s): "
           f"{', '.join(sorted(missed))}")

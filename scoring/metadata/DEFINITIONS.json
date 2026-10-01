@@ -1028,8 +1028,10 @@
   ],
   "fill_missed_calls.py": [
    "_missed",
+   "_paper_missed",
    "main",
-   "scan"
+   "scan",
+   "scan_paper"
   ],
   "fixture_edits.py": [
    "HERE",

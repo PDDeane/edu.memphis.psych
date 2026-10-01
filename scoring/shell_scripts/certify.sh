@@ -148,6 +148,22 @@ else
 fi
 step run-paper-1x "" bash "$REPO/scorers/shell_scripts/sweep_paper.sh" "$ONE/paper" 1 lo
 
+# FOLD THE PAPER SWEEP, BUT DO NOT RECORD IT. score.py writes one file per
+# (run, handout, participant); every downstream reader expects the runs shape
+# the other two scorers emit, and without the fold the third scorer cannot be
+# read at all. Folding makes this run legible on disk and lets
+# `check_every_sweep_is_recorded` see it for what it is -- an artifact newer
+# than the one the ledger points at.
+#
+# IT STOPS SHORT OF THE LEDGER ON PURPOSE. This sweep is RUNS=1, and this
+# script says two screens up that such a number "should not be quoted": one
+# draw per cell cannot separate a real difference from sampling. `--record` is
+# read-modify-write on MEASURED.json, whose headline is a per-cell MEDIAN, so
+# recording a single draw would put a number into the ledger that every reader
+# of `_runs_doc` would then treat as a measurement. Record from a >=3-run sweep,
+# deliberately, not as a side effect of certifying.
+step fold-paper   "" python3 paper_runs.py "$ONE/paper" "$ONE/paper-folded" gpt-5-mini lo
+
 # EVERY FORM THE ACTIVE RUBRIC CARRIES, walked in a real browser. The smoke
 # config's own note: "all-activities test visits every page serially".
 #
